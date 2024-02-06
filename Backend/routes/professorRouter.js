@@ -1,6 +1,7 @@
 const professorController = require("../controllers/professorController.js");
 const shopController = require("../controllers/shopController");
 const attendanceController = require("../controllers/attendanceController.js");
+
 const {
   authenticateProfToken,
   authenticateStudToken,
@@ -30,6 +31,7 @@ router.post(
   authenticateProfToken,
   shopController.createShopItem
 );
+
 router.get("/getItems", authenticateProfToken, shopController.getShopItems);
 
 router.put(
@@ -51,7 +53,6 @@ router.get(
 );
 
 //Subject
-
 router.post(
   "/createSubject",
   authenticateProfToken,
@@ -110,6 +111,12 @@ router.get(
   "/getAttendance/:class_id",
   authenticateProfToken,
   attendanceController.getAttendance
+);
+
+router.get(
+  "/getStudentEntry/:subject_id",
+  authenticateProfToken,
+  attendanceController.getStudentEntry
 );
 
 module.exports = router;

@@ -6,7 +6,7 @@ const router = require("express").Router();
 router.post("/registerStudent", studentController.registerStudent);
 router.post("/loginStudent", studentController.loginStudent);
 router.get(
-  "/getStudent/",
+  "/getStudent",
   authenticateStudToken,
   studentController.getStudentProfile
 );

@@ -5,6 +5,8 @@ const Subject = db.subjects;
 const Class = db.classes;
 const Student = db.students;
 const Attendance = db.attendances;
+
+const { Sequelize } = require("sequelize");
 //Subject
 const createSubject = async (req, res) => {
   try {
@@ -141,6 +143,7 @@ const getClass = async (req, res) => {
         "class_token",
         "class_exp",
       ],
+      order: [["createdAt", "DESC"]],
     });
 
     const formattedClasses = classes.map((classInstance) => ({
@@ -308,6 +311,42 @@ const getAttendance = async (req, res) => {
     console.error("Error reading attendance", error);
   }
 };
+
+const getStudentEntry = async (req, res) => {
+  try {
+    const subjectID = parseInt(req.params.subject_id, 10);
+
+    const entry = await Attendance.findAll({
+      attributes: [
+        [
+          Sequelize.fn("COUNT", Sequelize.col("student.stud_id")),
+          "attendanceCount",
+        ],
+        [
+          Sequelize.fn("MAX", Sequelize.col("attendance.createdAt")),
+          "latestAttendedDate",
+        ],
+      ],
+      include: [
+        {
+          model: Student,
+          attributes: ["first_name", "middle_name", "last_name"],
+        },
+        {
+          model: Class,
+          attributes: ["class_id", "class_courseYearSection"],
+          where: { subject_id: subjectID },
+          include: [{ model: Subject, attributes: ["subject_name"] }],
+        },
+      ],
+    });
+    res.status(200).json({ entry });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error reading student entry", error);
+  }
+};
+
 module.exports = {
   createSubject,
   getAllSubject,
@@ -321,4 +360,5 @@ module.exports = {
 
   createAttendance,
   getAttendance,
+  getStudentEntry,
 };

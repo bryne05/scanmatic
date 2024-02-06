@@ -8,16 +8,34 @@ require("dotenv").config();
 //Port
 const PORT = process.env.PORT || 5000;
 
-var corsOptions = {
+const corsOptions = {
   origin: [
     `https://localhost:${PORT}`,
-    "https://192.168.46.48:5173",
-    "https://192.168.100.8:5173",
+    "https://scanmatic.cloud.veluzian.com",
+    "https://llama-assuring-monster.ngrok-free.app",
+    "https://192.168.31.238:5173",
+    "https://192.168.31.238:5173/ZXNzb3IiLCJVfrvonD",
+  ],
+  methods: "GET, PUT, POST, DELETE, OPTIONS",
+  allowedHeaders: [
+    "Content-Type",
+    "studtoken",
+    "proftoken",
+    "ngrok-skip-browser-warning",
   ],
 };
 
-//Middlewares
+// Middlewares
 app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+  } else {
+    next();
+  }
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

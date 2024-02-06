@@ -23,6 +23,7 @@ const readStudentShopItems = async (req, res) => {
         },
       ],
       attributes: ["item_id", "item_name", "item_quantity", "item_price"],
+      order: [["createdAt", "DESC"]],
     });
     const filteredShopItems = shopItem.filter((item) => item.item_quantity > 0);
 
@@ -143,6 +144,7 @@ const getShopItems = async (req, res) => {
         "item_price",
         "item_classSection",
       ],
+      order: [["createdAt", "DESC"]],
     });
 
     res.status(200).json({ shopItem });
