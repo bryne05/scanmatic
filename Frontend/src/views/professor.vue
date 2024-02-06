@@ -3,6 +3,7 @@
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import ProfSubject from "../components/ProfessorSubject.vue";
+
 const router = useRouter();
 
 const logout = async () => {
@@ -16,7 +17,7 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("proftoken");
-    router.push("/");
+    router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };
 </script>
@@ -35,7 +36,7 @@ const logout = async () => {
             </li>
             <li class="nav-item">
               <RouterLink class="nav-link pointer curr" to="/professor/shop">
-                Shop
+              Incentives
               </RouterLink>
             </li>
             <li class="nav-item">
@@ -47,7 +48,7 @@ const logout = async () => {
             <li class="nav-item">
               <a
                 class="nav-link pointer curr"
-                to="/"
+                to="/ZXNzb3IiLCJVfrvonD"
                 style="color: red"
                 @click="logout"
               >
@@ -62,7 +63,7 @@ const logout = async () => {
 
   <div class="mt-2 text">
     <h2 class="text">My Subjects</h2>
-      <ProfSubject />
+    <ProfSubject />
   </div>
 </template>
 

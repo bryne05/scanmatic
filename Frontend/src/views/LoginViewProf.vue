@@ -21,29 +21,29 @@ const submitForm = async () => {
     });
     return;
   }
-  //student login
+
   try {
-    const loginStudent = await axios.post(
-      `${baseURL}/api/student/loginStudent`,
+    // Attempt professor login
+    const loginProfessor = await axios.post(
+      `${baseURL}/api/professor/loginProfessor`,
       {
         username: username.value,
         password: password.value,
       }
     );
 
-    if (loginStudent.status === 200) {
-      const token = loginStudent.data.token;
-      localStorage.setItem("studtoken", token);
+    if (loginProfessor.status === 200) {
+      const token = loginProfessor.data.token;
+      localStorage.setItem("proftoken", token);
       Swal.fire({
         title: "Success!",
-        text: "Student logged in successfully.",
+        text: "Professor logged in successfully.",
         icon: "success",
       });
 
-      router.push({ name: "Student" });
+      router.push({ name: "Professor" });
     }
-  } catch (errorStudent) {
-    // Handle errors for both professor and student logins
+  } catch (errorProfessor) {
     Swal.fire({
       title: "Error!",
       text: "Invalid Username or Password",
@@ -61,7 +61,7 @@ const submitForm = async () => {
       <div class="col-2"></div>
       <div class="col-md-8">
         <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
-        <h4 class="text-center inv">Greetings Students!</h4>
+        <h4 class="text-center inv">Greetings Professors!!</h4>
         <form action="" class="text-start mx-5">
           <label class="fw-bold inv">Username</label>
           <input
@@ -82,7 +82,7 @@ const submitForm = async () => {
           <p class="inv">
             Don't have an account?
             <RouterLink
-              to="/RegisterStudent"
+              to="/RegisterProfessor"
               style="color: black; text-decoration: none; font-weight: bold"
             >
               Register Here</RouterLink

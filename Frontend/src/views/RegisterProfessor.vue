@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from "vue-router";
+import { baseURL } from "../config";
 import axios from "axios";
 import { ref } from "vue";
 import Box from "../components/box.vue";
@@ -31,7 +32,7 @@ const submitForm = async () => {
     }
 
     const RegisterProfessor = await axios.post(
-      "http://localhost:5000/api/professor/registerProfessor",
+      `${baseURL}/api/professor/registerProfessor`,
       {
         first_name: firstName.value,
         middle_name: middleName.value,
@@ -42,7 +43,7 @@ const submitForm = async () => {
     );
     if (RegisterProfessor.status === 200) {
       Swal.fire("Success!", "Registration successful.", "success");
-        router.push("/");
+      router.push("/");
     }
   } catch (error) {
     const errorMessage =
@@ -105,7 +106,7 @@ const submitForm = async () => {
           <p>
             Already have an account?
             <RouterLink
-              to="/"
+              to="/ZXNzb3IiLCJVfrvonD"
               style="color: black; text-decoration: none; font-weight: bold"
             >
               Login Here</RouterLink

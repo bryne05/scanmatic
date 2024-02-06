@@ -12,7 +12,7 @@
             </li>
             <li class="nav-item">
               <RouterLink class="nav-link pointer curr" to="/professor/shop">
-                Shop
+                Incentives
               </RouterLink>
             </li>
             <li class="nav-item">
@@ -24,7 +24,7 @@
             <li class="nav-item">
               <a
                 class="nav-link pointer curr"
-                to="/"
+                to="/ZXNzb3IiLCJVfrvonD"
                 style="color: red"
                 @click="logout"
               >
@@ -65,6 +65,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { QrcodeStream } from "vue-qrcode-reader";
+import { baseURL } from "../config";
 import axios from "axios";
 import Swal from "sweetalert2";
 import Papa from "papaparse";
@@ -87,21 +88,23 @@ const onDetect = async (result) => {
       rawValue.value = result[0].rawValue;
 
       const response = await axios.post(
-        `http://localhost:5000/api/professor/createAttendance/${sessionID.value}`,
+        `${baseURL}/api/professor/createAttendance/${sessionID.value}`,
         {},
         {
           headers: {
             studtoken: rawValue.value,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
       if (response.status === 200) {
         Swal.fire("Success", "Enjoy your class!!", "success");
         const getAttend = await axios.get(
-          `http://localhost:5000/api/professor/getAttendance/${sessionID.value}`,
+          `${baseURL}/api/professor/getAttendance/${sessionID.value}`,
           {
             headers: {
               proftoken: proftoken,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
@@ -121,10 +124,11 @@ const onDetect = async (result) => {
 onMounted(async () => {
   try {
     const getAttend = await axios.get(
-      `http://localhost:5000/api/professor/getAttendance/${sessionID.value}`,
+      `${baseURL}/api/professor/getAttendance/${sessionID.value}`,
       {
         headers: {
           proftoken: proftoken,
+          "ngrok-skip-browser-warning": "69420",
         },
       }
     );
@@ -194,6 +198,20 @@ const generateCSV = () => {
     );
   }
 };
+const logout = async () => {
+  const result = await Swal.fire({
+    title: "Do you want to log out?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "No",
+  });
+
+  if (result.isConfirmed) {
+    localStorage.removeItem("proftoken");
+    router.push("/ZXNzb3IiLCJVfrvonD");
+  }
+};
 </script>
 
 <style scoped>
@@ -201,7 +219,7 @@ const generateCSV = () => {
   color: white;
   margin-top: 0px;
   overflow-y: auto;
-  height: 250px;
+  max-height: 250px;
 }
 .mm {
   margin-top: 25px;
@@ -235,6 +253,22 @@ const generateCSV = () => {
     margin-left: 100px;
     width: 500px;
     height: 400px;
+  }
+}
+
+@media (max-height: 800px) {
+  .mm {
+    margin-top: 45px;
+  }
+  .size {
+    margin-left: 10px;
+    margin-top: 20px;
+    width: 300px;
+    height: 300px;
+  }
+
+  .text {
+    height: 200px;
   }
 }
 </style>

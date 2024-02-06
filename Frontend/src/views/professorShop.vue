@@ -18,7 +18,7 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("proftoken");
-    router.push("/");
+    router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };
 </script>
@@ -38,7 +38,7 @@ const logout = async () => {
               class="nav-link pointer curr active"
               to="/professor/shop"
             >
-              Shop
+           Incentives
             </RouterLink>
           </li>
           <li class="nav-item">
@@ -50,7 +50,7 @@ const logout = async () => {
           <li class="nav-item">
             <a
               class="nav-link pointer curr"
-              to="/"
+              to="/ZXNzb3IiLCJVfrvonD"
               style="color: red"
               @click="logout"
             >
@@ -62,11 +62,11 @@ const logout = async () => {
     </nav>
   </div>
   <div class="mt-2 text">
-    <h2 class="text">My Shop Items</h2>
+    <h2 class="text">My Incentives Inventory</h2>
     <ProfItems />
 
     <RouterLink to="/professorTransaction">
-      <button class="btnsyle mt-4">See all Transactions</button>
+      <button class="btnsyle mt-4">See all Students Redeemed Incentives</button>
     </RouterLink>
   </div>
 </template>

@@ -2,6 +2,8 @@
 import { useRouter } from "vue-router";
 import QrcodeVue from "qrcode.vue";
 import axios from "axios";
+import { baseURL } from "../config";
+
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 const token = localStorage.getItem("studtoken");
@@ -13,14 +15,12 @@ const studentData = ref(null);
 onMounted(async () => {
   // Make the API request when the component is mounted
   try {
-    const getStudent = await axios.get(
-      "http://localhost:5000/api/student/getStudent/",
-      {
-        headers: {
-          studtoken: `${token}`,
-        },
-      }
-    );
+    const getStudent = await axios.get(`${baseURL}/api/student/getStudent`, {
+      headers: {
+        studtoken: `${token}`,
+        "ngrok-skip-browser-warning": "69420",
+      },
+    });
     studentData.value = getStudent.data;
   } catch (error) {
     console.error("Error fetching student data:", error);
@@ -57,7 +57,7 @@ const logout = async () => {
             </li>
             <li class="nav-item">
               <RouterLink class="nav-link pointer curr" to="/student/shop">
-                Shop
+                Incentives
               </RouterLink>
             </li>
             <li class="nav-item">

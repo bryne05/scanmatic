@@ -2,11 +2,11 @@
 <template>
   <div class="mt-5 text">
     <h2 v-if="studentData" class="text-start">
-      My Token: {{ studentData.current_token }}
+      My Points: {{ studentData.current_token }}
     </h2>
   </div>
   <div>
-    <h2>Shop Items</h2>
+    <h2>Incentives Hub</h2>
     <div
       class="row scroll-container"
       :style="{ width: filteredShopItems.length <= 2 ? '80vw' : 'auto' }"
@@ -21,11 +21,14 @@
             <h5 class="card-title">{{ item.item_name }}</h5>
             <p class="card-text">
               Quantity: {{ item.item_quantity }}<br />
-              Price: {{ item.item_price }} Tokens <br>
-              Creator: {{ item.professor.first_name }} {{ item.professor.middle_name }} {{ item.professor.last_name }}
+              Point Value: {{ item.item_price }} Points <br />
+              Creator: {{ item.professor.first_name }}
+              {{ item.professor.middle_name }} {{ item.professor.last_name }}
             </p>
             <!-- Add Buy button -->
-            <button class="btn btn-primary" @click="buyItem(item)">Buy</button>
+            <button class="btn btn-primary" @click="buyItem(item)">
+              Redeem
+            </button>
           </div>
         </div>
       </div>
@@ -36,6 +39,7 @@
 <script setup>
 import axios from "axios";
 import Swal from "sweetalert2";
+import { baseURL } from "../config";
 import { ref, onMounted } from "vue";
 
 const studentData = ref(null);
@@ -46,7 +50,7 @@ const token = localStorage.getItem("studtoken");
 const buyItem = async (item) => {
   try {
     const result = await Swal.fire({
-      title: "Do you want to buy this item?",
+      title: "Would you like to redeem this incentive?",
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Yes",
@@ -56,11 +60,12 @@ const buyItem = async (item) => {
     if (result.isConfirmed) {
       const itemId = item.item_id;
       const buyItems = await axios.post(
-        `http://localhost:5000/api/student/buyStudentShopItems/${itemId}`,
+        `${baseURL}/api/student/buyStudentShopItems/${itemId}`,
         {},
         {
           headers: {
             studtoken: `${token}`,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
@@ -68,25 +73,27 @@ const buyItem = async (item) => {
       if (buyItems.status === 200) {
         Swal.fire({
           icon: "success",
-          title: "Purchased Successfully",
+          title: "Redeemed Successfully",
           showConfirmButton: false,
           timer: 1500,
         });
         const updatedShopItems = await axios.get(
-          "http://localhost:5000/api/student/getStudentShopItems/",
+          `${baseURL}/api/student/getStudentShopItems/`,
           {
             headers: {
               studtoken: `${token}`,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
         filteredShopItems.value = updatedShopItems.data.filteredShopItems;
 
         const getStudent = await axios.get(
-          "http://localhost:5000/api/student/getStudent/",
+          `${baseURL}/api/student/getStudent/`,
           {
             headers: {
               studtoken: `${token}`,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
@@ -97,7 +104,7 @@ const buyItem = async (item) => {
   } catch (error) {
     Swal.fire({
       icon: "error",
-      title: "Insufficient Token",
+      title: "Insufficient Points",
       showConfirmButton: false,
       timer: 1500,
     });
@@ -108,20 +115,19 @@ const buyItem = async (item) => {
 
 onMounted(async () => {
   try {
-    const getStudent = await axios.get(
-      "http://localhost:5000/api/student/getStudent/",
-      {
-        headers: {
-          studtoken: `${token}`,
-        },
-      }
-    );
+    const getStudent = await axios.get(`${baseURL}/api/student/getStudent/`, {
+      headers: {
+        studtoken: `${token}`,
+        "ngrok-skip-browser-warning": "69420",
+      },
+    });
     studentData.value = getStudent.data;
     const getShopItems = await axios.get(
-      "http://localhost:5000/api/student/getStudentShopItems/",
+      `${baseURL}/api/student/getStudentShopItems/`,
       {
         headers: {
           studtoken: `${token}`,
+          "ngrok-skip-browser-warning": "69420",
         },
       }
     );

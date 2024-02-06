@@ -13,11 +13,13 @@ import StudentProfile from "../views/studentProfile.vue";
 import StudentTransaction from "../views/studentTransaction.vue";
 
 //Professor
+import ProfessorLogin from "../views/LoginViewProf.vue";
 import Professor from "../views/professor.vue";
 import ProfessorShop from "../views/professorShop.vue";
 import ProfessorProfile from "../views/professorProfile.vue";
 import ProfessorTransaction from "../views/professorTransaction.vue";
 import ProfessorSession from "../components/professorSession.vue";
+import ProfessorStudentParticipation from "../views/professorStudentParticipation.vue";
 
 const routes = [
   {
@@ -26,9 +28,9 @@ const routes = [
     component: LoginView,
   },
   {
-    path: "/whoAreYou",
-    name: "whoAreYou",
-    component: whoAreYou,
+    path: "/ZXNzb3IiLCJVfrvonD",
+    name: "ProfessorLogin",
+    component: ProfessorLogin,
   },
   {
     path: "/RegisterStudent",
@@ -92,11 +94,16 @@ const routes = [
     component: QrScanner,
     props: true,
   },
-  // Add other routes as needed
+  {
+    path: "/professor/studentParticipantsOverview/:subjectID/:subjectName",
+    name: "ParticipantsOverview",
+    component: ProfessorStudentParticipation,
+    props: true,
+  },
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory("/"),
   routes,
 });
 

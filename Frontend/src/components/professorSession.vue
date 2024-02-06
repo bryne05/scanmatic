@@ -13,7 +13,7 @@
             </li>
             <li class="nav-item">
               <RouterLink class="nav-link pointer curr" to="/professor/shop">
-                Shop
+                Incentives
               </RouterLink>
             </li>
             <li class="nav-item">
@@ -25,7 +25,7 @@
             <li class="nav-item">
               <a
                 class="nav-link pointer curr"
-                to="/"
+                to="/ZXNzb3IiLCJVfrvonD"
                 style="color: red"
                 @click="logout"
               >
@@ -69,7 +69,7 @@
               <h5 class="card-title mb-3">{{ session.createdAt }}</h5>
               <p class="card-text">
                 Course and Year: {{ session.class_courseYearSection }} <br />
-                Token:{{ session.clas_token }}<br />
+                Point Value:{{ session.clas_token }}<br />
                 Exp: {{ session.class_exp }} <br />
               </p>
               <button
@@ -107,7 +107,7 @@
         <div class="modal-content">
           <form>
             <div class="modal-header">
-              <h5 class="modal-title" id="addsession">Add Session</h5>
+              <h5 class="modal-title" id="addsession">Session Details</h5>
 
               <button
                 type="button"
@@ -126,12 +126,12 @@
                   placeholder="Ex BSCS 4A,BSIT 3B, BSEMC 1A"
                 />
 
-                <label class="form-label fw-bold inv">Token</label>
+                <label class="form-label fw-bold inv">Point Value</label>
                 <input
                   v-model="sessionToken"
                   type="number"
                   class="form-control cus-border"
-                  placeholder="Enter token gained by students"
+                  placeholder="Enter the Points gained by students"
                 />
 
                 <label class="form-label fw-bold inv">Experience Point</label>
@@ -176,7 +176,7 @@
           <form>
             <div class="modal-header">
               <h5 class="modal-title" id="updateSession">
-                Update Current Session
+                New Session Details
               </h5>
 
               <button
@@ -201,12 +201,12 @@
                   class="form-control cus-border"
                   placeholder="Enter new Course and Year Ex BSCS 4A,BSIT 3B, BSEMC 1A"
                 />
-                <label class="form-label fw-bold inv">Token</label>
+                <label class="form-label fw-bold inv">Point Value</label>
                 <input
                   v-model="updateSessionToken"
                   type="number"
                   class="form-control cus-border"
-                  placeholder="Enter new Token"
+                  placeholder="Enter new points"
                 />
                 <label class="form-label fw-bold inv">Experience Point</label>
                 <input
@@ -231,7 +231,7 @@
                 class="btn btn-primary"
                 @click="updateSubject"
               >
-                Update item
+                Update
               </button>
             </div>
           </form>
@@ -244,6 +244,8 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { baseURL } from "../config";
+
 import Swal from "sweetalert2";
 import axios from "axios";
 
@@ -299,11 +301,12 @@ const updateSubject = async () => {
       };
 
       const response = await axios.put(
-        `http://localhost:5000/api/professor/updateClass/${subjectID.value}/${currentSessionID.value}`,
+        `${baseURL}/api/professor/updateClass/${subjectID.value}/${currentSessionID.value}`,
         updatedData,
         {
           headers: {
             proftoken: proftoken,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
@@ -315,10 +318,11 @@ const updateSubject = async () => {
         });
 
         const response = await axios.get(
-          `http://localhost:5000/api/professor/getClass/${subjectID.value}`,
+          `${baseURL}/api/professor/getClass/${subjectID.value}`,
           {
             headers: {
               proftoken: proftoken,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
@@ -357,7 +361,7 @@ const addSession = async () => {
   }
   try {
     const response = await axios.post(
-      `http://localhost:5000/api/professor/createClass/${subjectID.value}`,
+      `${baseURL}/api/professor/createClass/${subjectID.value}`,
       {
         class_courseYearSection: sessionCourseYearSection.value,
         class_token: sessionToken.value,
@@ -366,6 +370,7 @@ const addSession = async () => {
       {
         headers: {
           proftoken: `${proftoken}`,
+          "ngrok-skip-browser-warning": "69420",
         },
       }
     );
@@ -374,10 +379,11 @@ const addSession = async () => {
     if (response.status === 200) {
       Swal.fire("Success", "Session has been added successfully!", "success");
       const response = await axios.get(
-        `http://localhost:5000/api/professor/getClass/${subjectID.value}`,
+        `${baseURL}/api/professor/getClass/${subjectID.value}`,
         {
           headers: {
             proftoken: proftoken,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
@@ -400,8 +406,8 @@ const addSession = async () => {
 const deleteSession = async (session) => {
   const sessionID = session.class_id;
   const confirmationResult = await Swal.fire({
-    title: "Delete Shop Item",
-    text: "Are you sure you want to delete this shop item?",
+    title: "Delete Session",
+    text: "Are you sure you want to delete this session item?",
     icon: "question",
     showCancelButton: true,
     confirmButtonText: "Yes",
@@ -411,10 +417,11 @@ const deleteSession = async (session) => {
   if (confirmationResult.isConfirmed) {
     try {
       const response = await axios.delete(
-        `http://localhost:5000/api/professor/deleteClass/${subjectID.value}/${sessionID}`,
+        `${baseURL}/api/professor/deleteClass/${subjectID.value}/${sessionID}`,
         {
           headers: {
             proftoken: proftoken,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
@@ -426,19 +433,20 @@ const deleteSession = async (session) => {
         });
 
         const response = await axios.get(
-          `http://localhost:5000/api/professor/getClass/${subjectID.value}`,
+          `${baseURL}/api/professor/getClass/${subjectID.value}`,
           {
             headers: {
               proftoken: proftoken,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
         professorSession.value = response.data.classes;
       } else {
-        console.error("Failed to delete shop item:", response.statusText);
+        console.error("Failed to delete  shopitem:", response.statusText);
         Swal.fire({
           title: "Error",
-          text: "Failed to delete shop item",
+          text: "Failed to delete session",
           icon: "error",
         });
       }
@@ -446,7 +454,7 @@ const deleteSession = async (session) => {
       console.error("Error deleting shop item:", error);
       Swal.fire({
         title: "Error",
-        text: "An error occurred while updating shop item",
+        text: "An error occurred while updating this session",
         icon: "error",
       });
     }
@@ -456,10 +464,11 @@ const deleteSession = async (session) => {
 onMounted(async () => {
   try {
     const response = await axios.get(
-      `http://localhost:5000/api/professor/getClass/${subjectID.value}`,
+      `${baseURL}/api/professor/getClass/${subjectID.value}`,
       {
         headers: {
           proftoken: proftoken,
+          "ngrok-skip-browser-warning": "69420",
         },
       }
     );
@@ -480,7 +489,7 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("proftoken");
-    router.push("/");
+    router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };
 

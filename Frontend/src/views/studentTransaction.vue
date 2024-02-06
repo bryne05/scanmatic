@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from "vue-router";
+import { baseURL } from "../config";
 import axios from "axios";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
@@ -26,15 +27,17 @@ const studentTransactions = ref([]);
 onMounted(async () => {
   try {
     const response = await axios.get(
-      "http://localhost:5000/api/student/getStudentTransactions",
+      `${baseURL}/api/student/getStudentTransactions`,
       {
         headers: {
           studtoken: `${token}`,
+          "ngrok-skip-browser-warning": "69420",
         },
       }
     );
 
     studentTransactions.value = response.data.studentTransaction;
+   
   } catch (error) {
     console.error("Error fetching student transactions:", error);
   }
@@ -63,7 +66,7 @@ const formatDate = (dateString) => {
                 class="nav-link pointer curr active"
                 to="/student/shop"
               >
-                Shop
+                Incentives
               </RouterLink>
             </li>
             <li class="nav-item">
@@ -92,9 +95,9 @@ const formatDate = (dateString) => {
         <table class="table">
           <thead>
             <tr class="tr">
-              <th scope="col">Item Name</th>
+              <th scope="col">Incentive Label</th>
               <th scope="col">Quantity</th>
-              <th scope="col">Price</th>
+              <th scope="col">Point Value</th>
               <th scope="col">Date</th>
             </tr>
           </thead>

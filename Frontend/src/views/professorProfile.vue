@@ -1,6 +1,7 @@
 <script setup>
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { baseURL } from "../config";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 
@@ -31,11 +32,12 @@ const updateProfessor = async () => {
       };
 
       const response = await axios.put(
-        "http://localhost:5000/api/professor/updateProfessor",
+        `${baseURL}/api/professor/updateProfessor`,
         updatedData,
         {
           headers: {
             proftoken: `${proftoken}`,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
@@ -48,10 +50,11 @@ const updateProfessor = async () => {
         });
 
         const updatedProfessor = await axios.get(
-          "http://localhost:5000/api/professor/getProfessor/",
+          `${baseURL}/api/professor/getProfessor/`,
           {
             headers: {
               proftoken: `${proftoken}`,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
@@ -82,10 +85,11 @@ const updateProfessor = async () => {
 onMounted(async () => {
   try {
     const getProfessor = await axios.get(
-      "http://localhost:5000/api/professor/getProfessor/",
+      `${baseURL}/api/professor/getProfessor/`,
       {
         headers: {
           proftoken: `${proftoken}`,
+          "ngrok-skip-browser-warning": "69420",
         },
       }
     );
@@ -106,7 +110,7 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("proftoken");
-    router.push("/");
+    router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };
 </script>
@@ -125,7 +129,7 @@ const logout = async () => {
             </li>
             <li class="nav-item">
               <RouterLink class="nav-link pointer curr" to="/professor/shop">
-                Shop
+                Incentives
               </RouterLink>
             </li>
             <li class="nav-item">
@@ -140,7 +144,7 @@ const logout = async () => {
             <li class="nav-item">
               <a
                 class="nav-link pointer curr"
-                to="/"
+                to="/ZXNzb3IiLCJVfrvonD"
                 style="color: red"
                 @click="logout"
               >

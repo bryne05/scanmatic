@@ -5,15 +5,12 @@
       <div>
         <ul class="navbar-nav">
           <li class="nav-item">
-            <RouterLink class="nav-link pointer curr" to="/professor">
+            <RouterLink class="nav-link pointer curr active" to="/professor">
               Class
             </RouterLink>
           </li>
           <li class="nav-item">
-            <RouterLink
-              class="nav-link pointer curr active"
-              to="/professor/shop"
-            >
+            <RouterLink class="nav-link pointer curr" to="/professor/shop">
               Incentives
             </RouterLink>
           </li>
@@ -40,29 +37,30 @@
 
   <div class="text">
     <div class="table-responsive">
+      <h1 class="text-center mb-4">Subject: {{ subjectName }}</h1>
       <table class="table">
         <thead>
           <tr class="tr">
+            <th scope="col">Course, Year, and Section</th>
             <th scope="col">First Name</th>
             <th scope="col">Middle Name</th>
             <th scope="col">Last Name</th>
-            <th scope="col">Icentive Label</th>
-            <th scope="col">Point Value</th>
-            <th scope="col">Date</th>
+            <th scope="col">No. of times attended</th>
+            <th scope="col">Latest attended Date</th>
           </tr>
         </thead>
         <tbody>
-          <template v-for="transactionSet in professorTransactions">
-            <tr
-              v-for="transaction in transactionSet"
-              :key="transaction.createdAt"
-            >
-              <td>{{ transaction.student.first_name }}</td>
-              <td>{{ transaction.student.middle_name }}</td>
-              <td>{{ transaction.student.last_name }}</td>
-              <td>{{ transaction.shopitem.item_name }}</td>
-              <td>{{ transaction.shopitem.item_price }}</td>
-              <td>{{ formatDate(transaction.createdAt) }}</td>
+          <template
+            v-for="participantSet in professorParticipants"
+            :key="participantSet.latestAttendedDate"
+          >
+            <tr v-if="participantSet">
+              <td>{{ participantSet.class.class_courseYearSection }}</td>
+              <td>{{ participantSet.student.first_name }}</td>
+              <td>{{ participantSet.student.middle_name }}</td>
+              <td>{{ participantSet.student.last_name }}</td>
+              <td>{{ participantSet.attendanceCount }}</td>
+              <td>{{ formatDate(participantSet.latestAttendedDate) }}</td>
             </tr>
           </template>
         </tbody>
@@ -80,12 +78,15 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 const professorToken = localStorage.getItem("proftoken");
-const professorTransactions = ref([]);
+const professorParticipants = ref([]);
+const props = defineProps(["subjectID", "subjectName"]);
+const subjectID = ref(props.subjectID);
+const subjectName = ref(props.subjectName);
 
 onMounted(async () => {
   try {
     const response = await axios.get(
-      `${baseURL}/api/professor/getProfessorTransaction/`,
+      `${baseURL}/api/professor/getStudentEntry/${subjectID.value}`,
       {
         headers: {
           proftoken: professorToken,
@@ -94,8 +95,8 @@ onMounted(async () => {
       }
     );
 
-    professorTransactions.value = response.data.filteredShopTransactions;
-    console.log(professorTransactions.value);
+    professorParticipants.value = response.data.entry;
+    console.log(professorParticipants.value);
   } catch (error) {
     console.error("Error fetching professor transactions:", error);
   }

@@ -22,7 +22,7 @@
             <h5 class="card-title">{{ item.item_name }}</h5>
             <p class="card-text">
               Quantity: {{ item.item_quantity }}<br />
-              Price: {{ item.item_price }} Tokens <br />
+              Point Value: {{ item.item_price }} Points <br />
               Course and Year: {{ item.item_classSection }}
             </p>
 
@@ -58,7 +58,7 @@
       <div class="modal-content">
         <form>
           <div class="modal-header">
-            <h5 class="modal-title" id="addItem">Add Shop Item</h5>
+            <h5 class="modal-title" id="addItem">Add Incentive</h5>
 
             <button
               type="button"
@@ -69,7 +69,7 @@
           </div>
           <div class="modal-body">
             <div class="col-md-12">
-              <label class="form-label fw-bold inv">Item Name</label>
+              <label class="form-label fw-bold inv">Incentive Label</label>
               <input
                 v-model="itemName"
                 type="text"
@@ -82,16 +82,16 @@
                 v-model="quantity"
                 type="number"
                 class="form-control cus-border"
-                placeholder="Enter quantity of the item"
+                placeholder="Enter quantity of the incentive"
               />
 
-              <label class="form-label fw-bold inv">Price</label>
+              <label class="form-label fw-bold inv">Point value</label>
 
               <input
                 v-model="price"
                 type="number"
                 class="form-control cus-border"
-                placeholder="Enter the price of the item"
+                placeholder="Enter the point value for this incentive"
               />
 
               <label class="form-label fw-bold inv">Course and Year</label>
@@ -136,7 +136,7 @@
       <div class="modal-content">
         <form>
           <div class="modal-header">
-            <h5 class="modal-title" id="updateItem">Update Shop Item</h5>
+            <h5 class="modal-title" id="updateItem">Update Incentive</h5>
 
             <button
               type="button"
@@ -152,7 +152,7 @@
               >
             </h6>
             <div class="col-md-12">
-              <label class="form-label fw-bold inv">Item Name</label>
+              <label class="form-label fw-bold inv">Incentive Label</label>
               <input
                 v-model="updateitemName"
                 type="text"
@@ -165,16 +165,16 @@
                 v-model="updatequantity"
                 type="number"
                 class="form-control cus-border"
-                placeholder="Enter new quantity for this item"
+                placeholder="Enter new quantity for this incentive"
               />
 
-              <label class="form-label fw-bold inv">Price</label>
+              <label class="form-label fw-bold inv">Point Value</label>
 
               <input
                 v-model="updateprice"
                 type="number"
                 class="form-control cus-border"
-                placeholder="Enter new the price for this item"
+                placeholder="Enter new the price for this incentive"
               />
 
               <label class="form-label fw-bold inv">Course and Year</label>
@@ -197,7 +197,7 @@
               Cancel
             </button>
             <button type="button" class="btn btn-primary" @click="updateItem">
-              Update item
+              Update Incentive
             </button>
           </div>
         </form>
@@ -209,6 +209,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { baseURL } from "../config";
+
 import Swal from "sweetalert2";
 
 const proftoken = localStorage.getItem("proftoken");
@@ -243,8 +245,8 @@ const setUpdateItemData = (item) => {
 
 const updateItem = async () => {
   const confirmationResult = await Swal.fire({
-    title: "Update Shop Item",
-    text: "Are you sure you want to update this shop item?",
+    title: "Update incentive",
+    text: "Are you sure you want to update this incentive?",
     icon: "question",
     showCancelButton: true,
     confirmButtonText: "Yes",
@@ -261,26 +263,28 @@ const updateItem = async () => {
       };
 
       const response = await axios.put(
-        `http://localhost:5000/api/professor/updateProfessorShopItem/${currentItemId.value}`,
+        `${baseURL}/api/professor/updateProfessorShopItem/${currentItemId.value}`,
         updatedData,
         {
           headers: {
             proftoken: proftoken,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
       if (response.status === 200) {
         Swal.fire({
           title: "Success",
-          text: "Shop item updated successfully",
+          text: "Incentive updated successfully",
           icon: "success",
         });
 
         const updatedItems = await axios.get(
-          "http://localhost:5000/api/professor/getItems",
+          `${baseURL}/api/professor/getItems`,
           {
             headers: {
               proftoken: `${proftoken}`,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
@@ -295,7 +299,7 @@ const updateItem = async () => {
         console.error("Failed to update shop item:", response.statusText);
         Swal.fire({
           title: "Error",
-          text: "Failed to update shop item",
+          text: "Failed to update incentive",
           icon: "error",
         });
       }
@@ -303,7 +307,7 @@ const updateItem = async () => {
       console.error("Error updating shop item:", error);
       Swal.fire({
         title: "Error",
-        text: "An error occurred while updating shop item",
+        text: "An error occurred while updating incentive",
         icon: "error",
       });
     }
@@ -318,7 +322,7 @@ const addItem = async () => {
   try {
     // Make a request to the createItems endpoint
     const response = await axios.post(
-      "http://localhost:5000/api/professor/createItems/",
+      `${baseURL}/api/professor/createItems/`,
       {
         item_name: itemName.value,
         item_quantity: quantity.value,
@@ -328,21 +332,20 @@ const addItem = async () => {
       {
         headers: {
           proftoken: `${proftoken}`,
+          "ngrok-skip-browser-warning": "69420",
         },
       }
     );
 
     // Handle success or show a notification
     if (response.status === 200) {
-      Swal.fire("Success", "Item added successfully!", "success");
-      const response = await axios.get(
-        "http://localhost:5000/api/professor/getItems",
-        {
-          headers: {
-            proftoken: `${proftoken}`,
-          },
-        }
-      );
+      Swal.fire("Success", "Incentive added successfully!", "success");
+      const response = await axios.get(` ${baseURL}/api/professor/getItems`, {
+        headers: {
+          proftoken: `${proftoken}`,
+          "ngrok-skip-browser-warning": "69420",
+        },
+      });
       professorShopItems.value = response.data.shopItem;
 
       itemName.value = "";
@@ -350,7 +353,7 @@ const addItem = async () => {
       price.value = "";
       courseYear.value = "";
     } else {
-      Swal.fire("Error", "Failed to add item", "error");
+      Swal.fire("Error", "Failed to add incentive", "error");
     }
   } catch (error) {
     // console.error("Error adding item:", error);
@@ -362,7 +365,7 @@ const deleteItem = async (item) => {
   const itemId = item.item_id;
   const confirmationResult = await Swal.fire({
     title: "Delete Shop Item",
-    text: "Are you sure you want to delete this shop item?",
+    text: "Are you sure you want to delete this incentive?",
     icon: "question",
     showCancelButton: true,
     confirmButtonText: "Yes",
@@ -372,25 +375,28 @@ const deleteItem = async (item) => {
   if (confirmationResult.isConfirmed) {
     try {
       const response = await axios.delete(
-        `http://localhost:5000/api/professor/deleteProfessorShopItem/${itemId}`,
+        `${baseURL}/api/professor/deleteProfessorShopItem/${itemId}`,
         {
           headers: {
             proftoken: proftoken,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
+      
       if (response.status === 200) {
         Swal.fire({
           title: "Success",
-          text: "Shop item Deleted successfully",
+          text: "Incentive Deleted successfully",
           icon: "success",
         });
 
         const updatedItems = await axios.get(
-          "http://localhost:5000/api/professor/getItems",
+          `${baseURL}/api/professor/getItems`,
           {
             headers: {
               proftoken: `${proftoken}`,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
@@ -399,7 +405,7 @@ const deleteItem = async (item) => {
         console.error("Failed to delete shop item:", response.statusText);
         Swal.fire({
           title: "Error",
-          text: "Failed to delete shop item",
+          text: "Failed to delete incentive",
           icon: "error",
         });
       }
@@ -407,7 +413,7 @@ const deleteItem = async (item) => {
       console.error("Error deleting shop item:", error);
       Swal.fire({
         title: "Error",
-        text: "An error occurred while updating shop item",
+        text: "An error occurred while deleting incentive",
         icon: "error",
       });
     }
@@ -416,14 +422,12 @@ const deleteItem = async (item) => {
 
 onMounted(async () => {
   try {
-    const response = await axios.get(
-      "http://localhost:5000/api/professor/getItems",
-      {
-        headers: {
-          proftoken: `${proftoken}`,
-        },
-      }
-    );
+    const response = await axios.get(`${baseURL}/api/professor/getItems`, {
+      headers: {
+        proftoken: `${proftoken}`,
+        "ngrok-skip-browser-warning": "69420",
+      },
+    });
     professorShopItems.value = response.data.shopItem;
   } catch (error) {
     console.error("Error getting professor shop items:", error);

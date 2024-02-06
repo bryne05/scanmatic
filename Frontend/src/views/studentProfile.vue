@@ -13,7 +13,7 @@
             </li>
             <li class="nav-item">
               <RouterLink class="nav-link pointer curr" to="/student/shop">
-                Shop
+                Incentives
               </RouterLink>
             </li>
             <li class="nav-item">
@@ -52,7 +52,7 @@
         <li>Course and Section: {{ studentData.courseYearSection }}</li>
         <li>Level: {{ studentData.current_level }}</li>
         <li>Exp: {{ studentData.current_exp }}</li>
-        <li>Token: {{ studentData.current_token }}</li>
+        <li>Current Points: {{ studentData.current_token }}</li>
       </ul>
       <div class="mt-5 d-flex justify-content-center align-items-center">
         <button
@@ -151,6 +151,8 @@
 
 <script setup>
 import { useRouter } from "vue-router";
+import { baseURL } from "../config";
+
 import axios from "axios";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
@@ -168,14 +170,12 @@ const courseYearSection = ref("");
 onMounted(async () => {
   // Make the API request when the component is mounted
   try {
-    const getStudent = await axios.get(
-      "http://localhost:5000/api/student/getStudent/",
-      {
-        headers: {
-          studtoken: `${token}`,
-        },
-      }
-    );
+    const getStudent = await axios.get(`${baseURL}/api/student/getStudent/`, {
+      headers: {
+        studtoken: `${token}`,
+        "ngrok-skip-browser-warning": "69420",
+      },
+    });
     studentData.value = getStudent.data;
 
     // Check if stud_exp is greater than or equal to 1500
@@ -187,11 +187,12 @@ onMounted(async () => {
       };
 
       const response = await axios.put(
-        "http://localhost:5000/api/student/updateStudent/",
+        `${baseURL}/api/student/updateStudent/`,
         updatedData,
         {
           headers: {
             studtoken: `${token}`,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
@@ -213,10 +214,11 @@ onMounted(async () => {
 
         // Fetch and update the latest student data
         const updatedStudent = await axios.get(
-          "http://localhost:5000/api/student/getStudent/",
+          `${baseURL}/api/student/getStudent/`,
           {
             headers: {
               studtoken: `${token}`,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );
@@ -250,11 +252,12 @@ const updateStudent = async () => {
       };
 
       const response = await axios.put(
-        "http://localhost:5000/api/student/updateStudent/",
+        `${baseURL}/api/student/updateStudent/`,
         updatedData,
         {
           headers: {
             studtoken: `${token}`,
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
@@ -268,10 +271,11 @@ const updateStudent = async () => {
 
         // Fetch and update the latest student data
         const updatedStudent = await axios.get(
-          "http://localhost:5000/api/student/getStudent/",
+          `${baseURL}/api/student/getStudent/`,
           {
             headers: {
               studtoken: `${token}`,
+              "ngrok-skip-browser-warning": "69420",
             },
           }
         );

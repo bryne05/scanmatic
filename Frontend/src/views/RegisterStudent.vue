@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from "vue";
+import { baseURL } from "../config";
+
 import axios from "axios";
 import { RouterLink, useRouter } from "vue-router";
 import Swal from "sweetalert2";
@@ -23,7 +25,7 @@ const submitForm = async () => {
     }
 
     const registerStudent = await axios.post(
-      "http://localhost:5000/api/student/registerStudent",
+      `${baseURL}/api/student/registerStudent`,
       {
         first_name: firstName.value,
         middle_name: middleName.value,
