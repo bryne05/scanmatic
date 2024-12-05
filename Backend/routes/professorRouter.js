@@ -25,6 +25,12 @@ router.put(
   professorController.updateProfessorProfile
 );
 
+router.put(
+  "/updateProfessorPassword",
+  authenticateProfToken,
+  professorController.changeProfessorPassword
+);
+
 //Professor Shop
 router.post(
   "/createItems/",

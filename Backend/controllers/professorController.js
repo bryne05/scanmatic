@@ -19,7 +19,6 @@ const registerProfessor = async (req, res) => {
       middle_name: req.body.middle_name.toUpperCase(),
       last_name: req.body.last_name.toUpperCase(),
     };
-
     //Check username in the database
     const existingUsername = await Professor.findOne({
       where: {
@@ -128,9 +127,30 @@ const updateProfessorProfile = async (req, res) => {
   }
 };
 
+const changeProfessorPassword = async (req, res) => {
+  try {
+    let profID = req.prof_id;
+    const hashPassword = await bcrypt.hash(req.body.password, 10);
+
+    await Professor.update(
+      { password: hashPassword },
+      {
+        where: { prof_id: profID },
+      }
+    );
+
+    res.status(200).json({ message: "Password changed Successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error Updating password", error.message);
+  }
+};
+
 module.exports = {
   registerProfessor,
   loginProfessor,
   updateProfessorProfile,
   getProfessorProfile,
+changeProfessorPassword
+
 };

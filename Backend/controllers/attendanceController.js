@@ -23,6 +23,7 @@ const createSubject = async (req, res) => {
       res.status(400).json({ message: "Subject Already Existing" });
       return;
     }
+
     await Subject.create(data);
     res.status(200).json({ message: "Subject Created Successfully" });
   } catch (error) {
@@ -330,7 +331,12 @@ const getStudentEntry = async (req, res) => {
       include: [
         {
           model: Student,
-          attributes: ["first_name", "middle_name", "last_name"],
+          attributes: [
+            "first_name",
+            "middle_name",
+            "last_name",
+            "courseYearSection",
+          ],
         },
         {
           model: Class,
@@ -339,13 +345,28 @@ const getStudentEntry = async (req, res) => {
           include: [{ model: Subject, attributes: ["subject_name"] }],
         },
       ],
+      group: ["student.stud_id"],
     });
-    res.status(200).json({ entry });
+
+    const courseYearSection = entry[0]?.student?.courseYearSection;
+
+    const numOfClass = await Class.findAll({
+      where: {
+        class_courseYearSection: courseYearSection,
+        subject_id: subjectID,
+      },
+    });
+
+    res.status(200).json({
+      entry,
+      numberOfClasses: numOfClass.length,
+    });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
     console.error("Error reading student entry", error);
   }
 };
+
 
 module.exports = {
   createSubject,

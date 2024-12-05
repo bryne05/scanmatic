@@ -25,6 +25,7 @@ const registerStudent = async (req, res) => {
 
     const hashPassword = await bcrypt.hash(req.body.password, 10);
     let data = {
+      admin_id: 5,
       username: req.body.username,
       password: hashPassword,
       first_name: req.body.first_name.toUpperCase(),
@@ -123,7 +124,6 @@ const getStudentProfile = async (req, res) => {
       ],
     });
 
-    
     if (!student) {
       res.status(404).json({ error: "Student not Found" });
       return;
@@ -158,13 +158,20 @@ const updateStudentProfile = async (req, res) => {
   }
 };
 
-const deleteStudent = async (req, res) => {
+const changeStudentPassword = async (req, res) => {
   try {
-    let studentID = req.params.id;
-    const student = await Student.destroy({ where: { stud_id: studentID } });
-    res.status(200).json({ message: "Student Deleted Successfully" });
+    let studentID = req.stud_id;
+   const hashPassword = await bcrypt.hash(req.body.password, 10);
+
+    
+    await Student.update({password: hashPassword}, {
+      where: { stud_id: studentID },
+    });
+ 
+    res.status(200).json({ message: "Password changed Successfully" });
   } catch (error) {
-    console.error("Error deleting student", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error Updating password", error.message);
   }
 };
 
@@ -172,6 +179,6 @@ module.exports = {
   registerStudent,
   getStudentProfile,
   updateStudentProfile,
-  deleteStudent,
   loginStudent,
+  changeStudentPassword,
 };

@@ -7,12 +7,12 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   dialect: dbConfig.dialect,
   timezone: dbConfig.timezone,
 
-  pool: {
-    max: dbConfig.pool.max,
-    min: dbConfig.pool.min,
-    acquire: dbConfig.pool.acquire,
-    idle: dbConfig.pool.idle,
-  },
+  // pool: {
+  //   max: dbConfig.pool.max,
+  //   min: dbConfig.pool.min,
+  //   acquire: dbConfig.pool.acquire,
+  //   idle: dbConfig.pool.idle,
+  // },
 });
 
 sequelize
@@ -32,6 +32,7 @@ db.sequelize = sequelize;
 //User Table
 db.students = require("./studentsModel.js")(sequelize, DataTypes);
 db.professors = require("./professorsModel.js")(sequelize, DataTypes);
+db.admin = require("./adminModel.js")(sequelize, DataTypes);
 
 //Other Table
 db.shopItems = require("./shopItemsModel.js")(sequelize, DataTypes);
@@ -51,6 +52,19 @@ db.sequelize
   });
 
 //Relationships
+db.admin.hasMany(db.students, {
+  foreignKey: "admin_id",
+});
+db.students.belongsTo(db.admin, {
+  foreignKey: "admin_id",
+});
+
+db.admin.hasMany(db.professors, {
+  foreignKey: "admin_id",
+});
+db.professors.belongsTo(db.admin, {
+  foreignKey: "admin_id",
+});
 
 //Professor and Shop
 db.professors.hasMany(db.shopItems, {

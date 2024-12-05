@@ -15,7 +15,6 @@ router.put(
   authenticateStudToken,
   studentController.updateStudentProfile
 );
-router.delete("/deleteStudent/", studentController.deleteStudent);
 
 //Student Shop
 router.get(
@@ -36,5 +35,10 @@ router.get(
   shopController.getStudentTransaction
 );
 
+router.put(
+  "/updateStudentPassword",
+  authenticateStudToken,
+  studentController.changeStudentPassword
+);
 
 module.exports = router;

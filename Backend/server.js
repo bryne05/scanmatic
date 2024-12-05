@@ -13,8 +13,8 @@ const corsOptions = {
     `https://localhost:${PORT}`,
     "https://scanmatic.cloud.veluzian.com",
     "https://llama-assuring-monster.ngrok-free.app",
-    "https://192.168.31.238:5173",
-    "https://192.168.31.238:5173/ZXNzb3IiLCJVfrvonD",
+    "https://192.168.68.102:5173",
+    "https://192.168.68.102:5173/ZXNzb3IiLCJVfrvonD",
   ],
   methods: "GET, PUT, POST, DELETE, OPTIONS",
   allowedHeaders: [
@@ -42,8 +42,11 @@ app.use(express.urlencoded({ extended: true }));
 //Router
 const studentRouter = require("./routes/studentRouter.js");
 const professorRouter = require("./routes/professorRouter.js");
+const adminRouter = require("./routes/adminRouter.js");
+
 app.use("/api/student", studentRouter);
 app.use("/api/professor", professorRouter);
+app.use("/api/admin", adminRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

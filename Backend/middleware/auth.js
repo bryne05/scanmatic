@@ -1,6 +1,22 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
+const authenticateAdminToken = (req, res, next) => {
+  const token = req.headers.admintoken;
+
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  jwt.verify(token, process.env.TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid token" });
+    }
+    req.admin_id = decoded.admin_id;
+    next();
+  });
+};
+
 const authenticateProfToken = (req, res, next) => {
   const token = req.headers.proftoken;
 
@@ -39,4 +55,5 @@ const authenticateStudToken = (req, res, next) => {
 module.exports = {
   authenticateProfToken,
   authenticateStudToken,
+  authenticateAdminToken,
 };
