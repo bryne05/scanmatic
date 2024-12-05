@@ -38,7 +38,7 @@ const logout = async () => {
               class="nav-link pointer curr active"
               to="/professor/shop"
             >
-           Incentives
+              Incentives
             </RouterLink>
           </li>
           <li class="nav-item">
@@ -66,7 +66,7 @@ const logout = async () => {
     <ProfItems />
 
     <RouterLink to="/professorTransaction">
-      <button class="btnsyle mt-4">See all Students Redeemed Incentives</button>
+      <button class="btnsyle mt-4">Students Incentives Log</button>
     </RouterLink>
   </div>
 </template>

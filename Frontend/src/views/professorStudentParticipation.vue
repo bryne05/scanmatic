@@ -41,7 +41,7 @@
       <table class="table">
         <thead>
           <tr class="tr">
-            <th scope="col">Course, Year, and Section</th>
+            <th scope="col">Program Level</th>
             <th scope="col">First Name</th>
             <th scope="col">Middle Name</th>
             <th scope="col">Last Name</th>
@@ -59,7 +59,9 @@
               <td>{{ participantSet.student.first_name }}</td>
               <td>{{ participantSet.student.middle_name }}</td>
               <td>{{ participantSet.student.last_name }}</td>
-              <td>{{ participantSet.attendanceCount }}</td>
+              <td>
+                {{ participantSet.attendanceCount }} / {{ numberOfClasses }}
+              </td>
               <td>{{ formatDate(participantSet.latestAttendedDate) }}</td>
             </tr>
           </template>
@@ -82,6 +84,7 @@ const professorParticipants = ref([]);
 const props = defineProps(["subjectID", "subjectName"]);
 const subjectID = ref(props.subjectID);
 const subjectName = ref(props.subjectName);
+const numberOfClasses = ref();
 
 onMounted(async () => {
   try {
@@ -96,6 +99,8 @@ onMounted(async () => {
     );
 
     professorParticipants.value = response.data.entry;
+    numberOfClasses.value = response.data.numberOfClasses;
+    console.log("HEYYY", response.data.numberOfClasses);
     console.log(professorParticipants.value);
   } catch (error) {
     console.error("Error fetching professor transactions:", error);

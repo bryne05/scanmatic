@@ -7,9 +7,6 @@ import Swal from "sweetalert2";
 const router = useRouter();
 const token = localStorage.getItem("studtoken");
 
-
-
-
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",
@@ -43,7 +40,7 @@ const logout = async () => {
                 class="nav-link pointer curr active"
                 to="/student/shop"
               >
-              Incentives
+                Incentives
               </RouterLink>
             </li>
             <li class="nav-item">
@@ -73,7 +70,7 @@ const logout = async () => {
       <ShopItems />
     </div>
     <RouterLink to="/student/transaction">
-      <button class="btnsyle mt-4">See all Redeemed Incentives</button>
+      <button class="btnsyle mt-4">Claimed Incentives</button>
     </RouterLink>
   </div>
 </template>
@@ -103,6 +100,4 @@ const logout = async () => {
     width: 250px;
   }
 }
-
-
 </style>

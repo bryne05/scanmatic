@@ -83,12 +83,12 @@ const submitForm = async () => {
             placeholder="Enter your Last Name"
           />
 
-          <label class="fw-bold inv">Course Year and Section</label>
+          <label class="fw-bold inv">Program Level</label>
           <input
             v-model="courseYearSection"
             type="text"
             class="form-control cus-border mb-2"
-            placeholder="Ex BSCS 4A,BSIT 3B, BSEMC 1A"
+            placeholder="Ex BSCS 4A,BSIT 3B, GAS 11A, STEM 12B"
           />
 
           <label class="fw-bold inv">Username</label>

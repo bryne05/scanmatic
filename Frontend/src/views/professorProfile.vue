@@ -12,6 +12,69 @@ const profData = ref(null);
 const firstName = ref("");
 const middleName = ref("");
 const lastName = ref("");
+const newPass = ref("");
+const confirmPass = ref("");
+
+const updatePassword = async () => {
+  if (!newPass.value || !confirmPass.value) {
+    Swal.fire({
+      title: "Error",
+      text: "Please fill in both password fields",
+      icon: "error",
+    });
+    return;
+  }
+
+  const confirmationResult = await Swal.fire({
+    title: "Update Password",
+    text: "Are you sure you want to update your password?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "No",
+  });
+
+  if (confirmationResult.isConfirmed) {
+    if (newPass.value === confirmPass.value) {
+      try {
+        const response = await axios.put(
+          `${baseURL}/api/professor/updateProfessorPassword/`,
+          { password: newPass.value },
+          {
+            headers: {
+              proftoken: `${proftoken}`,
+              "ngrok-skip-browser-warning": "69420",
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          Swal.fire({
+            title: "Success",
+            text: "Password updated successfully",
+            icon: "success",
+          });
+          // Clear the password fields after successful update
+          newPass.value = "";
+          confirmPass.value = "";
+        }
+      } catch (error) {
+        console.error("Error updating password:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Failed to update password. Please try again.",
+          icon: "error",
+        });
+      }
+    } else {
+      Swal.fire({
+        title: "Error",
+        text: "The passwords do not match. Please try again.",
+        icon: "error",
+      });
+    }
+  }
+};
 
 const updateProfessor = async () => {
   const confirmationResult = await Swal.fire({
@@ -82,6 +145,7 @@ const updateProfessor = async () => {
     }
   }
 };
+
 onMounted(async () => {
   try {
     const getProfessor = await axios.get(
@@ -165,13 +229,20 @@ const logout = async () => {
         <li>Middle Name: {{ profData.middle_name }}</li>
         <li>Last Name: {{ profData.last_name }}</li>
       </ul>
-      <div class="mt-5 d-flex justify-content-center align-items-center">
+      <div class="mt-5 d-flex justify-content-center align-items-center flex-column">
         <button
           class="btnsyle"
           data-bs-toggle="modal"
           data-bs-target="#updateProfessor"
         >
           Update Profile
+        </button>
+          <button
+          class="btnsyle2 bg-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#changePassword"
+        >
+          Change Password
         </button>
       </div>
     </div>
@@ -243,6 +314,66 @@ const logout = async () => {
               type="button"
               class="btn btn-primary"
               @click="updateProfessor"
+            >
+              Save changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+    <!-- Change Password -->
+  <div
+    class="modal fade"
+    id="changePassword"
+    tabindex="-1"
+    aria-labelledby="changePassword"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <form>
+          <div class="modal-header">
+            <h5 class="modal-title">Change Password</h5>
+
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="col-md-12">
+              <label class="form-label fw-bold inv">New Password</label>
+              <input
+                v-model="newPass"
+                type="text"
+                class="form-control cus-border"
+                placeholder="Enter new Password"
+              />
+
+              <label class="form-label fw-bold inv">Confirm Password</label>
+              <input
+                v-model="confirmPass"
+                type="text"
+                class="form-control cus-border"
+                placeholder="Confirm new Password"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="updatePassword"
             >
               Save changes
             </button>

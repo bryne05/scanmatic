@@ -49,18 +49,28 @@
         <li>Middle Name: {{ studentData.middle_name }}</li>
         <li>Last Name: {{ studentData.last_name }}</li>
 
-        <li>Course and Section: {{ studentData.courseYearSection }}</li>
+        <li>Program Level: {{ studentData.courseYearSection }}</li>
         <li>Level: {{ studentData.current_level }}</li>
         <li>Exp: {{ studentData.current_exp }}</li>
         <li>Current Points: {{ studentData.current_token }}</li>
       </ul>
-      <div class="mt-5 d-flex justify-content-center align-items-center">
+      <div
+        class="mt-5 d-flex justify-content-center align-items-center flex-column"
+      >
         <button
           class="btnsyle"
           data-bs-toggle="modal"
           data-bs-target="#updateStudent"
         >
           Update Profile
+        </button>
+
+        <button
+          class="btnsyle2 bg-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#changePassword"
+        >
+          Change Password
         </button>
       </div>
     </div>
@@ -118,12 +128,12 @@
                 class="form-control cus-border"
                 placeholder="Enter new Last Name"
               />
-              <label class="form-label fw-bold inv">Course and Year</label>
+              <label class="form-label fw-bold inv">Program Level</label>
               <input
                 v-model="courseYearSection"
                 type="text"
                 class="form-control cus-border"
-                placeholder="Ex BSCS 4A,BSIT 3B, BSEMC 1A"
+                placeholder="Ex BSCS 4A,BSIT 3B, GAS 11A, STEM 12B"
               />
             </div>
           </div>
@@ -139,6 +149,66 @@
               type="button"
               class="btn btn-primary"
               @click="updateStudent"
+            >
+              Save changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Change Password -->
+  <div
+    class="modal fade"
+    id="changePassword"
+    tabindex="-1"
+    aria-labelledby="changePassword"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <form>
+          <div class="modal-header">
+            <h5 class="modal-title">Change Password</h5>
+
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="col-md-12">
+              <label class="form-label fw-bold inv">New Password</label>
+              <input
+                v-model="newPass"
+                type="text"
+                class="form-control cus-border"
+                placeholder="Enter new Password"
+              />
+
+              <label class="form-label fw-bold inv">Confirm Password</label>
+              <input
+                v-model="confirmPass"
+                type="text"
+                class="form-control cus-border"
+                placeholder="Confirm new Password"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="updatePassword"
             >
               Save changes
             </button>
@@ -166,6 +236,8 @@ const firstName = ref("");
 const middleName = ref("");
 const lastName = ref("");
 const courseYearSection = ref("");
+const newPass = ref("");
+const confirmPass = ref("");
 
 onMounted(async () => {
   // Make the API request when the component is mounted
@@ -199,7 +271,7 @@ onMounted(async () => {
 
       if (response.status === 200) {
         Swal.fire({
-          title: "You leveled up!! You gained 50 token",
+          title: "You leveled up!! You gained 50 points",
           width: 600,
           padding: "3em",
           color: "#716add",
@@ -230,6 +302,67 @@ onMounted(async () => {
     console.error("Error getting data:", error);
   }
 });
+
+const updatePassword = async () => {
+  if (!newPass.value || !confirmPass.value) {
+    Swal.fire({
+      title: "Error",
+      text: "Please fill in both password fields",
+      icon: "error",
+    });
+    return;
+  }
+
+  const confirmationResult = await Swal.fire({
+    title: "Update Password",
+    text: "Are you sure you want to update your password?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "No",
+  });
+
+  if (confirmationResult.isConfirmed) {
+    if (newPass.value === confirmPass.value) {
+      try {
+        const response = await axios.put(
+          `${baseURL}/api/student/updateStudentPassword/`,
+          { password: newPass.value },
+          {
+            headers: {
+              studtoken: `${token}`,
+              "ngrok-skip-browser-warning": "69420",
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          Swal.fire({
+            title: "Success",
+            text: "Password updated successfully",
+            icon: "success",
+          });
+          // Clear the password fields after successful update
+          newPass.value = "";
+          confirmPass.value = "";
+        }
+      } catch (error) {
+        console.error("Error updating password:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Failed to update password. Please try again.",
+          icon: "error",
+        });
+      }
+    } else {
+      Swal.fire({
+        title: "Error",
+        text: "The passwords do not match. Please try again.",
+        icon: "error",
+      });
+    }
+  }
+};
 
 const updateStudent = async () => {
   const confirmationResult = await Swal.fire({
@@ -339,6 +472,23 @@ const logout = async () => {
   height: 44px;
   border-radius: 5px;
   transition: background-color 0.3s ease-in, color 0.3s ease-in;
+  margin: 3px;
+}
+
+.btnsyle2 {
+  background-color: black;
+  color: white;
+  width: 335px;
+  height: 44px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease-in, color 0.3s ease-in;
+  margin: 3px;
+}
+
+.btnsyle2:hover {
+  background-color: white !important;
+  color: black;
+  border-color: black;
 }
 
 .btnsyle:hover {

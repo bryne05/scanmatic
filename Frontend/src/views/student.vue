@@ -98,7 +98,7 @@ const logout = async () => {
           {{ studentData.last_name }}
         </li>
         <li v-if="studentData">
-          Course and Section: {{ studentData.courseYearSection }}
+          Program Level: {{ studentData.courseYearSection }}
         </li>
       </div>
     </ul>

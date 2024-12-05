@@ -6,7 +6,7 @@
       data-bs-toggle="modal"
       data-bs-target="#addItem"
     >
-      Add Items
+      Add Incentive
     </button>
     <div
       class="row scroll-container"
@@ -23,7 +23,7 @@
             <p class="card-text">
               Quantity: {{ item.item_quantity }}<br />
               Point Value: {{ item.item_price }} Points <br />
-              Course and Year: {{ item.item_classSection }}
+              Program Level: {{ item.item_classSection }}
             </p>
 
             <button
@@ -94,13 +94,13 @@
                 placeholder="Enter the point value for this incentive"
               />
 
-              <label class="form-label fw-bold inv">Course and Year</label>
+              <label class="form-label fw-bold inv">Program Level</label>
 
               <input
                 v-model="courseYear"
                 type="text"
                 class="form-control cus-border"
-                placeholder="Enter Course for this item: Ex BSCS 4A,BSIT 3B"
+                placeholder="Enter Program Level for this incentive: Ex BSCS 4A,STEM 11A"
               />
             </div>
           </div>
@@ -177,13 +177,13 @@
                 placeholder="Enter new the price for this incentive"
               />
 
-              <label class="form-label fw-bold inv">Course and Year</label>
+              <label class="form-label fw-bold inv">Program Level</label>
 
               <input
                 v-model="updatecourseYear"
                 type="text"
                 class="form-control cus-border"
-                placeholder="Enter new Course for this item: Ex BSCS 4A,BSIT 3B"
+                placeholder="Enter new Program Level for this icentive: Ex BSCS 4A,BSIT 3B"
               />
               <input type="hidden" v-model="currentItemId" />
             </div>
@@ -364,7 +364,7 @@ const addItem = async () => {
 const deleteItem = async (item) => {
   const itemId = item.item_id;
   const confirmationResult = await Swal.fire({
-    title: "Delete Shop Item",
+    title: "Delete Incentive",
     text: "Are you sure you want to delete this incentive?",
     icon: "question",
     showCancelButton: true,
@@ -383,7 +383,7 @@ const deleteItem = async (item) => {
           },
         }
       );
-      
+
       if (response.status === 200) {
         Swal.fire({
           title: "Success",

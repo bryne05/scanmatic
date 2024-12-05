@@ -176,7 +176,7 @@ const generateCSV = () => {
     "First Name": student.student.first_name,
     "Middle Name": student.student.middle_name,
     "Last Name": student.student.last_name,
-    Course: student.student.courseYearSection,
+    "Program Level": student.student.courseYearSection,
   }));
 
   const csv = Papa.unparse(csvData);

@@ -7,6 +7,7 @@
   </div>
   <div>
     <h2>Incentives Hub</h2>
+
     <div
       class="row scroll-container"
       :style="{ width: filteredShopItems.length <= 2 ? '80vw' : 'auto' }"
@@ -37,11 +38,16 @@
 </template>
 
 <script setup>
+import { ring } from "ldrs";
+
+ring.register();
+
 import axios from "axios";
 import Swal from "sweetalert2";
 import { baseURL } from "../config";
 import { ref, onMounted } from "vue";
 
+const loading = ref(false);
 const studentData = ref(null);
 const filteredShopItems = ref([]);
 
@@ -58,6 +64,7 @@ const buyItem = async (item) => {
     });
 
     if (result.isConfirmed) {
+      loading.value = true;
       const itemId = item.item_id;
       const buyItems = await axios.post(
         `${baseURL}/api/student/buyStudentShopItems/${itemId}`,
@@ -69,7 +76,7 @@ const buyItem = async (item) => {
           },
         }
       );
-
+      loading.value = false;
       if (buyItems.status === 200) {
         Swal.fire({
           icon: "success",
@@ -77,6 +84,7 @@ const buyItem = async (item) => {
           showConfirmButton: false,
           timer: 1500,
         });
+        loading.value = true;
         const updatedShopItems = await axios.get(
           `${baseURL}/api/student/getStudentShopItems/`,
           {
@@ -87,7 +95,7 @@ const buyItem = async (item) => {
           }
         );
         filteredShopItems.value = updatedShopItems.data.filteredShopItems;
-
+        loading.value = false;
         const getStudent = await axios.get(
           `${baseURL}/api/student/getStudent/`,
           {
@@ -98,6 +106,8 @@ const buyItem = async (item) => {
           }
         );
         studentData.value = getStudent.data;
+
+        loading.value = false;
       }
     } else if (result.dismiss === Swal.DismissReason.cancel) {
     }
@@ -108,6 +118,7 @@ const buyItem = async (item) => {
       showConfirmButton: false,
       timer: 1500,
     });
+    loading.value = false;
     console.log("error purchase");
     console.error(error);
   }
@@ -115,6 +126,8 @@ const buyItem = async (item) => {
 
 onMounted(async () => {
   try {
+    loading.value = true;
+
     const getStudent = await axios.get(`${baseURL}/api/student/getStudent/`, {
       headers: {
         studtoken: `${token}`,
@@ -122,6 +135,7 @@ onMounted(async () => {
       },
     });
     studentData.value = getStudent.data;
+
     const getShopItems = await axios.get(
       `${baseURL}/api/student/getStudentShopItems/`,
       {
@@ -132,6 +146,7 @@ onMounted(async () => {
       }
     );
     filteredShopItems.value = getShopItems.data.filteredShopItems;
+    loading.value = false;
   } catch (error) {
     console.error("Error getting data:", error);
   }

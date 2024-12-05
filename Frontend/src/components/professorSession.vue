@@ -68,7 +68,7 @@
               </button>
               <h5 class="card-title mb-3">{{ session.createdAt }}</h5>
               <p class="card-text">
-                Course and Year: {{ session.class_courseYearSection }} <br />
+                Program Level: {{ session.class_courseYearSection }} <br />
                 Point Value:{{ session.clas_token }}<br />
                 Exp: {{ session.class_exp }} <br />
               </p>
@@ -118,12 +118,12 @@
             </div>
             <div class="modal-body">
               <div class="col-md-12">
-                <label class="form-label fw-bold inv">Course and Year</label>
+                <label class="form-label fw-bold inv">Program Level</label>
                 <input
                   v-model="sessionCourseYearSection"
                   type="text"
                   class="form-control cus-border"
-                  placeholder="Ex BSCS 4A,BSIT 3B, BSEMC 1A"
+                  placeholder="Ex BSCS 4A,ABM 12B"
                 />
 
                 <label class="form-label fw-bold inv">Point Value</label>
@@ -194,12 +194,12 @@
                 >
               </h6>
               <div class="col-md-12">
-                <label class="form-label fw-bold inv">Course and Year</label>
+                <label class="form-label fw-bold inv">Program Level</label>
                 <input
                   v-model="updateCourseYearSection"
                   type="text"
                   class="form-control cus-border"
-                  placeholder="Enter new Course and Year Ex BSCS 4A,BSIT 3B, BSEMC 1A"
+                  placeholder="Enter new Program Level and Year Ex BSCS 4A,ABM 12A"
                 />
                 <label class="form-label fw-bold inv">Point Value</label>
                 <input
@@ -397,7 +397,7 @@ const addSession = async () => {
     console.error("Error adding item:", error);
     Swal.fire(
       "Error",
-      "A session with that Course and Year already Exist. Please, wait 6 hours to add the same course and year",
+      "A session with that Program Level already Exist. Please, wait 6 hours to add the same Program Level",
       "error"
     );
   }

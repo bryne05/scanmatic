@@ -21,7 +21,21 @@ import ProfessorTransaction from "../views/professorTransaction.vue";
 import ProfessorSession from "../components/professorSession.vue";
 import ProfessorStudentParticipation from "../views/professorStudentParticipation.vue";
 
+//admin
+import LoginAdmin from "../views/LoginAdmin.vue"
+import AdminDashboard from "../views/adminDashboard.vue"
+
 const routes = [
+  {
+    path: "/admin",
+    name: "admin",
+    component: LoginAdmin,
+  },
+  {
+    path: "/adminDashboard",
+    name: "adminDashboard",
+    component: AdminDashboard,
+  },
   {
     path: "/",
     name: "login",
