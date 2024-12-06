@@ -7,22 +7,28 @@
 
   <div class="div">
     <div class="container-2 justify-content-center align-items-center">
-      <div class="card d-flex justify-content-center align-items-center">
+      <div
+        class="card d-flex justify-content-center align-items-center"
+        @click="studentDashboard"
+      >
         <img
           src="../assets/reading.png"
           alt="student-reading"
           style="width: 40%; height: 50%"
         />
         <br />
-        <h2>Student</h2>
+        <h2>Students List</h2>
       </div>
-      <div class="card d-flex justify-content-center align-items-center">
+      <div
+        class="card d-flex justify-content-center align-items-center"
+        @click="professorDashboard"
+      >
         <img
           src="../assets/dean.png"
           alt="professor"
           style="width: 35%; height: 50%"
         /><br />
-        <h2>Professor</h2>
+        <h2>Professors List</h2>
       </div>
     </div>
   </div>
@@ -31,6 +37,15 @@
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 const router = useRouter();
+
+const studentDashboard = async () => {
+  router.push("/adminStudentDashboard");
+};
+
+const professorDashboard = async () => {
+  router.push("/adminProfessorDashboard");
+};
+
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",

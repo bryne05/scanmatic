@@ -22,9 +22,10 @@ import ProfessorSession from "../components/professorSession.vue";
 import ProfessorStudentParticipation from "../views/professorStudentParticipation.vue";
 
 //admin
-import LoginAdmin from "../views/LoginAdmin.vue"
-import AdminDashboard from "../views/adminDashboard.vue"
-
+import LoginAdmin from "../views/LoginAdmin.vue";
+import AdminDashboard from "../views/adminDashboard.vue";
+import AdminStudentDashboard from "../views/adminStudentDashboard.vue";
+import AdminProfessorDashboard from "../views/adminProfessorDashboard.vue";
 const routes = [
   {
     path: "/admin",
@@ -35,6 +36,16 @@ const routes = [
     path: "/adminDashboard",
     name: "adminDashboard",
     component: AdminDashboard,
+  },
+  {
+    path: "/adminStudentDashboard",
+    name: "adminStudentDashboard",
+    component: AdminStudentDashboard,
+  },
+  {
+    path: "/adminProfessorDashboard",
+    name: "adminProfessorDashboard",
+    component: AdminProfessorDashboard,
   },
   {
     path: "/",
