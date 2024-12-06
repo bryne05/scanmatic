@@ -13,14 +13,16 @@ const corsOptions = {
     `https://localhost:${PORT}`,
     "https://scanmatic.cloud.veluzian.com",
     "https://llama-assuring-monster.ngrok-free.app",
-    "https://192.168.68.102:5173",
-    "https://192.168.68.102:5173/ZXNzb3IiLCJVfrvonD",
+    "https://192.168.68.101:5173",
+    "https://192.168.68.101:5173/ZXNzb3IiLCJVfrvonD",
+    "https://192.168.68.101:5173/admin",
   ],
   methods: "GET, PUT, POST, DELETE, OPTIONS",
   allowedHeaders: [
     "Content-Type",
     "studtoken",
     "proftoken",
+    "admintoken",
     "ngrok-skip-browser-warning",
   ],
 };
