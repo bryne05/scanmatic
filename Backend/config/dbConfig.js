@@ -3,15 +3,19 @@ module.exports = {
   // USER: "sql6682475",
   // PASSWORD: "rdW6Ah9YbN",
   // DB: "sql6682475",
-  dialect: "mysql",
+  dialect: "postgres",
   timezone: "+08:00",
 
-  HOST: "localhost",
-  USER: "root",
-  PASSWORD: "",
-  // DB: "test1",
-  DB: "scanmaticdb",
-  
+  HOST: "aws-0-ap-southeast-1.pooler.supabase.com",
+  USER: "postgres.cxlounktdypsmiovxxge",
+  PASSWORD: "Babasa0125?",
+  DB: "postgres",
+
+  // HOST: "localhost",
+  // USER: "root",
+  // PASSWORD: "",
+  // // DB: "test1",
+  // DB: "scanmaticdb",
 
   // HOST: "ftp.veluzian.com",
   // USER: "py4wp2pi_bryne",
