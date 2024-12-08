@@ -51,7 +51,7 @@ app.use("/api/professor", professorRouter);
 app.use("/api/admin", adminRouter);
 
 app.use("/", (req, res) => {
-  res.send("server is yey running");
+  res.send("server is yey mais running");
 });
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
