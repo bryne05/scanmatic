@@ -169,15 +169,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import axios from "axios";
 import { baseURL } from "../config";
 import Swal from "sweetalert2";
 import { useRouter } from "vue-router";
+import { useSubjectData } from '../composables/useSubjectData';
 
 const router = useRouter();
 const proftoken = localStorage.getItem("proftoken");
-const professorSubject = ref([]);
+const { professorSubject, loading, fetchSubjects } = useSubjectData();
+
 
 //Current Subject
 const currentSubjectId = ref(null);
@@ -195,184 +197,140 @@ const setUpdateSubject = (subject) => {
 };
 
 const updateSubject = async () => {
-  const confirmationResult = await Swal.fire({
-    title: "Update Subject",
-    text: "Are you sure you want to update this Subject?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "No",
-  });
+    const confirmationResult = await Swal.fire({
+        title: "Update Subject",
+        text: "Are you sure you want to update this Subject?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+    });
 
-  if (confirmationResult.isConfirmed) {
-    try {
-      const updatedData = {
-        subject_name: updateSubjectName.value || currentSubjectName.value,
-      };
+    if (confirmationResult.isConfirmed) {
+        try {
+            const updatedData = {
+                subject_name: updateSubjectName.value || currentSubjectName.value,
+            };
 
-      const response = await axios.put(
-        `${baseURL}/api/professor/updateSubject/${currentSubjectId.value}`,
-        updatedData,
-        {
-          headers: {
-            proftoken: proftoken,
-            "ngrok-skip-browser-warning": "69420",
-          },
+            const response = await axios.put(
+                `${baseURL}/api/professor/updateSubject/${currentSubjectId.value}`,
+                updatedData,
+                {
+                    headers: {
+                        proftoken: proftoken,
+                        "ngrok-skip-browser-warning": "69420",
+                    },
+                }
+            );
+            if (response.status === 200) {
+                Swal.fire({
+                    title: "Success",
+                    text: "Subject name updated successfully",
+                    icon: "success",
+                });
+
+                await fetchSubjects();
+                updateSubjectName.value = "";
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: "Failed to update subject",
+                    icon: "error",
+                });
+            }
+        } catch (error) {
+            console.error("Error updating Subject:", error);
+            Swal.fire({
+                title: "Error",
+                text: "A subject with that name already exist",
+                icon: "error",
+            });
         }
-      );
-      if (response.status === 200) {
-        Swal.fire({
-          title: "Success",
-          text: "Subject name updated successfully",
-          icon: "success",
-        });
-
-        const response = await axios.get(
-          `${baseURL}/api/professor/getAllSubject`,
-          {
-            headers: {
-              proftoken: `${proftoken}`,
-              "ngrok-skip-browser-warning": "69420",
-            },
-          }
-        );
-        professorSubject.value = response.data.subject;
-
-        updateSubjectName.value = "";
-      } else {
-        console.error("Failed to update subject:", response.statusText);
-        Swal.fire({
-          title: "Error",
-          text: `"Failed to update subject"`,
-          icon: "error",
-        });
-      }
-    } catch (error) {
-      console.error("Error updating Subject:", error);
-      Swal.fire({
-        title: "Error",
-        text: "A subject with that name already exist",
-        icon: "error",
-      });
     }
-  }
 };
 
 const addSubject = async () => {
-  if (!subjectName.value) {
-    Swal.fire("Error", "Subject Name is required", "error");
-    return;
-  }
-  try {
-    const response = await axios.post(
-      `${baseURL}/api/professor/createSubject`,
-      {
-        subject_name: subjectName.value,
-      },
-      {
-        headers: {
-          proftoken: `${proftoken}`,
-          "ngrok-skip-browser-warning": "69420",
-        },
-      }
-    );
-
-    if (response.status === 200) {
-      Swal.fire("Success", "Subject added successfully!", "success");
-      const response = await axios.get(
-        `${baseURL}/api/professor/getAllSubject`,
-        {
-          headers: {
-            proftoken: `${proftoken}`,
-            "ngrok-skip-browser-warning": "69420",
-          },
-        }
-      );
-      professorSubject.value = response.data.subject;
-
-      subjectName.value = "";
-    } else {
-      Swal.fire("Error", "Failed to add subject", "error");
+    if (!subjectName.value) {
+        Swal.fire("Error", "Subject Name is required", "error");
+        return;
     }
-  } catch (error) {
-    console.error("Error adding subject:", error);
-    Swal.fire("Error", "Subject with that name is already Existing", "error");
-  }
+    try {
+        const response = await axios.post(
+            `${baseURL}/api/professor/createSubject`,
+            {
+                subject_name: subjectName.value,
+            },
+            {
+                headers: {
+                    proftoken: `${proftoken}`,
+                    "ngrok-skip-browser-warning": "69420",
+                },
+            }
+        );
+
+        if (response.status === 200) {
+            Swal.fire("Success", "Subject added successfully!", "success");
+            await fetchSubjects();
+            subjectName.value = "";
+        } else {
+            Swal.fire("Error", "Failed to add subject", "error");
+        }
+    } catch (error) {
+        console.error("Error adding subject:", error);
+        Swal.fire("Error", "Subject with that name is already Existing", "error");
+    }
 };
 
 const deleteItem = async (subject) => {
-  const subjectID = subject.subject_id;
-  const confirmationResult = await Swal.fire({
-    title: "Delete Subject",
-    text: "Are you sure you want to delete this Subject?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "No",
-  });
+    const subjectID = subject.subject_id;
+    const confirmationResult = await Swal.fire({
+        title: "Delete Subject",
+        text: "Are you sure you want to delete this Subject?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+    });
 
-  if (confirmationResult.isConfirmed) {
-    try {
-      const response = await axios.delete(
-        `${baseURL}/api/professor/deleteSubject/${subjectID}`,
-        {
-          headers: {
-            proftoken: proftoken,
-            "ngrok-skip-browser-warning": "69420",
-          },
+    if (confirmationResult.isConfirmed) {
+        try {
+            const response = await axios.delete(
+                `${baseURL}/api/professor/deleteSubject/${subjectID}`,
+                {
+                    headers: {
+                        proftoken: proftoken,
+                        "ngrok-skip-browser-warning": "69420",
+                    },
+                }
+            );
+            if (response.status === 200) {
+                Swal.fire({
+                    title: "Success",
+                    text: "Subject Deleted successfully",
+                    icon: "success",
+                });
+
+                await fetchSubjects();
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: "Failed to delete Subject item",
+                    icon: "error",
+                });
+            }
+        } catch (error) {
+            console.error("Error deleting Subject item:", error);
+            Swal.fire({
+                title: "Error",
+                text: "An error occurred while deleting subject",
+                icon: "error",
+            });
         }
-      );
-      if (response.status === 200) {
-        Swal.fire({
-          title: "Success",
-          text: "Subject Deleted successfully",
-          icon: "success",
-        });
-
-        const response = await axios.get(
-          `${baseURL}/api/professor/getAllSubject`,
-          {
-            headers: {
-              proftoken: `${proftoken}`,
-              "ngrok-skip-browser-warning": "69420",
-            },
-          }
-        );
-        professorSubject.value = response.data.subject;
-      } else {
-        console.error("Failed to delete Subject item:", response.statusText);
-        Swal.fire({
-          title: "Error",
-          text: "Failed to delete Subject item",
-          icon: "error",
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting Subject item:", error);
-      Swal.fire({
-        title: "Error",
-        text: "An error occurred while updating shop item",
-        icon: "error",
-      });
     }
-  }
 };
 
-onMounted(async () => {
-  try {
-    const response = await axios.get(`${baseURL}/api/professor/getAllSubject`, {
-      headers: {
-        proftoken: `${proftoken}`,
-        "ngrok-skip-browser-warning": "69420",
-      },
-    });
-    professorSubject.value = response.data.subject;
-  } catch (error) {
-    console.error("Error getting professor shop items:", error);
-  }
-});
-
 const enterSession = (subject) => {
+
   router.push({
     name: "ProfessorSession",
     params: {

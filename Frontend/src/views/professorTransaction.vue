@@ -46,7 +46,7 @@
             <th scope="col">First Name</th>
             <th scope="col">Middle Name</th>
             <th scope="col">Last Name</th>
-            <th scope="col">Icentive Label</th>
+            <th scope="col">Incentive Label</th>
             <th scope="col">Point Value</th>
             <th scope="col">Date</th>
           </tr>
@@ -95,7 +95,6 @@ onMounted(async () => {
     );
 
     professorTransactions.value = response.data.filteredShopTransactions;
-    console.log(professorTransactions.value);
   } catch (error) {
     console.error("Error fetching professor transactions:", error);
   }

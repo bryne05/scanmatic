@@ -20,6 +20,7 @@
         <div class="card h-100 w-100">
           <div class="card-body">
             <h5 class="card-title">{{ item.item_name }}</h5>
+
             <p class="card-text">
               Quantity: {{ item.item_quantity }}<br />
               Point Value: {{ item.item_price }} Points <br />
@@ -210,11 +211,12 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import { baseURL } from "../config";
-
 import Swal from "sweetalert2";
+import { useShopData } from '../composables/useShopData';
+
+const { professorShopItems, loading, refreshAllData } = useShopData();
 
 const proftoken = localStorage.getItem("proftoken");
-const professorShopItems = ref([]);
 
 //CurrentItem
 const currentItemId = ref(null);
@@ -272,31 +274,20 @@ const updateItem = async () => {
           },
         }
       );
-      if (response.status === 200) {
+        if (response.status === 200) {
+        await refreshAllData();
+        
         Swal.fire({
           title: "Success",
           text: "Incentive updated successfully",
           icon: "success",
         });
 
-        const updatedItems = await axios.get(
-          `${baseURL}/api/professor/getItems`,
-          {
-            headers: {
-              proftoken: `${proftoken}`,
-              "ngrok-skip-browser-warning": "69420",
-            },
-          }
-        );
-
-        professorShopItems.value = updatedItems.data.shopItem;
-
         updateitemName.value = "";
         updatequantity.value = "";
         updateprice.value = "";
         updatecourseYear.value = "";
       } else {
-        console.error("Failed to update shop item:", response.statusText);
         Swal.fire({
           title: "Error",
           text: "Failed to update incentive",
@@ -320,7 +311,6 @@ const addItem = async () => {
     return;
   }
   try {
-    // Make a request to the createItems endpoint
     const response = await axios.post(
       `${baseURL}/api/professor/createItems/`,
       {
@@ -331,23 +321,18 @@ const addItem = async () => {
       },
       {
         headers: {
-          proftoken: `${proftoken}`,
+          proftoken: proftoken,
           "ngrok-skip-browser-warning": "69420",
         },
       }
     );
 
-    // Handle success or show a notification
     if (response.status === 200) {
+      await refreshAllData();
+      
       Swal.fire("Success", "Incentive added successfully!", "success");
-      const response = await axios.get(` ${baseURL}/api/professor/getItems`, {
-        headers: {
-          proftoken: `${proftoken}`,
-          "ngrok-skip-browser-warning": "69420",
-        },
-      });
-      professorShopItems.value = response.data.shopItem;
 
+      // Clear form fields
       itemName.value = "";
       quantity.value = "";
       price.value = "";
@@ -356,8 +341,8 @@ const addItem = async () => {
       Swal.fire("Error", "Failed to add incentive", "error");
     }
   } catch (error) {
-    // console.error("Error adding item:", error);
-    // Swal.fire("Error", "An error occurred", "error");
+    console.error("Error adding item:", error);
+    Swal.fire("Error", "An error occurred", "error");
   }
 };
 
@@ -384,25 +369,15 @@ const deleteItem = async (item) => {
         }
       );
 
-      if (response.status === 200) {
+        if (response.status === 200) {
+        await refreshAllData();
+        
         Swal.fire({
           title: "Success",
           text: "Incentive Deleted successfully",
           icon: "success",
         });
-
-        const updatedItems = await axios.get(
-          `${baseURL}/api/professor/getItems`,
-          {
-            headers: {
-              proftoken: `${proftoken}`,
-              "ngrok-skip-browser-warning": "69420",
-            },
-          }
-        );
-        professorShopItems.value = updatedItems.data.shopItem;
       } else {
-        console.error("Failed to delete shop item:", response.statusText);
         Swal.fire({
           title: "Error",
           text: "Failed to delete incentive",
@@ -420,19 +395,10 @@ const deleteItem = async (item) => {
   }
 };
 
-onMounted(async () => {
-  try {
-    const response = await axios.get(`${baseURL}/api/professor/getItems`, {
-      headers: {
-        proftoken: `${proftoken}`,
-        "ngrok-skip-browser-warning": "69420",
-      },
-    });
-    professorShopItems.value = response.data.shopItem;
-  } catch (error) {
-    console.error("Error getting professor shop items:", error);
-  }
+onMounted(() => {
+  refreshAllData();
 });
+
 </script>
 
 <style scoped>

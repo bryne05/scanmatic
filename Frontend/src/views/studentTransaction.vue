@@ -37,7 +37,6 @@ onMounted(async () => {
     );
 
     studentTransactions.value = response.data.studentTransaction;
-   
   } catch (error) {
     console.error("Error fetching student transactions:", error);
   }

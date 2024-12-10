@@ -245,7 +245,6 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { baseURL } from "../config";
-
 import Swal from "sweetalert2";
 import axios from "axios";
 
@@ -256,6 +255,24 @@ const subjectName = ref(props.subjectName);
 
 const proftoken = localStorage.getItem("proftoken");
 const professorSession = ref([]);
+
+const fetchSessions = async () => {
+  try {
+    const response = await axios.get(
+      `${baseURL}/api/professor/getClass/${props.subjectID}`,
+      {
+        headers: {
+          proftoken: proftoken,
+          "ngrok-skip-browser-warning": "69420",
+        },
+      }
+    );
+    professorSession.value = response.data.classes;
+  } catch (error) {
+    console.error("Error getting sessions:", error);
+    Swal.fire("Error", "Failed to fetch sessions", "error");
+  }
+};
 
 //Current Session
 const currentSessionID = ref(null);
@@ -310,27 +327,18 @@ const updateSubject = async () => {
           },
         }
       );
-      if (response.status === 200) {
+        if (response.status === 200) {
         Swal.fire({
           title: "Success",
           text: "Sessions updated successfully",
           icon: "success",
         });
 
-        const response = await axios.get(
-          `${baseURL}/api/professor/getClass/${subjectID.value}`,
-          {
-            headers: {
-              proftoken: proftoken,
-              "ngrok-skip-browser-warning": "69420",
-            },
-          }
-        );
-        professorSession.value = response.data.classes;
-
+        await fetchSessions();
         updateSessionToken.value = "";
         updateSessionExp.value = "";
         updateCourseYearSection.value = "";
+
       } else {
         console.error("Failed to update Sessions:", response.statusText);
         Swal.fire({
@@ -378,20 +386,12 @@ const addSession = async () => {
     // Handle success or show a notification
     if (response.status === 200) {
       Swal.fire("Success", "Session has been added successfully!", "success");
-      const response = await axios.get(
-        `${baseURL}/api/professor/getClass/${subjectID.value}`,
-        {
-          headers: {
-            proftoken: proftoken,
-            "ngrok-skip-browser-warning": "69420",
-          },
-        }
-      );
-      professorSession.value = response.data.classes;
-
+        await fetchSessions();
+      
       sessionToken.value = "";
       sessionExp.value = "";
       sessionCourseYearSection.value = "";
+
     }
   } catch (error) {
     console.error("Error adding item:", error);
@@ -425,23 +425,15 @@ const deleteSession = async (session) => {
           },
         }
       );
-      if (response.status === 200) {
+        if (response.status === 200) {
         Swal.fire({
           title: "Success",
-          text: "Subject Deleted successfully",
+          text: "Session deleted successfully",
           icon: "success",
         });
 
-        const response = await axios.get(
-          `${baseURL}/api/professor/getClass/${subjectID.value}`,
-          {
-            headers: {
-              proftoken: proftoken,
-              "ngrok-skip-browser-warning": "69420",
-            },
-          }
-        );
-        professorSession.value = response.data.classes;
+        await fetchSessions();
+
       } else {
         console.error("Failed to delete  shopitem:", response.statusText);
         Swal.fire({
@@ -461,22 +453,10 @@ const deleteSession = async (session) => {
   }
 };
 
-onMounted(async () => {
-  try {
-    const response = await axios.get(
-      `${baseURL}/api/professor/getClass/${subjectID.value}`,
-      {
-        headers: {
-          proftoken: proftoken,
-          "ngrok-skip-browser-warning": "69420",
-        },
-      }
-    );
-    professorSession.value = response.data.classes;
-  } catch (error) {
-    console.error("Error getting professor session data", error);
-  }
+onMounted(() => {
+  fetchSessions();
 });
+
 
 const logout = async () => {
   const result = await Swal.fire({

@@ -85,7 +85,10 @@ const props = defineProps(["subjectID", "subjectName"]);
 const subjectID = ref(props.subjectID);
 const subjectName = ref(props.subjectName);
 const numberOfClasses = ref();
-
+console.log(professorParticipants);
+professorParticipants.value.forEach((item, index) => {
+  console.log(`Item ${index}:`, item);
+});
 onMounted(async () => {
   try {
     const response = await axios.get(
@@ -98,12 +101,28 @@ onMounted(async () => {
       }
     );
 
-    professorParticipants.value = response.data.entry;
+    // Aggregate the data by student
+    const aggregatedData = response.data.entry.reduce((acc, current) => {
+      const studentKey = `${current.student.first_name}_${current.student.last_name}`;
+      
+      if (!acc[studentKey]) {
+        acc[studentKey] = {...current, attendanceCount: 0};
+      }
+      
+      acc[studentKey].attendanceCount += 1;
+      
+      // Update latest date if current entry has a more recent date
+      if (new Date(current.latestAttendedDate) > new Date(acc[studentKey].latestAttendedDate)) {
+        acc[studentKey].latestAttendedDate = current.latestAttendedDate;
+      }
+      
+      return acc;
+    }, {});
+
+    professorParticipants.value = Object.values(aggregatedData);
     numberOfClasses.value = response.data.numberOfClasses;
-    console.log("HEYYY", response.data.numberOfClasses);
-    console.log(professorParticipants.value);
   } catch (error) {
-    console.error("Error fetching professor transactions:", error);
+    console.error("Error fetching student entry:", error);
   }
 });
 
