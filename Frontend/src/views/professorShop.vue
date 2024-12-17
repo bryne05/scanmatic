@@ -4,7 +4,11 @@ import Swal from "sweetalert2";
 import { useRouter } from "vue-router";
 
 import ProfItems from "../components/ProfessorShopItems.vue";
+import { useShopData } from "../composables/useShopData";
+import { useSubjectData } from "../composables/useSubjectData";
 
+const { clearStateDataProfessor } = useShopData();
+const { clearStateSubject } = useSubjectData();
 const router = useRouter();
 
 const logout = async () => {
@@ -18,6 +22,8 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("proftoken");
+    clearStateDataProfessor();
+    clearStateSubject();
     router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };

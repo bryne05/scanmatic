@@ -3,7 +3,11 @@
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import ProfSubject from "../components/ProfessorSubject.vue";
+import { useShopData } from "../composables/useShopData";
+import { useSubjectData } from "../composables/useSubjectData";
 
+const { clearStateDataProfessor } = useShopData();
+const { clearStateSubject } = useSubjectData();
 const router = useRouter();
 
 const logout = async () => {
@@ -17,6 +21,8 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("proftoken");
+    clearStateDataProfessor();
+    clearStateSubject();
     router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };
@@ -36,7 +42,7 @@ const logout = async () => {
             </li>
             <li class="nav-item">
               <RouterLink class="nav-link pointer curr" to="/professor/shop">
-              Incentives
+                Incentives
               </RouterLink>
             </li>
             <li class="nav-item">

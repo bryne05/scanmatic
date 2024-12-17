@@ -4,7 +4,11 @@ import axios from "axios";
 import { baseURL } from "../config";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
+import { useShopData } from "../composables/useShopData";
+import { useSubjectData } from "../composables/useSubjectData";
 
+const { clearStateDataProfessor } = useShopData();
+const { clearStateSubject } = useSubjectData();
 const router = useRouter();
 const proftoken = localStorage.getItem("proftoken");
 
@@ -174,6 +178,8 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("proftoken");
+    clearStateDataProfessor();
+    clearStateSubject();
     router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };
@@ -229,7 +235,9 @@ const logout = async () => {
         <li>Middle Name: {{ profData.middle_name }}</li>
         <li>Last Name: {{ profData.last_name }}</li>
       </ul>
-      <div class="mt-5 d-flex justify-content-center align-items-center flex-column">
+      <div
+        class="mt-5 d-flex justify-content-center align-items-center flex-column"
+      >
         <button
           class="btnsyle"
           data-bs-toggle="modal"
@@ -237,7 +245,7 @@ const logout = async () => {
         >
           Update Profile
         </button>
-          <button
+        <button
           class="btnsyle2 bg-primary"
           data-bs-toggle="modal"
           data-bs-target="#changePassword"
@@ -322,7 +330,7 @@ const logout = async () => {
       </div>
     </div>
   </div>
-    <!-- Change Password -->
+  <!-- Change Password -->
   <div
     class="modal fade"
     id="changePassword"

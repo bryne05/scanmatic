@@ -6,6 +6,12 @@ import { baseURL } from "../config";
 
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
+
+import { useShopData } from "../composables/useShopData";
+
+
+const { clearStateData } = useShopData();
+
 const token = localStorage.getItem("studtoken");
 const size = 300;
 
@@ -38,6 +44,7 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("studtoken");
+    clearStateData();
     router.push("/");
   }
 };

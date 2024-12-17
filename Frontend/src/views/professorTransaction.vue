@@ -77,7 +77,11 @@ import { baseURL } from "../config";
 import axios from "axios";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useShopData } from "../composables/useShopData";
+import { useSubjectData } from "../composables/useSubjectData";
 
+const { clearStateDataProfessor } = useShopData();
+const { clearStateSubject } = useSubjectData();
 const router = useRouter();
 const professorToken = localStorage.getItem("proftoken");
 const professorTransactions = ref([]);
@@ -116,6 +120,8 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("proftoken");
+    clearStateDataProfessor();
+    clearStateSubject();
     router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };

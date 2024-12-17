@@ -1,11 +1,10 @@
 <script setup>
 import { useRouter } from "vue-router";
-
-import ShopItems from "../components/ShopItems.vue";
+import { useShopData } from "../composables/useShopData";
 import Swal from "sweetalert2";
 
+const { clearStateData, fetchStudentData } = useShopData();
 const router = useRouter();
-const token = localStorage.getItem("studtoken");
 
 const logout = async () => {
   const result = await Swal.fire({
@@ -18,7 +17,12 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("studtoken");
-    router.push("/");
+
+    // Clear the student data and re-fetch
+    clearStateData();
+    
+
+    router.push("/"); // Redirect to home or login
   }
 };
 </script>
@@ -52,7 +56,6 @@ const logout = async () => {
             <li class="nav-item">
               <a
                 class="nav-link pointer curr"
-                to="/"
                 style="color: red"
                 @click="logout"
               >

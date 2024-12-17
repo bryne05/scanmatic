@@ -4,6 +4,9 @@ import { baseURL } from "../config";
 import axios from "axios";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
+import { useShopData } from "../composables/useShopData";
+
+const { clearStateData } = useShopData();
 const router = useRouter();
 const token = localStorage.getItem("studtoken");
 
@@ -18,6 +21,7 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("studtoken");
+    clearStateData();
     router.push("/");
   }
 };

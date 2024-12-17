@@ -77,6 +77,11 @@ import { baseURL } from "../config";
 import axios from "axios";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useShopData } from "../composables/useShopData";
+import { useSubjectData } from "../composables/useSubjectData";
+
+const { clearStateDataProfessor } = useShopData();
+const { clearStateSubject } = useSubjectData();
 
 const router = useRouter();
 const professorToken = localStorage.getItem("proftoken");
@@ -104,18 +109,21 @@ onMounted(async () => {
     // Aggregate the data by student
     const aggregatedData = response.data.entry.reduce((acc, current) => {
       const studentKey = `${current.student.first_name}_${current.student.last_name}`;
-      
+
       if (!acc[studentKey]) {
-        acc[studentKey] = {...current, attendanceCount: 0};
+        acc[studentKey] = { ...current, attendanceCount: 0 };
       }
-      
+
       acc[studentKey].attendanceCount += 1;
-      
+
       // Update latest date if current entry has a more recent date
-      if (new Date(current.latestAttendedDate) > new Date(acc[studentKey].latestAttendedDate)) {
+      if (
+        new Date(current.latestAttendedDate) >
+        new Date(acc[studentKey].latestAttendedDate)
+      ) {
         acc[studentKey].latestAttendedDate = current.latestAttendedDate;
       }
-      
+
       return acc;
     }, {});
 
@@ -142,6 +150,8 @@ const logout = async () => {
 
   if (result.isConfirmed) {
     localStorage.removeItem("proftoken");
+    clearStateDataProfessor();
+    clearStateSubject();
     router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };
