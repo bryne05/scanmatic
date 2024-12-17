@@ -13,7 +13,7 @@ const middleName = ref("");
 const lastName = ref("");
 const username = ref("");
 const password = ref("");
-
+const confirmpassword = ref("");
 const submitForm = async () => {
   try {
     // Check if required fields are empty
@@ -21,7 +21,8 @@ const submitForm = async () => {
       !firstName.value ||
       !lastName.value ||
       !username.value ||
-      !password.value
+      !password.value ||
+      !confirmpassword.value
     ) {
       Swal.fire(
         "Error!",
@@ -31,6 +32,10 @@ const submitForm = async () => {
       return;
     }
 
+    if (password.value !== confirmpassword.value) {
+      Swal.fire("Error!", "Password do not match. Please try again.", "error");
+      return;
+    }
     const RegisterProfessor = await axios.post(
       `${baseURL}/api/professor/registerProfessor`,
       {
@@ -43,7 +48,7 @@ const submitForm = async () => {
     );
     if (RegisterProfessor.status === 200) {
       Swal.fire("Success!", "Registration successful.", "success");
-      router.push("/");
+      router.push("/ZXNzb3IiLCJVfrvonD");
     }
   } catch (error) {
     const errorMessage =
@@ -60,47 +65,63 @@ const submitForm = async () => {
       <div class="col-md-8">
         <h1 class="text-center fw-bold inv">Hello, Professor!!</h1>
         <h4 class="text-center inv">Register</h4>
-        <form action="" class="text-start mx-5">
-          <label class="fw-bold inv">First name</label>
-          <input
-            v-model="firstName"
-            type="text"
-            class="form-control cus-border mb-2"
-            placeholder="Enter your First Name"
-          />
+        <div class="row">
+          <div class="col-6">
+            <form action="" class="text-start">
+              <label class="fw-bold inv">First name</label>
+              <input
+                v-model="firstName"
+                type="text"
+                class="form-control cus-border mb-2"
+                placeholder="Enter your First Name"
+              />
 
-          <label class="fw-bold inv">Middle name</label>
-          <input
-            v-model="middleName"
-            type="text"
-            class="form-control cus-border mb-2"
-            placeholder="Leave blank if not Available"
-          />
+              <label class="fw-bold inv">Middle name</label>
+              <input
+                v-model="middleName"
+                type="text"
+                class="form-control cus-border mb-2"
+                placeholder="Leave blank if not Available"
+              />
 
-          <label class="fw-bold inv">Last name</label>
-          <input
-            v-model="lastName"
-            type="text"
-            class="form-control cus-border mb-2"
-            placeholder="Enter your Last Name"
-          />
+              <label class="fw-bold inv">Last name</label>
+              <input
+                v-model="lastName"
+                type="text"
+                class="form-control cus-border mb-2"
+                placeholder="Enter your Last Name"
+              />
+            </form>
+          </div>
+          <div class="col-6">
+            <form action="" class="text-start">
+              <label class="fw-bold inv">Username</label>
+              <input
+                v-model="username"
+                type="text"
+                class="form-control cus-border mb-2"
+                placeholder="Enter your username"
+              />
 
-          <label class="fw-bold inv">Username</label>
-          <input
-            v-model="username"
-            type="text"
-            class="form-control cus-border mb-2"
-            placeholder="Enter your username"
-          />
+              <label class="fw-bold inv">Password</label>
+              <input
+                v-model="password"
+                type="password"
+                class="form-control cus-border mb-2"
+                placeholder="Enter your Password"
+              />
 
-          <label class="fw-bold inv">Password</label>
-          <input
-            v-model="password"
-            type="password"
-            class="form-control cus-border mb-2"
-            placeholder="Enter your Password"
-          />
-        </form>
+              <label class="fw-bold inv">Confirm Password</label>
+              <input
+                v-model="confirmpassword"
+                type="password"
+                class="form-control cus-border mb-2"
+                placeholder="Enter your Password"
+              />
+            </form>
+          </div>
+        </div>
+
         <div class="text-center py-4 inv">
           <button @click="submitForm" class="btnsyle">Sign Up</button>
           <p>
@@ -151,7 +172,7 @@ const submitForm = async () => {
   background-color: white;
   border-radius: 20px;
   width: 700px;
-  height: 60svh;
+  height: 50svh;
   overflow: hidden !important;
   margin-bottom: 80px;
 }
