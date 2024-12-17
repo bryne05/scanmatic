@@ -2,6 +2,7 @@
 import { useRouter } from "vue-router";
 import { useShopData } from "../composables/useShopData";
 import Swal from "sweetalert2";
+import ShopItems from '../components/ShopItems.vue';
 
 const { clearStateData, fetchStudentData } = useShopData();
 const router = useRouter();

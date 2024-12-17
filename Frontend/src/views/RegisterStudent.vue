@@ -15,18 +15,33 @@ const lastName = ref("");
 const courseYearSection = ref("");
 const username = ref("");
 const password = ref("");
-
+const confirmpassword = ref("");
 const submitForm = async () => {
   try {
     // Check if required fields are empty
-    if (!firstName.value || !lastName.value || !courseYearSection.value || !username.value || !password.value) {
-      Swal.fire("Error!", "All fields are required except Middle Name.", "error");
+    if (
+      !firstName.value ||
+      !lastName.value ||
+      !courseYearSection.value ||
+      !username.value ||
+      !password.value ||
+      !confirmpassword.value
+    ) {
+      Swal.fire(
+        "Error!",
+        "All fields are required except Middle Name.",
+        "error"
+      );
       return;
     }
-
+    if (password.value !== confirmpassword.value) {
+      Swal.fire("Error!", "Passwords do not match. Please try again.", "error");
+      return;
+    }
     const registerStudent = await axios.post(
       `${baseURL}/api/student/registerStudent`,
       {
+        admin_id: 5,
         first_name: firstName.value,
         middle_name: middleName.value,
         last_name: lastName.value,
@@ -50,64 +65,78 @@ const submitForm = async () => {
 };
 </script>
 <template>
-  <div class="container-fluid">
+  <div class="container-fluid reg">
     <Box />
     <div class="row white-bg pb-3">
       <!-- Rest of your template -->
       <div class="col-2"></div>
-      <div class="col-md-8">
+      <div class="col-md-8 reg">
         <h1 class="text-center inv">Hi, Student!!</h1>
         <h4 class="text-center inv">Register</h4>
-        <form action="" class="text-start mx-4">
-          <label class="fw-bold inv">First name</label>
-          <input
-            v-model="firstName"
-            type="text"
-            class="form-control cus-border mb-2"
-            placeholder="Enter your First Name"
-          />
+        <div class="row">
+          <div class="col-6">
+            <form action="" class="text-start">
+              <label class="fw-bold inv">First name</label>
+              <input
+                v-model="firstName"
+                type="text"
+                class="form-control cus-border mb-2"
+                placeholder="Enter your First Name"
+              />
 
-          <label class="fw-bold inv">Middle name</label>
-          <input
-            v-model="middleName"
-            type="text"
-            class="form-control cus-border mb-2"
-            placeholder="Leave blank if not Available"
-          />
+              <label class="fw-bold inv">Middle name</label>
+              <input
+                v-model="middleName"
+                type="text"
+                class="form-control cus-border mb-2"
+                placeholder="Leave blank if not Available"
+              />
 
-          <label class="fw-bold inv">Last name</label>
-          <input
-            v-model="lastName"
-            type="text"
-            class="form-control cus-border mb-2"
-            placeholder="Enter your Last Name"
-          />
+              <label class="fw-bold inv">Last name</label>
+              <input
+                v-model="lastName"
+                type="text"
+                class="form-control cus-border mb-2"
+                placeholder="Enter your Last Name"
+              />
 
-          <label class="fw-bold inv">Program Level</label>
-          <input
-            v-model="courseYearSection"
-            type="text"
-            class="form-control cus-border mb-2"
-            placeholder="Ex BSCS 4A,BSIT 3B, GAS 11A, STEM 12B"
-          />
+              <label class="fw-bold inv">Program Level</label>
+              <input
+                v-model="courseYearSection"
+                type="text"
+                class="form-control cus-border mb-2"
+                placeholder="Ex BSCS 4A,BSIT 3B, GAS 11A, STEM 12B"
+              />
+            </form>
+          </div>
+          <div class="col-6">
+            <form action="" class="text-start">
+              <label class="fw-bold inv">Username</label>
+              <input
+                v-model="username"
+                type="text"
+                class="form-control cus-border mb-2"
+                placeholder="Enter your username"
+              />
 
-          <label class="fw-bold inv">Username</label>
-          <input
-            v-model="username"
-            type="text"
-            class="form-control cus-border mb-2"
-            placeholder="Enter your username"
-          />
-
-          <label class="fw-bold inv">Password</label>
-          <input
-            v-model="password"
-            type="password"
-            class="form-control cus-border mb-2"
-            placeholder="Enter your Password"
-          />
-        </form>
-        <div class="text-center py-4 inv">
+              <label class="fw-bold inv">Password</label>
+              <input
+                v-model="password"
+                type="password"
+                class="form-control cus-border mb-2"
+                placeholder="Enter your Password"
+              />
+              <label class="fw-bold inv">Confirm Password</label>
+              <input
+                v-model="confirmpassword"
+                type="password"
+                class="form-control cus-border mb-2"
+                placeholder="Confirm your Password"
+              />
+            </form>
+          </div>
+        </div>
+        <div class="text-center inv reg-button">
           <button @click="submitForm" class="btnsyle">Sign Up</button>
           <p>
             Already have an account?
@@ -132,6 +161,7 @@ const submitForm = async () => {
 }
 
 .btnsyle {
+  margin-top: 25px;
   background-color: black;
   color: white;
   width: 335px;
@@ -151,7 +181,7 @@ const submitForm = async () => {
   background-color: white;
   border-radius: 20px;
   width: 700px;
-  height: 65svh;
+  height: 55vh;
   overflow: hidden !important;
 }
 
