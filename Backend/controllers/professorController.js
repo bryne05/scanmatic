@@ -13,6 +13,7 @@ const registerProfessor = async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     let data = {
+      admin_id:5,
       username: req.body.username,
       password: hashedPassword,
       first_name: req.body.first_name.toUpperCase(),

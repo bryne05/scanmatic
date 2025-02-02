@@ -18,7 +18,7 @@ const loginAdmin = async (req, res) => {
       password: req.body.password,
     };
 
-    // Input validation
+  
     if (!data.username || !data.password) {
       res.status(400).json({ message: "Username and password are required" });
       return;
@@ -121,7 +121,7 @@ const resetStudentPassword = async (req, res) => {
 
 const resetProfessorPassword = async (req, res) => {
   try {
-    const prof_id = req.params.prof_id;  // Get the ID from URL parameter
+    const prof_id = req.params.prof_id;  
     
     const defaultPassword = "pass";
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);

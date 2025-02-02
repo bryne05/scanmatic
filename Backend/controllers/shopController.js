@@ -64,6 +64,12 @@ const buyStudentShopItems = async (req, res) => {
         { item_quantity: shopItem.item_quantity - 1 },
         { where: { item_id: item_id } }
       );
+      await db.sequelize.query(`
+      SELECT setval(
+        'transactions_transaction_id_seq',
+        (SELECT MAX(transaction_id) FROM transactions)
+      )
+    `);
       await Transaction.create({
         stud_id: stud_id,
         item_id: item_id,
@@ -88,6 +94,7 @@ const getStudentTransaction = async (req, res) => {
     const studentTransaction = await Transaction.findAll({
       where: { stud_id: studentID },
       attributes: ["item_name", "item_quantity", "item_price", "createdAt"],
+      order: [["createdAt", "DESC"]],
     });
 
     res.status(200).json({ studentTransaction });
@@ -225,6 +232,7 @@ const getProfessorShopTransaction = async (req, res) => {
             },
           ],
           attributes: ["createdAt"],
+          order: [["createdAt", "DESC"]],
         });
 
         return { shopItem, transactions };

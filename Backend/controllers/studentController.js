@@ -161,13 +161,15 @@ const updateStudentProfile = async (req, res) => {
 const changeStudentPassword = async (req, res) => {
   try {
     let studentID = req.stud_id;
-   const hashPassword = await bcrypt.hash(req.body.password, 10);
+    const hashPassword = await bcrypt.hash(req.body.password, 10);
 
-    
-    await Student.update({password: hashPassword}, {
-      where: { stud_id: studentID },
-    });
- 
+    await Student.update(
+      { password: hashPassword },
+      {
+        where: { stud_id: studentID },
+      }
+    );
+
     res.status(200).json({ message: "Password changed Successfully" });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
@@ -175,10 +177,72 @@ const changeStudentPassword = async (req, res) => {
   }
 };
 
+const studentuploadImg = async (req, res) => {
+  try {
+    // Get studentID from the URL parameter
+    const studentID = req.stud_id;
+
+    // Find the student by their primary key (studentID)
+    const findStudent = await Student.findByPk(studentID);
+
+    if (!findStudent) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    // Get the image buffer from the uploaded file
+    const image = req.file.buffer;
+
+    // Update the student's image
+    findStudent.image = image;
+
+    // Save the updated student record
+    await findStudent.save();
+
+    res.status(200).json({
+      message: "Image uploaded successfully!",
+      student: findStudent,
+    });
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    res.status(500).json({ error: "Failed to upload image" });
+  }
+};
+
+const retrieveImg = async (req, res) => {
+  try {
+    const studentID = req.stud_id;
+    const student = await Student.findByPk(studentID);
+
+    if (!student || !student.image) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+
+    const imageBuffer = student.image;
+
+    // Set MIME type to image/jpeg, assuming the image is a JPG
+    const mimeType = "image/jpeg";
+
+    // Set the correct MIME type in the response header
+    res.setHeader("Content-Type", mimeType);
+   
+
+    // Send the image buffer as binary data
+    res.send(imageBuffer);
+  } catch (error) {
+    console.error("Error fetching image:", error);
+    res.status(500).json({ error: "Failed to fetch image" });
+  }
+};
+
+
+
+
 module.exports = {
   registerStudent,
   getStudentProfile,
   updateStudentProfile,
   loginStudent,
   changeStudentPassword,
+  studentuploadImg,
+  retrieveImg,
 };

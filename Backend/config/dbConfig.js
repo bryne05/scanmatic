@@ -3,29 +3,21 @@ module.exports = {
   // USER: "sql6682475",
   // PASSWORD: "rdW6Ah9YbN",
   // DB: "sql6682475",
-  dialect: "postgres",
+
   timezone: "+08:00",
 
-  HOST: "aws-0-ap-southeast-1.pooler.supabase.com",
-  USER: "postgres.cxlounktdypsmiovxxge",
-  PASSWORD: "Babasa0125?",
-  DB: "postgres",
+  // dialect: "postgres",
+  // HOST: "aws-0-ap-southeast-1.pooler.supabase.com",
+  // USER: "postgres.cxlounktdypsmiovxxge",
+  // PASSWORD: "Babasa0125?",
+  // DB: "postgres",
 
-  // HOST: "localhost",
-  // USER: "root",
-  // PASSWORD: "",
-  // // DB: "test1",
-  // DB: "scanmaticdb",
-
-  // HOST: "ftp.veluzian.com",
-  // USER: "py4wp2pi_bryne",
-  // PASSWORD: "brynE7X0",
-  // DB: "py4wp2pi_scanmaticdb",
-
-  // HOST:"sql12.freesqldatabase.com",
-  // USER: "sql12707128",
-  // PASSWORD: "Llk3Mwt4IB",
-  // DB: "sql12707128",
+  dialect: "mysql",
+  HOST: "localhost",
+  USER: "root",
+  PASSWORD: "",
+  // DB: "test1",a
+  DB: "scanmaticdb",
 
   // pool: {
   //   max: 20, // Maximum number of connection in pool

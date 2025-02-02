@@ -263,7 +263,7 @@ const createAttendance = async (req, res) => {
       return;
     }
 
-    const UpdateStudTokenExp = await Student.update(
+    await Student.update(
       {
         current_token: db.sequelize.literal(
           `current_token + ${classes.class_token}`
@@ -273,6 +273,13 @@ const createAttendance = async (req, res) => {
       { where: { stud_id: studentID } }
     );
 
+    // for postgre attendance cuz she cant count the id properly
+    // await db.sequelize.query(`
+    //   SELECT setval(
+    //     'attendances_attendance_id_seq',
+    //     (SELECT MAX(attendance_id) FROM attendances)
+    //   )
+    // `);
     const attend = await Attendance.create({
       stud_id: studentID,
       class_id: classID,
@@ -313,6 +320,62 @@ const getAttendance = async (req, res) => {
   }
 };
 
+// For sql
+// const getStudentEntry = async (req, res) => {
+//   try {
+//     const subjectID = parseInt(req.params.subject_id, 10);
+
+//     const entry = await Attendance.findAll({
+//       attributes: [
+//         [
+//           Sequelize.fn("COUNT", Sequelize.col("student.stud_id")),
+//           "attendanceCount",
+//         ],
+//         [
+//           Sequelize.fn("MAX", Sequelize.col("attendance.createdAt")),
+//           "latestAttendedDate",
+//         ],
+//       ],
+//       include: [
+//         {
+//           model: Student,
+//           attributes: [
+//             "first_name",
+//             "middle_name",
+//             "last_name",
+//             "courseYearSection",
+//           ],
+//         },
+//         {
+//           model: Class,
+//           attributes: ["class_id", "class_courseYearSection"],
+//           where: { subject_id: subjectID },
+//           include: [{ model: Subject, attributes: ["subject_name"] }],
+//         },
+//       ],
+//       group: ["student.stud_id"],
+//     });
+
+//     const courseYearSection = entry[0]?.student?.courseYearSection;
+
+//     const numOfClass = await Class.findAll({
+//       where: {
+//         class_courseYearSection: courseYearSection,
+//         subject_id: subjectID,
+//       },
+//     });
+
+//     res.status(200).json({
+//       entry,
+//       numberOfClasses: numOfClass.length,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal Server Error" });
+//     console.error("Error reading student entry", error);
+//   }
+// };
+
+// For posgre
 const getStudentEntry = async (req, res) => {
   try {
     const subjectID = parseInt(req.params.subject_id, 10);
@@ -327,11 +390,21 @@ const getStudentEntry = async (req, res) => {
           Sequelize.fn("MAX", Sequelize.col("attendance.createdAt")),
           "latestAttendedDate",
         ],
+        "student.stud_id",
+        "student.first_name",
+        "student.middle_name",
+        "student.last_name",
+        "student.courseYearSection",
+        "class.class_id",
+        "class.class_courseYearSection",
+        "class->subject.subject_id",
+        "class->subject.subject_name",
       ],
       include: [
         {
           model: Student,
           attributes: [
+            "stud_id",
             "first_name",
             "middle_name",
             "last_name",
@@ -342,10 +415,22 @@ const getStudentEntry = async (req, res) => {
           model: Class,
           attributes: ["class_id", "class_courseYearSection"],
           where: { subject_id: subjectID },
-          include: [{ model: Subject, attributes: ["subject_name"] }],
+          include: [
+            { model: Subject, attributes: ["subject_id", "subject_name"] },
+          ],
         },
       ],
-      group: ["student.stud_id"],
+      group: [
+        "student.stud_id",
+        "student.first_name",
+        "student.middle_name",
+        "student.last_name",
+        "student.courseYearSection",
+        "class.class_id",
+        "class.class_courseYearSection",
+        "class->subject.subject_id",
+        "class->subject.subject_name",
+      ],
     });
 
     const courseYearSection = entry[0]?.student?.courseYearSection;
@@ -366,7 +451,6 @@ const getStudentEntry = async (req, res) => {
     console.error("Error reading student entry", error);
   }
 };
-
 
 module.exports = {
   createSubject,
