@@ -80,7 +80,14 @@ const proftoken = localStorage.getItem("proftoken");
 
 const attendance = ref([]);
 const error = ref("");
-const cameraConstraints = ref({ facingMode: "user" }); // Set initial constraints
+const cameraConstraints = ref({ facingMode: "environment" }); // Set initial constraints
+
+import defaultimage from "../assets/profile-user.png";
+const imageSrc = ref(null);
+
+const setdefaultimage = () => {
+  imageSrc.value = defaultimage;
+};
 
 const onDetect = async (result) => {
   try {
@@ -98,7 +105,7 @@ const onDetect = async (result) => {
         }
       );
       if (response.status === 200) {
-        Swal.fire("Success", "Enjoy your class!!", "success");
+        fetchImage(rawValue.value);
         const getAttend = await axios.get(
           `${baseURL}/api/professor/getAttendance/${sessionID.value}`,
           {
@@ -108,8 +115,27 @@ const onDetect = async (result) => {
             },
           }
         );
+
         attendance.value = getAttend.data.attend;
         console.log(attendance.value);
+
+        // Loop through each student in the attendance list and display their first name
+        for (let i = 0; i < attendance.value.length; i++) {
+          const student = attendance.value[i];
+          const firstName = student.student.first_name;
+          const middleName = student.student.middle_name;
+          const lastName = student.student.last_name;
+          // Display a success message for each student
+          Swal.fire({
+            title: `${firstName} ${middleName} ${lastName}`,
+            text: "Student Attendance Recorded", // Optional description text
+            imageUrl: imageSrc.value, // Image URL (from blob or base64)
+            imageWidth: 100, // Set the width of the image
+            imageHeight: 100, // Set the height of the image
+            imageAlt: `${firstName}'s photo`, // Alt text for accessibility
+            showCloseButton: true, // Optional: Close button in the modal
+          });
+        }
       }
     } else {
       Swal.fire("Error", "An error occurred", "error");
@@ -118,6 +144,33 @@ const onDetect = async (result) => {
     console.error("Error in onDetect:", error);
     // Handle the error or show an appropriate message to the user
     Swal.fire("Error", "An error occurred", "error");
+  }
+};
+
+const fetchImage = async (qr) => {
+  try {
+    // Make the GET request using axios with responseType set to 'blob'
+    const response = await axios.get(
+      `${baseURL}/api/student/studentImgRetrieve`,
+      {
+        headers: {
+          studtoken: qr, // Add any necessary authorization token here
+        },
+        responseType: "blob", // Set response type to 'blob' for binary data
+      }
+    );
+
+    // Check if the response is successful
+    if (response.status === 200) {
+      // Create an object URL from the Blob data and assign it to imageSrc
+      const imageURL = URL.createObjectURL(response.data);
+      imageSrc.value = imageURL; // Use object URL for the image source
+    } else {
+      setdefaultimage();
+    }
+  } catch (error) {
+    console.error("Error fetching image:", error);
+    setdefaultimage();
   }
 };
 

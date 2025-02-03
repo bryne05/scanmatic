@@ -66,7 +66,9 @@
               >
                 Enter
               </button>
-              <h5 class="card-title mb-3">{{ session.createdAt }}</h5>
+              <h5 class="card-title mb-3">
+                {{ session.createdAt }}
+              </h5>
               <p class="card-text">
                 Program Level: {{ session.class_courseYearSection }} <br />
                 Point Value:{{ session.clas_token }}<br />
@@ -248,6 +250,7 @@ import { baseURL } from "../config";
 import Swal from "sweetalert2";
 import axios from "axios";
 
+
 const router = useRouter();
 const props = defineProps(["subjectID", "subjectName"]);
 const subjectID = ref(props.subjectID);
@@ -327,7 +330,7 @@ const updateSubject = async () => {
           },
         }
       );
-        if (response.status === 200) {
+      if (response.status === 200) {
         Swal.fire({
           title: "Success",
           text: "Sessions updated successfully",
@@ -338,7 +341,6 @@ const updateSubject = async () => {
         updateSessionToken.value = "";
         updateSessionExp.value = "";
         updateCourseYearSection.value = "";
-
       } else {
         console.error("Failed to update Sessions:", response.statusText);
         Swal.fire({
@@ -386,12 +388,11 @@ const addSession = async () => {
     // Handle success or show a notification
     if (response.status === 200) {
       Swal.fire("Success", "Session has been added successfully!", "success");
-        await fetchSessions();
-      
+      await fetchSessions();
+
       sessionToken.value = "";
       sessionExp.value = "";
       sessionCourseYearSection.value = "";
-
     }
   } catch (error) {
     console.error("Error adding item:", error);
@@ -425,7 +426,7 @@ const deleteSession = async (session) => {
           },
         }
       );
-        if (response.status === 200) {
+      if (response.status === 200) {
         Swal.fire({
           title: "Success",
           text: "Session deleted successfully",
@@ -433,7 +434,6 @@ const deleteSession = async (session) => {
         });
 
         await fetchSessions();
-
       } else {
         console.error("Failed to delete  shopitem:", response.statusText);
         Swal.fire({
@@ -456,6 +456,9 @@ const deleteSession = async (session) => {
 onMounted(() => {
   fetchSessions();
 });
+
+
+
 
 
 const logout = async () => {
