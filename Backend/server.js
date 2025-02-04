@@ -85,6 +85,7 @@ const corsOptions = {
     "https://192.168.68.101:5175/ZXNzb3IiLCJVfrvonD",
     "https://192.168.68.101:5175/admin",
     "https://192.168.68.103:5173",
+    "https://192.168.68.102:5173",
   ],
   methods: "GET, PUT, POST, DELETE, OPTIONS",
   allowedHeaders: [

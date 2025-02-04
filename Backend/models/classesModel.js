@@ -17,6 +17,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER(5),
       allowNull: false,
     },
+    isdeleted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
+    start_time: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
+    end_time: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
   });
   return Class;
 };

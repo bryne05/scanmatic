@@ -105,6 +105,9 @@ const createClass = async (req, res) => {
       class_courseYearSection: req.body.class_courseYearSection.toUpperCase(),
       class_token: req.body.class_token,
       class_exp: req.body.class_exp,
+      start_time: req.body.start_time,
+      end_time: req.body.end_time,
+      isdeleted: req.body.isdeleted,
     };
 
     const findExistingClass = await Class.findAll({
@@ -112,6 +115,7 @@ const createClass = async (req, res) => {
         prof_id: professorID,
         subject_id: subjectID,
         class_courseYearSection: data.class_courseYearSection,
+        isdeleted:false,
         createdAt: {
           [Op.gte]: new Date(new Date() - 6 * 60 * 60 * 1000), // Within 6 hours
         },
@@ -135,33 +139,36 @@ const getClass = async (req, res) => {
   try {
     const professorID = req.prof_id;
     const subjectID = parseInt(req.params.subject_id, 10);
+
     const classes = await Class.findAll({
-      where: { prof_id: professorID, subject_id: subjectID },
+      where: { prof_id: professorID, subject_id: subjectID, isdeleted: false },
       attributes: [
         "class_id",
         "createdAt",
         "class_courseYearSection",
         "class_token",
         "class_exp",
+        "start_time",
+        "end_time",
       ],
       order: [["createdAt", "DESC"]],
     });
 
-    const formattedClasses = classes.map((classInstance) => ({
-      createdAt: new Date(classInstance.createdAt).toLocaleString("en-PH", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-        timeZone: "Asia/Manila",
-      }),
-      class_id: classInstance.class_id,
-      class_courseYearSection: classInstance.class_courseYearSection,
-      clas_token: classInstance.class_token,
-      class_exp: classInstance.class_exp,
-    }));
+    const formattedClasses = classes.map((classInstance) => {
+      const formattedCreatedAt = classInstance.createdAt
+        ? formatDate(classInstance.createdAt)
+        : null; // Handle nulls
+
+      return {
+        createdAt: formattedCreatedAt, // Use the formatted date
+        class_id: classInstance.class_id,
+        class_courseYearSection: classInstance.class_courseYearSection,
+        clas_token: classInstance.class_token,
+        class_exp: classInstance.class_exp,
+        start_time: classInstance.start_time,
+        end_time: classInstance.end_time,
+      };
+    });
 
     res.status(200).json({ classes: formattedClasses });
   } catch (error) {
@@ -169,6 +176,67 @@ const getClass = async (req, res) => {
     console.error("Error reading Class", error);
   }
 };
+
+const getSingleClass = async (req, res) => {
+  try {
+    const professorID = req.prof_id;
+    const subjectID = parseInt(req.params.subject_id, 10);
+    const classID = parseInt(req.params.class_id, 10);
+
+    const classes = await Class.findAll({
+      where: { prof_id: professorID, subject_id: subjectID, class_id: classID },
+      attributes: [
+        "class_id",
+        "createdAt",
+        "class_courseYearSection",
+        "class_token",
+        "class_exp",
+        "start_time",
+        "end_time",
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    const formattedClasses = classes.map((classInstance) => {
+      const formattedCreatedAt = classInstance.createdAt
+        ? formatDate(classInstance.createdAt)
+        : null; // Handle nulls
+
+      return {
+        createdAt: formattedCreatedAt, // Use the formatted date
+        class_id: classInstance.class_id,
+        class_courseYearSection: classInstance.class_courseYearSection,
+        clas_token: classInstance.class_token,
+        class_exp: classInstance.class_exp,
+        start_time: classInstance.start_time,
+        end_time: classInstance.end_time,
+      };
+    });
+
+    res.status(200).json({ classes: formattedClasses });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error reading Class", error);
+  }
+};
+
+function formatDate(date) {
+  if (!(date instanceof Date)) {
+    date = new Date(date);
+  }
+
+  if (isNaN(date)) {
+    return "Invalid Date"; // Handle cases where date is not valid
+  }
+
+  const options = {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "Asia/Manila", 
+  };
+  return date.toLocaleDateString("en-PH", options);
+}
 
 const updateClass = async (req, res) => {
   try {
@@ -192,6 +260,8 @@ const updateClass = async (req, res) => {
       class_courseYearSection: req.body.class_courseYearSection.toUpperCase(),
       class_token: req.body.class_token,
       class_exp: req.body.class_exp,
+      start_time: req.body.start_time,
+      end_time: req.body.end_time,
     };
     const classes = await Class.update(updateClass, {
       where: { prof_id: professorID, subject_id: subjectID, class_id: classID },
@@ -208,7 +278,124 @@ const updateClass = async (req, res) => {
   }
 };
 
+const deleteClassRestore = async (req, res) => {
+  try {
+    const professorID = req.prof_id;
+    const subjectID = parseInt(req.params.subject_id, 10);
+    const classID = parseInt(req.params.class_id, 10);
+
+    const existingClass = await Class.findOne({
+      where: {
+        prof_id: professorID,
+        subject_id: subjectID,
+        class_id: classID,
+      },
+    });
+
+    if (!existingClass) {
+      res.status(404).json({ message: "Class not found" });
+      return;
+    }
+
+    // Update isdeleted to true instead of destroying
+    await Class.update(
+      { isdeleted: false }, // The changes you want to make
+      {
+        where: {
+          prof_id: professorID,
+          subject_id: subjectID,
+          class_id: classID,
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Class restored successfully" }); // Or a more appropriate message
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error reading Class", error);
+  }
+};
+
+const getClassDeleted = async (req, res) => {
+  try {
+    const professorID = req.prof_id;
+    const subjectID = parseInt(req.params.subject_id, 10);
+    const classes = await Class.findAll({
+      where: { prof_id: professorID, subject_id: subjectID, isdeleted: true },
+      attributes: [
+        "class_id",
+        "createdAt",
+        "class_courseYearSection",
+        "class_token",
+        "class_exp",
+        "start_time",
+        "end_time",
+      ],
+      order: [["updatedAt", "DESC"]],
+    });
+
+    const formattedClasses = classes.map((classInstance) => ({
+      createdAt: new Date(classInstance.createdAt).toLocaleString("en-PH", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+       
+        timeZone: "Asia/Manila",
+      }),
+      class_id: classInstance.class_id,
+      class_courseYearSection: classInstance.class_courseYearSection,
+      clas_token: classInstance.class_token,
+      class_exp: classInstance.class_exp,
+      start_time: classInstance.start_time,
+      end_time: classInstance.end_time,
+    }));
+
+    res.status(200).json({ classes: formattedClasses });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error reading Class", error);
+  }
+};
+
 const deleteClass = async (req, res) => {
+  try {
+    const professorID = req.prof_id;
+    const subjectID = parseInt(req.params.subject_id, 10);
+    const classID = parseInt(req.params.class_id, 10);
+
+    const existingClass = await Class.findOne({
+      where: {
+        prof_id: professorID,
+        subject_id: subjectID,
+        class_id: classID,
+      },
+    });
+
+    if (!existingClass) {
+      res.status(404).json({ message: "Class not found" });
+      return;
+    }
+
+    // Update isdeleted to true instead of destroying
+    await Class.update(
+      { isdeleted: true }, // The changes you want to make
+      {
+        where: {
+          prof_id: professorID,
+          subject_id: subjectID,
+          class_id: classID,
+        },
+      }
+    );
+
+    res.status(200).json({ message: "Class soft-deleted successfully" }); // Or a more appropriate message
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error reading Class", error);
+  }
+};
+
+const deleteClassPerma = async (req, res) => {
   try {
     const professorID = req.prof_id;
     const subjectID = parseInt(req.params.subject_id, 10);
@@ -258,10 +445,14 @@ const createAttendance = async (req, res) => {
       return;
     }
 
+    console.log("student",StudCourseSection);
+    console.log("class",classes.class_courseYearSection);
     if (StudCourseSection !== classes.class_courseYearSection) {
       res.status(400).json({ message: "Incompatible Course" });
       return;
     }
+
+  
 
     await Student.update(
       {
@@ -462,6 +653,10 @@ module.exports = {
   getClass,
   updateClass,
   deleteClass,
+  deleteClassPerma,
+  getClassDeleted,
+  deleteClassRestore,
+  getSingleClass,
 
   createAttendance,
   getAttendance,

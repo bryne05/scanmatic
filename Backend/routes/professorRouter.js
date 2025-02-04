@@ -94,16 +94,41 @@ router.get(
   attendanceController.getClass
 );
 
+router.get(
+  "/getSingleClass/:subject_id/:class_id",
+  authenticateProfToken,
+  attendanceController.getSingleClass
+);
+
 router.put(
   "/updateClass/:subject_id/:class_id",
   authenticateProfToken,
   attendanceController.updateClass
 );
 
-router.delete(
+//Class Deletion
+router.get(
+  "/getClassDeleted/:subject_id",
+  authenticateProfToken,
+  attendanceController.getClassDeleted
+);
+
+router.put(
+  "/deleteClassRestore/:subject_id/:class_id",
+  authenticateProfToken,
+  attendanceController.deleteClassRestore
+);
+
+router.put(
   "/deleteClass/:subject_id/:class_id",
   authenticateProfToken,
   attendanceController.deleteClass
+);
+
+router.delete(
+  "/deleteClassPerma/:subject_id/:class_id",
+  authenticateProfToken,
+  attendanceController.deleteClassPerma
 );
 
 //Attendance
