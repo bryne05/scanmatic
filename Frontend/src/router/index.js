@@ -19,6 +19,7 @@ import ProfessorShop from "../views/professorShop.vue";
 import ProfessorProfile from "../views/professorProfile.vue";
 import ProfessorTransaction from "../views/professorTransaction.vue";
 import ProfessorSession from "../components/professorSession.vue";
+import ProfessorRecycleSession from "../components/classRecycleBin.vue"
 import ProfessorStudentParticipation from "../views/professorStudentParticipation.vue";
 
 //admin
@@ -111,6 +112,12 @@ const routes = [
     path: "/professor/session/:subjectID/:subjectName",
     name: "ProfessorSession",
     component: ProfessorSession,
+    props: true,
+  },
+  {
+    path: "/professor/RecycleSession/:subjectID/:subjectName",
+    name: "ProfessorRecycleSession",
+    component: ProfessorRecycleSession,
     props: true,
   },
   {

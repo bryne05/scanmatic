@@ -40,7 +40,28 @@
 
   <div class="mt-2 text">
     <h2 class="text">Session</h2>
-    <h3 class="text-start">Subject: {{ subjectName }}</h3>
+
+    <div class="container m-0 p-0">
+      <div class="row">
+        <div class="col-6 d-flex align-items-center">
+          <h3 class="text-start">Subject: {{ subjectName }}</h3>
+        </div>
+        <div class="col-6 d-flex align-items-center justify-content-end">
+          <div class="bin-container">
+            <div class="bin">
+              <button
+                class="btn-recycle btn btn-light"
+                @click="enterRecycleBin()"
+              >
+                <img src="../assets/litter.png" alt="" height="40" width="40" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card -->
     <div>
       <button
         class="btnsyle mb-3"
@@ -66,9 +87,13 @@
               >
                 Enter
               </button>
-              <h5 class="card-title mb-3">
+              <h4 class="card-title mb-3">
                 {{ session.createdAt }}
-              </h5>
+              </h4>
+              <h6>
+                Start Time: {{ formatTime(session.start_time) }} &ensp; End
+                Time: {{ formatTime(session.end_time) }}
+              </h6>
               <p class="card-text">
                 Program Level: {{ session.class_courseYearSection }} <br />
                 Point Value:{{ session.clas_token }}<br />
@@ -143,6 +168,34 @@
                   class="form-control cus-border"
                   placeholder="Enter exp gained by students"
                 />
+
+                <label class="form-label fw-bold inv">Start Time</label>
+
+                <VueDatePicker
+                  v-model="sessionStartTime"
+                  time-picker
+                  placeholder=" Start Time"
+                  :is24="false"
+                  auto-position="top"
+                  :teleport="true"
+                >
+                  <template #input-icon>
+                    <img class="input-slot-image" src="../assets/clock.png" />
+                  </template>
+                </VueDatePicker>
+                <label class="form-label fw-bold inv">End Time</label>
+                <VueDatePicker
+                  v-model="sessionEndTime"
+                  time-picker
+                  placeholder="End Time"
+                  :is24="false"
+                  auto-position="top"
+                  :teleport="true"
+                >
+                  <template #input-icon>
+                    <img class="input-slot-image" src="../assets/clock.png" />
+                  </template>
+                </VueDatePicker>
               </div>
             </div>
             <div class="modal-footer justify-content-center">
@@ -191,8 +244,8 @@
             <div class="modal-body">
               <h6 style="color: gray">
                 <i
-                  >"Leave it blank if you don't want to update certain
-                  details"</i
+                  >"Leave other fields blank if you don't want to update them.
+                  Time fields cannot be left blank."</i
                 >
               </h6>
               <div class="col-md-12">
@@ -217,6 +270,35 @@
                   class="form-control cus-border"
                   placeholder="Enter new Experience Point"
                 />
+
+                <label class="form-label fw-bold inv">Start Time</label>
+
+                <VueDatePicker
+                  v-model="updateStartTime"
+                  time-picker
+                  placeholder="Update Start Time"
+                  :is24="false"
+                  auto-position="top"
+                  :teleport="true"
+                >
+                  <template #input-icon>
+                    <img class="input-slot-image" src="../assets/clock.png" />
+                  </template>
+                </VueDatePicker>
+                <label class="form-label fw-bold inv">End Time</label>
+                <VueDatePicker
+                  v-model="updateEndTime"
+                  time-picker
+                  placeholder="Update End Time"
+                  :is24="false"
+                  auto-position="top"
+                  :teleport="true"
+                >
+                  <template #input-icon>
+                    <img class="input-slot-image" src="../assets/clock.png" />
+                  </template>
+                </VueDatePicker>
+
                 <input type="hidden" v-model="currentSessionID" />
               </div>
             </div>
@@ -249,7 +331,8 @@ import { useRouter } from "vue-router";
 import { baseURL } from "../config";
 import Swal from "sweetalert2";
 import axios from "axios";
-
+import VueDatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 
 const router = useRouter();
 const props = defineProps(["subjectID", "subjectName"]);
@@ -258,6 +341,40 @@ const subjectName = ref(props.subjectName);
 
 const proftoken = localStorage.getItem("proftoken");
 const professorSession = ref([]);
+
+//Current Session
+const currentSessionID = ref(null);
+const currentSessionToken = ref(null);
+const currentSessionExp = ref(null);
+const currentSessionCourseYearSection = ref(null);
+const currentStartTime = ref(null);
+const currentEndTime = ref(null);
+
+//Add Session
+const sessionToken = ref("");
+const sessionExp = ref("");
+const sessionCourseYearSection = ref("");
+const sessionStartTime = ref("");
+const sessionEndTime = ref("");
+
+//Update Session
+const updateSessionToken = ref("");
+const updateSessionExp = ref("");
+const updateCourseYearSection = ref("");
+const updateStartTime = ref("");
+const updateEndTime = ref("");
+
+function formatTime(timeString) {
+  if (!timeString) return ""; // Handle null or undefined
+
+  const [hours, minutes, seconds] = timeString.split(":");
+  let formattedHours = parseInt(hours, 10);
+  const amPm = formattedHours >= 12 ? "PM" : "AM";
+
+  formattedHours = formattedHours % 12 || 12; // Convert to 12-hour format (0 becomes 12)
+
+  return `${formattedHours}:${minutes} ${amPm}`;
+}
 
 const fetchSessions = async () => {
   try {
@@ -271,33 +388,35 @@ const fetchSessions = async () => {
       }
     );
     professorSession.value = response.data.classes;
+    console.log(professorSession.value);
   } catch (error) {
     console.error("Error getting sessions:", error);
     Swal.fire("Error", "Failed to fetch sessions", "error");
   }
 };
 
-//Current Session
-const currentSessionID = ref(null);
-const currentSessionToken = ref(null);
-const currentSessionExp = ref(null);
-const currentSessionCourseYearSection = ref(null);
-
-//Add Session
-const sessionToken = ref("");
-const sessionExp = ref("");
-const sessionCourseYearSection = ref("");
-
-//Update Session
-const updateSessionToken = ref("");
-const updateSessionExp = ref("");
-const updateCourseYearSection = ref("");
-
 const setUpdateSession = (session) => {
   currentSessionID.value = session.class_id;
   currentSessionToken.value = session.class_token;
   currentSessionExp.value = session.class_exp;
   currentSessionCourseYearSection.value = session.class_courseYearSection;
+  // currentStartTime.value = session.start_time;
+  // currentEndTime.value = session.end_time;
+  updateStartTime.value = session.start_time
+    ? {
+        // Check if session.start_time exists
+        hours: parseInt(session.start_time.split(":")[0]),
+        minutes: parseInt(session.start_time.split(":")[1]),
+      }
+    : null;
+
+  updateEndTime.value = session.end_time
+    ? {
+        // Check if session.end_time exists
+        hours: parseInt(session.end_time.split(":")[0]),
+        minutes: parseInt(session.end_time.split(":")[1]),
+      }
+    : null;
 };
 
 const updateSubject = async () => {
@@ -318,6 +437,12 @@ const updateSubject = async () => {
           currentSessionCourseYearSection.value,
         class_token: updateSessionToken.value || currentSessionToken.value,
         class_exp: updateSessionExp.value || currentSessionExp.value,
+        start_time: updateStartTime.value
+          ? `${updateStartTime.value.hours}:${updateStartTime.value.minutes}`
+          : null, // Key change!
+        end_time: updateEndTime.value
+          ? `${updateEndTime.value.hours}:${updateEndTime.value.minutes}`
+          : null, // Key change!
       };
 
       const response = await axios.put(
@@ -338,6 +463,7 @@ const updateSubject = async () => {
         });
 
         await fetchSessions();
+
         updateSessionToken.value = "";
         updateSessionExp.value = "";
         updateCourseYearSection.value = "";
@@ -369,6 +495,7 @@ const addSession = async () => {
     Swal.fire("Error", "All fields are required", "error");
     return;
   }
+
   try {
     const response = await axios.post(
       `${baseURL}/api/professor/createClass/${subjectID.value}`,
@@ -376,6 +503,9 @@ const addSession = async () => {
         class_courseYearSection: sessionCourseYearSection.value,
         class_token: sessionToken.value,
         class_exp: sessionExp.value,
+        start_time: `${sessionStartTime.value.hours}:${sessionStartTime.value.minutes}`,
+        end_time: `${sessionEndTime.value.hours}:${sessionEndTime.value.minutes}`,
+        isdeleted: false,
       },
       {
         headers: {
@@ -393,6 +523,8 @@ const addSession = async () => {
       sessionToken.value = "";
       sessionExp.value = "";
       sessionCourseYearSection.value = "";
+      sessionStartTime.value = "";
+      sessionEndTime.value = "";
     }
   } catch (error) {
     console.error("Error adding item:", error);
@@ -417,8 +549,12 @@ const deleteSession = async (session) => {
 
   if (confirmationResult.isConfirmed) {
     try {
-      const response = await axios.delete(
+      const archiveDelete = {
+        isdeleted: true,
+      };
+      const response = await axios.put(
         `${baseURL}/api/professor/deleteClass/${subjectID.value}/${sessionID}`,
+        archiveDelete,
         {
           headers: {
             proftoken: proftoken,
@@ -457,10 +593,6 @@ onMounted(() => {
   fetchSessions();
 });
 
-
-
-
-
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",
@@ -485,6 +617,15 @@ const enterQR = (session) => {
     },
   });
 };
+
+const enterRecycleBin = () => {
+  router.push({
+    name: "ProfessorRecycleSession",
+    params: {
+      subjectID: subjectID.value,
+    },
+  });
+};
 </script>
 
 <style scoped>
@@ -494,7 +635,7 @@ body {
 }
 
 .scroll-container {
-  max-height: 600px;
+  max-height: 570px;
   overflow-y: auto;
   overflow-x: hidden;
 }

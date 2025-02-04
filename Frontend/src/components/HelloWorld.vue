@@ -37,20 +37,26 @@
     </div>
   </div>
 
-  <div class="mm">
-    <h1 style="color: white">Scanning Qr Codes</h1>
-    <div class="size">
-      {{ error }}
-      <qrcode-stream
-        @error="onError"
-        @detect="onDetect"
-        :constraints="cameraConstraints"
-        ref="qrcodeStream"
-      ></qrcode-stream>
+  <div>
+    <div class="mm" v-if="isWithinTimeRange">
+      <h1 style="color: white">Scanning Qr Codes</h1>
+      <div class="size">
+        <qrcode-stream
+          @error="onError"
+          @detect="onDetect"
+          :constraints="cameraConstraints"
+          ref="qrcodeStream"
+          :disabled="!isWithinTimeRange"
+        ></qrcode-stream>
+      </div>
+    </div>
+    <div v-else>
+      <br />
+      <br />
     </div>
   </div>
   <div class="text">
-    <h2>Attendance</h2>
+    <h2>Attendance for {{ dateCreated }}</h2>
     <ol class="text-start">
       <li v-for="student in attendance" :key="student.attendance_id">
         {{ student.student.first_name }} {{ student.student.middle_name }}
@@ -63,7 +69,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { QrcodeStream } from "vue-qrcode-reader";
 import { baseURL } from "../config";
 import axios from "axios";
@@ -78,12 +84,18 @@ const sessionID = ref(props.sessionID);
 const rawValue = ref("");
 const proftoken = localStorage.getItem("proftoken");
 
+const singleClass = ref([]);
 const attendance = ref([]);
 const error = ref("");
 const cameraConstraints = ref({ facingMode: "environment" }); // Set initial constraints
 
 import defaultimage from "../assets/profile-user.png";
 const imageSrc = ref(null);
+
+const startTime = ref(null);
+const endTime = ref(null);
+const dateCreated = ref(null);
+const isWithinTimeRange = ref(false);
 
 const setdefaultimage = () => {
   imageSrc.value = defaultimage;
@@ -128,35 +140,35 @@ const onDetect = async (result) => {
           // Display a success message for each student
           Swal.fire({
             title: `${firstName} ${middleName} ${lastName}`,
-            text: "Student Attendance Recorded", // Optional description text
-            imageUrl: imageSrc.value, // Image URL (from blob or base64)
-            imageWidth: 100, // Set the width of the image
-            imageHeight: 100, // Set the height of the image
-            imageAlt: `${firstName}'s photo`, // Alt text for accessibility
-            showCloseButton: true, // Optional: Close button in the modal
+            text: "Student Attendance Recorded",
+            imageUrl: imageSrc.value,
+            imageWidth: 100,
+            imageHeight: 100,
+            imageAlt: `${firstName}'s photo`,
+            showCloseButton: true,
           });
         }
+        imageSrc.value = null;
       }
     } else {
       Swal.fire("Error", "An error occurred", "error");
     }
   } catch (error) {
     console.error("Error in onDetect:", error);
-    // Handle the error or show an appropriate message to the user
+
     Swal.fire("Error", "An error occurred", "error");
   }
 };
 
 const fetchImage = async (qr) => {
   try {
-    // Make the GET request using axios with responseType set to 'blob'
     const response = await axios.get(
       `${baseURL}/api/student/studentImgRetrieve`,
       {
         headers: {
-          studtoken: qr, // Add any necessary authorization token here
+          studtoken: qr,
         },
-        responseType: "blob", // Set response type to 'blob' for binary data
+        responseType: "blob", //response type to 'blob' for binary data
       }
     );
 
@@ -185,11 +197,81 @@ onMounted(async () => {
         },
       }
     );
+
     attendance.value = getAttend.data.attend;
+
+    const singleClassResponse = await axios.get(
+      `${baseURL}/api/professor/getSingleClass/${subjectID.value}/${sessionID.value}`,
+      {
+        headers: {
+          proftoken: proftoken,
+          "ngrok-skip-browser-warning": "69420",
+        },
+      }
+    );
+    singleClass.value = singleClassResponse.data.classes;
+    startTime.value = singleClass.value[0]?.start_time;
+    endTime.value = singleClass.value[0]?.end_time;
+    dateCreated.value = singleClass.value[0]?.createdAt;
+    // console.log("start", startTime.value);
+    // console.log("end", endTime.value);
+    // console.log("date", dateCreated.value);
+    // console.log("date now", now);
+    const now = new Date();
+
+    checkTimeRange();
   } catch (error) {
     console.error("Error getting professor session data", error);
   }
 });
+
+const checkTimeRange = () => {
+  if (!startTime.value || !endTime.value || !dateCreated.value) {
+    isWithinTimeRange.value = false;
+    return;
+  }
+
+  const now = new Date(); // Current date and time (local)
+  const classDate = new Date(dateCreated.value); // Class date (UTC or other)
+
+  const [startHour, startMinute] = startTime.value.split(":");
+  const [endHour, endMinute] = endTime.value.split(":");
+
+  // 1. Convert classDate to local time (PST)
+  const classDatePST = new Date(
+    classDate.getFullYear(),
+    classDate.getMonth(),
+    classDate.getDate()
+  );
+
+  // 2. Create startTimeDate and endTimeDate (PST)
+  const startTimePST = new Date(
+    classDatePST.getFullYear(),
+    classDatePST.getMonth(),
+    classDatePST.getDate(),
+    startHour,
+    startMinute
+  );
+
+  const endTimePST = new Date(
+    classDatePST.getFullYear(),
+    classDatePST.getMonth(),
+    classDatePST.getDate(),
+    endHour,
+    endMinute
+  );
+
+  const isSameDate =
+    now.getFullYear() === classDatePST.getFullYear() &&
+    now.getMonth() === classDatePST.getMonth() &&
+    now.getDate() === classDatePST.getDate();
+
+  isWithinTimeRange.value =
+    isSameDate && now >= startTimePST && now <= endTimePST;
+
+  console.log("Is within time range:", isWithinTimeRange.value);
+};
+
 const startFrontCamera = () => {
   cameraConstraints.value = { facingMode: "user" };
 };
@@ -224,12 +306,29 @@ const generateCSV = () => {
     return;
   }
 
+  // 1. Get the date and program level for the filename
+  const datePart =
+    new Date(attendance.value[0]?.createdAt)?.toLocaleDateString("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }) || "nodate";
+  // YYYYMMDD
+  const programLevel = attendance.value[0].student.courseYearSection.replace(
+    /\s/g,
+    ""
+  ); // Remove spaces from program level
+
+  // 2. Create the filename
+  const filename = `Attendance_${datePart}_${programLevel}.csv`;
+
   const csvData = attendance.value.map((student) => ({
     Date: new Date(student.createdAt).toLocaleDateString(),
     "First Name": student.student.first_name,
     "Middle Name": student.student.middle_name,
     "Last Name": student.student.last_name,
     "Program Level": student.student.courseYearSection,
+    "Time in": new Date(student.createdAt).toLocaleTimeString(),
   }));
 
   const csv = Papa.unparse(csvData);
@@ -239,7 +338,7 @@ const generateCSV = () => {
   if (link.download !== undefined) {
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", "attendance.csv");
+    link.setAttribute("download", `${filename}`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -268,6 +367,9 @@ const logout = async () => {
 </script>
 
 <style scoped>
+.qr-code-disabled {
+  margin-top: 200px;
+}
 .text {
   color: white;
   margin-top: 0px;
