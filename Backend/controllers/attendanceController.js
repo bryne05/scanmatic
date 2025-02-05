@@ -115,7 +115,7 @@ const createClass = async (req, res) => {
         prof_id: professorID,
         subject_id: subjectID,
         class_courseYearSection: data.class_courseYearSection,
-        isdeleted:false,
+        isdeleted: false,
         createdAt: {
           [Op.gte]: new Date(new Date() - 6 * 60 * 60 * 1000), // Within 6 hours
         },
@@ -233,7 +233,7 @@ function formatDate(date) {
     month: "long",
     day: "numeric",
     year: "numeric",
-    timeZone: "Asia/Manila", 
+    timeZone: "Asia/Manila",
   };
   return date.toLocaleDateString("en-PH", options);
 }
@@ -339,7 +339,7 @@ const getClassDeleted = async (req, res) => {
         month: "long",
         day: "numeric",
         year: "numeric",
-       
+
         timeZone: "Asia/Manila",
       }),
       class_id: classInstance.class_id,
@@ -445,14 +445,12 @@ const createAttendance = async (req, res) => {
       return;
     }
 
-    console.log("student",StudCourseSection);
-    console.log("class",classes.class_courseYearSection);
+    console.log("student", StudCourseSection);
+    console.log("class", classes.class_courseYearSection);
     if (StudCourseSection !== classes.class_courseYearSection) {
       res.status(400).json({ message: "Incompatible Course" });
       return;
     }
-
-  
 
     await Student.update(
       {
@@ -590,6 +588,7 @@ const getStudentEntry = async (req, res) => {
         "class.class_courseYearSection",
         "class->subject.subject_id",
         "class->subject.subject_name",
+        "class.createdAt",
       ],
       include: [
         {
@@ -604,8 +603,8 @@ const getStudentEntry = async (req, res) => {
         },
         {
           model: Class,
-          attributes: ["class_id", "class_courseYearSection"],
-          where: { subject_id: subjectID },
+          attributes: ["class_id", "class_courseYearSection", "createdAt"],
+          where: { subject_id: subjectID, isdeleted: false },
           include: [
             { model: Subject, attributes: ["subject_id", "subject_name"] },
           ],
@@ -621,6 +620,7 @@ const getStudentEntry = async (req, res) => {
         "class.class_courseYearSection",
         "class->subject.subject_id",
         "class->subject.subject_name",
+        "class.createdAt",
       ],
     });
 
@@ -630,13 +630,47 @@ const getStudentEntry = async (req, res) => {
       where: {
         class_courseYearSection: courseYearSection,
         subject_id: subjectID,
+        isdeleted: false,
       },
+    });
+
+    const masterlist = await Student.findAll({
+      where: {
+        courseYearSection: courseYearSection,
+      },
+      attributes: [
+        "stud_id",
+        "first_name",
+        "middle_name",
+        "last_name",
+        "courseYearSection",
+      ],
     });
 
     res.status(200).json({
       entry,
+      masterlist,
       numberOfClasses: numOfClass.length,
     });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error reading student entry", error);
+  }
+};
+
+const getAllSubjectClass = async (req, res) => {
+  try {
+    const subjectID = req.body.subject_id;
+
+    const getAllSubjectClass = await Class.findAll({
+      where: { subject_id: subjectID, isdeleted:false },
+      attributes: ["class_id", "createdAt","class_courseYearSection"],
+    });
+
+    if (!getAllSubjectClass) {
+      res.status(404).json({ message: "Data not found" });
+    }
+    res.status(200).json({ getAllSubjectClass });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
     console.error("Error reading student entry", error);
@@ -661,4 +695,5 @@ module.exports = {
   createAttendance,
   getAttendance,
   getStudentEntry,
+  getAllSubjectClass,
 };

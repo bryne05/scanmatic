@@ -131,6 +131,7 @@ router.delete(
   attendanceController.deleteClassPerma
 );
 
+router.post("/getAllSubjectClass", attendanceController.getAllSubjectClass);
 //Attendance
 router.post(
   "/createAttendance/:class_id",

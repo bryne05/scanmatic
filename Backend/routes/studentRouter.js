@@ -33,6 +33,11 @@ router.post(
   upload.single("image"),
   studentController.studentuploadImg
 );
+router.get(
+  "/getStudentClassAndSubject",
+  authenticateStudToken,
+  studentController.getStudentClassAndSubject
+);
 
 //Student Shop
 router.get(

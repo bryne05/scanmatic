@@ -9,7 +9,6 @@ import Swal from "sweetalert2";
 
 import { useShopData } from "../composables/useShopData";
 
-
 const { clearStateData } = useShopData();
 
 const token = localStorage.getItem("studtoken");
@@ -47,6 +46,10 @@ const logout = async () => {
     clearStateData();
     router.push("/");
   }
+};
+
+const goToAttendanceDetails = () => {
+  router.push({ name: "AttendanceDetails" });
 };
 </script>
 
@@ -109,10 +112,27 @@ const logout = async () => {
         </li>
       </div>
     </ul>
+
+    <button class="attendance-btn" @click="goToAttendanceDetails">
+      Check Attendance Details
+    </button>
   </div>
 </template>
 
 <style scoped>
+.attendance-btn {
+  background-color: white;
+  color: black;
+  border-radius: 40px;
+  transition: 0.3s;
+  border: none;
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+.attendance-btn:hover {
+  background-color: gray;
+  color: white;
+}
 .text {
   color: white;
   list-style: none;

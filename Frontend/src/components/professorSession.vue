@@ -335,10 +335,10 @@ import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 
 const router = useRouter();
-const props = defineProps(["subjectID", "subjectName"]);
+const props = defineProps(["subjectID", "subjectName", "programlevel"]);
 const subjectID = ref(props.subjectID);
 const subjectName = ref(props.subjectName);
-
+const programlevel = ref(props.programlevel);
 const proftoken = localStorage.getItem("proftoken");
 const professorSession = ref([]);
 
@@ -614,6 +614,7 @@ const enterQR = (session) => {
     params: {
       subjectID: subjectID.value,
       sessionID: session.class_id,
+      programlevel: session.class_courseYearSection,
     },
   });
 };

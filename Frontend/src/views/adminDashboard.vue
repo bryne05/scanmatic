@@ -30,6 +30,17 @@
         /><br />
         <h2>Professors List</h2>
       </div>
+        <div
+        class="card d-flex justify-content-center align-items-center"
+        @click="masterlistDashboard"
+      >
+        <img
+          src="../assets/list.png"
+          alt="professor"
+          style="width: 35%; height: 50%"
+        /><br />
+        <h2>Master List</h2>
+      </div>
     </div>
   </div>
 </template>
@@ -46,6 +57,9 @@ const professorDashboard = async () => {
   router.push("/adminProfessorDashboard");
 };
 
+const masterlistDashboard = async () => {
+  router.push("/adminMasterlistDashboard");
+};
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",

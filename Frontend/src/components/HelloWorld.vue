@@ -39,15 +39,21 @@
 
   <div>
     <div class="mm" v-if="isWithinTimeRange">
-      <h1 style="color: white">Scanning Qr Codes</h1>
-      <div class="size">
-        <qrcode-stream
-          @error="onError"
-          @detect="onDetect"
-          :constraints="cameraConstraints"
-          ref="qrcodeStream"
-          :disabled="!isWithinTimeRange"
-        ></qrcode-stream>
+      <div class="container">
+        <div class="col-12">
+          <h1 style="color: white">Scanning Qr Codes</h1>
+        </div>
+        <div class="col-12 d-flex justify-content-center">
+          <div class="size">
+            <qrcode-stream
+              @error="onError"
+              @detect="onDetect"
+              :constraints="cameraConstraints"
+              ref="qrcodeStream"
+              :disabled="!isWithinTimeRange"
+            ></qrcode-stream>
+          </div>
+        </div>
       </div>
     </div>
     <div v-else>
@@ -66,6 +72,7 @@
   </div>
   <button class="btnsyle mb-3" @click="goBack">Back</button>
   <button class="btnsyle mb-3" @click="generateCSV">Download CSV</button>
+  <button class="btnsyle mb-3" @click="seeMasterList">See Master list</button>
 </template>
 
 <script setup>
@@ -78,9 +85,10 @@ import Papa from "papaparse";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-const props = defineProps(["subjectID", "sessionID"]);
+const props = defineProps(["subjectID", "sessionID", "programlevel"]);
 const subjectID = ref(props.subjectID);
 const sessionID = ref(props.sessionID);
+const programlevel = ref(props.programlevel);
 const rawValue = ref("");
 const proftoken = localStorage.getItem("proftoken");
 
@@ -89,6 +97,7 @@ const attendance = ref([]);
 const error = ref("");
 const cameraConstraints = ref({ facingMode: "environment" }); // Set initial constraints
 
+const studentsByProgram = ref([]);
 import defaultimage from "../assets/profile-user.png";
 const imageSrc = ref(null);
 
@@ -117,7 +126,7 @@ const onDetect = async (result) => {
         }
       );
       if (response.status === 200) {
-        fetchImage(rawValue.value);
+        await fetchImage(rawValue.value);
         const getAttend = await axios.get(
           `${baseURL}/api/professor/getAttendance/${sessionID.value}`,
           {
@@ -160,6 +169,56 @@ const onDetect = async (result) => {
   }
 };
 
+const seeMasterList = async () => {
+  try {
+    if (studentsByProgram.value.length === 0) {
+      Swal.fire("No Students", "No students found for this program.", "info");
+      return;
+    }
+
+    let htmlContent = `<ul style="list-style-type:none;">`;
+
+    studentsByProgram.value.forEach((student, num) => {
+      htmlContent += `
+        <li class="text-start">
+          
+          <strong>${num + 1}. ${student.first_name} ${student.middle_name} ${
+        student.last_name
+      }</strong><br>
+         
+         
+        </li>
+        
+      `;
+    });
+
+    htmlContent += `</ul>`;
+
+    Swal.fire({
+      position: "top-end",
+      title: `Master List for ${programlevel.value}`,
+      html: htmlContent,
+      width: 600,
+    });
+  } catch (error) {
+    console.error("Error fetching students:", error); // Important: Log the error!
+    Swal.fire("Error", "An error occurred while fetching students.", "error"); // Show error Swal
+  }
+};
+
+const fetchMasterList = async () => {
+  try {
+    const response = await axios.post(
+      `${baseURL}/api/admin/getClassStudentByProgram`,
+      { courseYearSection: programlevel.value }
+    );
+
+    studentsByProgram.value = response.data.students;
+  } catch (error) {
+    console.error("Error fetching MasterList:", error); // Important: Log the error!
+    Swal.fire("Error", "An error occurred while fetching students.", "error"); // Show error Swal
+  }
+};
 const fetchImage = async (qr) => {
   try {
     const response = await axios.get(
@@ -220,6 +279,10 @@ onMounted(async () => {
     const now = new Date();
 
     checkTimeRange();
+    await fetchMasterList();
+
+    console.log("attendance:", attendance.value);
+    console.log("Masterlist22:", studentsByProgram.value);
   } catch (error) {
     console.error("Error getting professor session data", error);
   }
@@ -301,35 +364,35 @@ const goBack = () => {
 };
 
 const generateCSV = () => {
-  if (attendance.value.length === 0) {
-    Swal.fire("Error", "No attendance data to download", "error");
+  if (studentsByProgram.value.length === 0) {
+    Swal.fire("Error", "No student data available.", "error");
     return;
   }
 
-  // 1. Get the date and program level for the filename
-  const datePart =
-    new Date(attendance.value[0]?.createdAt)?.toLocaleDateString("en-CA", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }) || "nodate";
-  // YYYYMMDD
-  const programLevel = attendance.value[0].student.courseYearSection.replace(
-    /\s/g,
-    ""
-  ); // Remove spaces from program level
-
-  // 2. Create the filename
+  const datePart = new Date().toLocaleDateString("en-CA");
+  const programLevel =
+    studentsByProgram.value[0]?.courseYearSection?.replace(/\s/g, "") ||
+    "noprogram";
   const filename = `Attendance_${datePart}_${programLevel}.csv`;
 
-  const csvData = attendance.value.map((student) => ({
-    Date: new Date(student.createdAt).toLocaleDateString(),
-    "First Name": student.student.first_name,
-    "Middle Name": student.student.middle_name,
-    "Last Name": student.student.last_name,
-    "Program Level": student.student.courseYearSection,
-    "Time in": new Date(student.createdAt).toLocaleTimeString(),
-  }));
+  const csvData = studentsByProgram.value.map((masterStudent) => {
+    // Find the matching attendance record
+    const attendanceRecord = attendance.value.find((attendant) => {
+      return String(attendant.stud_id) === String(masterStudent.stud_id);
+    });
+
+    return {
+      Date: datePart,
+      "First Name": masterStudent.first_name,
+      "Middle Name": masterStudent.middle_name || "",
+      "Last Name": masterStudent.last_name,
+      "Program Level": masterStudent.courseYearSection,
+      "Time in": attendanceRecord
+        ? new Date(attendanceRecord.createdAt).toLocaleTimeString()
+        : "Absent",
+      Status: attendanceRecord ? "Present" : "Absent",
+    };
+  });
 
   const csv = Papa.unparse(csvData);
 
@@ -338,18 +401,19 @@ const generateCSV = () => {
   if (link.download !== undefined) {
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `${filename}`);
+    link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   } else {
     Swal.fire(
       "Error",
-      "Your browser doesn't support downloading files",
+      "Your browser doesn't support downloading files.",
       "error"
     );
   }
 };
+
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",
@@ -378,8 +442,15 @@ const logout = async () => {
 }
 .mm {
   margin-top: 25px;
+  display: flex;
+  justify-content: center !important;
+  flex-direction: column;
 }
 
+.size {
+  margin: 0 !important;
+  padding: 0 !important;
+}
 .btnsyle {
   margin-left: 6px;
   margin-top: 10px;

@@ -9,14 +9,26 @@ router.get(
   authenticateAdminToken,
   adminController.getAllProfessors
 );
+
 router.get(
   "/getAllStudent",
   authenticateAdminToken,
   adminController.getAllStudent
 );
 
+router.get(
+  "/getAllStudentProgramLevel",
+  adminController.getStudentProgramLevel
+);
+
 router.post(
-  "/resetStudentPassword/:stud_id",authenticateAdminToken,
+  "/getClassStudentByProgram",
+  adminController.getClassStudentByProgram
+);
+
+router.post(
+  "/resetStudentPassword/:stud_id",
+  authenticateAdminToken,
   adminController.resetStudentPassword
 );
 router.post(

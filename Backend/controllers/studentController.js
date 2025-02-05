@@ -5,7 +5,9 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 //main model
 const Student = db.students;
-
+const Class = db.classes;
+const Attendance = db.attendances;
+const Subject = db.subjects;
 const registerStudent = async (req, res) => {
   try {
     // const requiredFields = [
@@ -224,7 +226,6 @@ const retrieveImg = async (req, res) => {
 
     // Set the correct MIME type in the response header
     res.setHeader("Content-Type", mimeType);
-   
 
     // Send the image buffer as binary data
     res.send(imageBuffer);
@@ -234,7 +235,61 @@ const retrieveImg = async (req, res) => {
   }
 };
 
+const { Op } = require("sequelize");
 
+const getStudentClassAndSubject = async (req, res) => {
+  try {
+    const studID = req.stud_id;
+    const studentProgramLevel = req.courseYearSection;
+
+    // Get all classes for the student
+    const studentClassAndSubject = await Class.findAll({
+      where: { class_courseYearSection: studentProgramLevel, isdeleted: false },
+      attributes: ["class_id", ["createdAt", "Class Date"], "subject_id"],
+    });
+
+    if (studentClassAndSubject.length === 0) {
+      return res.status(404).json({ message: "No Class Found" });
+    }
+
+    // Extract unique subject IDs from the results
+    const subjectIds = [
+      ...new Set(studentClassAndSubject.map((item) => item.subject_id)),
+    ];
+
+    // Fetch subject names dynamically for all subject IDs
+    const studentSubjectName = await Subject.findAll({
+      where: { subject_id: { [Op.in]: subjectIds } },
+      attributes: ["subject_id", "subject_name"],
+    });
+
+    if (studentSubjectName.length === 0) {
+      return res.status(404).json({ message: "No Subject Found" });
+    }
+
+    // Fetch attendance records
+    const studentAttendance = await Attendance.findAll({
+      where: { stud_id: studID },
+      attributes: [
+        "attendance_id",
+        "stud_id",
+        "class_id",
+        ["createdAt", "Time in"],
+      ],
+    });
+
+    if (studentAttendance.length === 0) {
+      return res.status(404).json({ message: "No Attendance Found" });
+    }
+
+    res
+      .status(200)
+      .json({ studentSubjectName, studentClassAndSubject, studentAttendance });
+  } catch (error) {
+    console.error("Error fetching Student Class:", error);
+    res.status(500).json({ error: "Failed to fetch Student class" });
+  }
+};
 
 
 module.exports = {
@@ -245,4 +300,5 @@ module.exports = {
   changeStudentPassword,
   studentuploadImg,
   retrieveImg,
+  getStudentClassAndSubject,
 };
