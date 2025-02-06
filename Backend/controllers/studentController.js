@@ -8,6 +8,7 @@ const Student = db.students;
 const Class = db.classes;
 const Attendance = db.attendances;
 const Subject = db.subjects;
+
 const registerStudent = async (req, res) => {
   try {
     // const requiredFields = [

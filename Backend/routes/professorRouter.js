@@ -58,6 +58,12 @@ router.get(
   shopController.getProfessorShopTransaction
 );
 
+router.put(
+  "/verifyTransaction",
+  authenticateProfToken,
+  shopController.verifyTransaction
+);
+
 //Subject
 router.post(
   "/createSubject",
@@ -81,7 +87,6 @@ router.delete(
 );
 
 //Class
-
 router.post(
   "/createClass/:subject_id",
   authenticateProfToken,

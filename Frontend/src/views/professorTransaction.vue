@@ -49,6 +49,7 @@
             <th scope="col">Incentive Label</th>
             <th scope="col">Point Value</th>
             <th scope="col">Date</th>
+            <th scope="col">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -63,6 +64,15 @@
               <td>{{ transaction.shopitem.item_name }}</td>
               <td>{{ transaction.shopitem.item_price }}</td>
               <td>{{ formatDate(transaction.createdAt) }}</td>
+              <td>
+                {{ transaction.isVerified ? "Verified" : "Pending" }}
+                <button
+                  v-if="!transaction.isVerified"
+                  @click="approveTransaction(transaction.transaction_id)"
+                >
+                  Approve
+                </button>
+              </td>
             </tr>
           </template>
         </tbody>
@@ -86,19 +96,23 @@ const router = useRouter();
 const professorToken = localStorage.getItem("proftoken");
 const professorTransactions = ref([]);
 
+const fetchProfTransaction = async () => {
+  const response = await axios.get(
+    `${baseURL}/api/professor/getProfessorTransaction/`,
+    {
+      headers: {
+        proftoken: professorToken,
+        "ngrok-skip-browser-warning": "69420",
+      },
+    }
+  );
+
+  professorTransactions.value = response.data.filteredShopTransactions;
+};
+
 onMounted(async () => {
   try {
-    const response = await axios.get(
-      `${baseURL}/api/professor/getProfessorTransaction/`,
-      {
-        headers: {
-          proftoken: professorToken,
-          "ngrok-skip-browser-warning": "69420",
-        },
-      }
-    );
-
-    professorTransactions.value = response.data.filteredShopTransactions;
+    await fetchProfTransaction();
   } catch (error) {
     console.error("Error fetching professor transactions:", error);
   }
@@ -107,6 +121,34 @@ onMounted(async () => {
 const formatDate = (dateString) => {
   const options = { year: "numeric", month: "long", day: "numeric" };
   return new Date(dateString).toLocaleDateString(undefined, options);
+};
+
+const approveTransaction = async (transactionID) => {
+  try {
+    const approve = await axios.put(
+      `${baseURL}/api/professor/verifyTransaction`,
+      { transaction_id: transactionID },
+      {
+        headers: {
+          proftoken: professorToken,
+          "ngrok-skip-browser-warning": "69420",
+        },
+      }
+    );
+    if (approve.status === 200) {
+      // Update the local state without refetching
+      professorTransactions.value = professorTransactions.value.map(
+        (transactionSet) =>
+          transactionSet.map((transaction) =>
+            transaction.transaction_id === transactionID
+              ? { ...transaction, isVerified: true }
+              : transaction
+          )
+      );
+    }
+  } catch (error) {
+    console.error("Error verifying transaction:", error);
+  }
 };
 
 const logout = async () => {

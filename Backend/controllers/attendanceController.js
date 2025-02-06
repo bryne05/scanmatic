@@ -108,23 +108,29 @@ const createClass = async (req, res) => {
       start_time: req.body.start_time,
       end_time: req.body.end_time,
       isdeleted: req.body.isdeleted,
+      isOpen: req.body.isOpen,
     };
 
-    const findExistingClass = await Class.findAll({
-      where: {
-        prof_id: professorID,
-        subject_id: subjectID,
-        class_courseYearSection: data.class_courseYearSection,
-        isdeleted: false,
-        createdAt: {
-          [Op.gte]: new Date(new Date() - 6 * 60 * 60 * 1000), // Within 6 hours
+    if (data.isOpen === true) {
+      data.class_courseYearSection = " ";
+    } else {
+      const findExistingClass = await Class.findAll({
+        where: {
+          prof_id: professorID,
+          subject_id: subjectID,
+          class_courseYearSection: data.class_courseYearSection,
+          isdeleted: false,
+          isOpen: false,
+          createdAt: {
+            [Op.gte]: new Date(new Date() - 6 * 60 * 60 * 1000), // Within 6 hours
+          },
         },
-      },
-    });
+      });
 
-    if (findExistingClass.length > 0) {
-      res.status(400).json({ message: "Class Already Existed" });
-      return;
+      if (findExistingClass.length > 0) {
+        res.status(400).json({ message: "Class Already Existed" });
+        return;
+      }
     }
 
     const classes = await Class.create(data);
@@ -150,6 +156,7 @@ const getClass = async (req, res) => {
         "class_exp",
         "start_time",
         "end_time",
+        "isOpen",
       ],
       order: [["createdAt", "DESC"]],
     });
@@ -167,6 +174,7 @@ const getClass = async (req, res) => {
         class_exp: classInstance.class_exp,
         start_time: classInstance.start_time,
         end_time: classInstance.end_time,
+        isOpen: classInstance.isOpen,
       };
     });
 
@@ -262,6 +270,7 @@ const updateClass = async (req, res) => {
       class_exp: req.body.class_exp,
       start_time: req.body.start_time,
       end_time: req.body.end_time,
+      isOpen: req.body.isOpen,
     };
     const classes = await Class.update(updateClass, {
       where: { prof_id: professorID, subject_id: subjectID, class_id: classID },
@@ -447,9 +456,12 @@ const createAttendance = async (req, res) => {
 
     console.log("student", StudCourseSection);
     console.log("class", classes.class_courseYearSection);
-    if (StudCourseSection !== classes.class_courseYearSection) {
-      res.status(400).json({ message: "Incompatible Course" });
-      return;
+
+    if (!classes.isOpen) {
+      if (StudCourseSection !== classes.class_courseYearSection) {
+        res.status(400).json({ message: "Incompatible Course" });
+        return;
+      }
     }
 
     await Student.update(
@@ -569,6 +581,7 @@ const getStudentEntry = async (req, res) => {
   try {
     const subjectID = parseInt(req.params.subject_id, 10);
 
+    // Fetch attendance entries with necessary data
     const entry = await Attendance.findAll({
       attributes: [
         [
@@ -624,32 +637,50 @@ const getStudentEntry = async (req, res) => {
       ],
     });
 
-    const courseYearSection = entry[0]?.student?.courseYearSection;
+    // Extract unique courseYearSections from the entries
+    const uniqueCourseYearSections = [
+      ...new Set(entry.map((item) => item.student.courseYearSection)),
+    ];
 
+    // Retrieve masterlists for all unique courseYearSections
+    const masterlists = {};
+
+    for (const courseYearSection of uniqueCourseYearSections) {
+      const studentsForSection = await Student.findAll({
+        where: { courseYearSection },
+        attributes: [
+          "stud_id",
+          "first_name",
+          "middle_name",
+          "last_name",
+          "courseYearSection",
+        ],
+      });
+
+      masterlists[courseYearSection] = studentsForSection;
+    }
+
+    // Convert masterlists object to an array format for easier frontend handling
+    const masterlistArray = Object.entries(masterlists).map(
+      ([courseYearSection, students]) => ({
+        courseYearSection,
+        students,
+      })
+    );
+
+    // Find classes count for each section if needed
     const numOfClass = await Class.findAll({
       where: {
-        class_courseYearSection: courseYearSection,
+        class_courseYearSection: uniqueCourseYearSections, // Select all matching sections
         subject_id: subjectID,
         isdeleted: false,
       },
     });
 
-    const masterlist = await Student.findAll({
-      where: {
-        courseYearSection: courseYearSection,
-      },
-      attributes: [
-        "stud_id",
-        "first_name",
-        "middle_name",
-        "last_name",
-        "courseYearSection",
-      ],
-    });
-
     res.status(200).json({
       entry,
-      masterlist,
+      masterlist: masterlistArray,
+      uniqueCourseYearSections,
       numberOfClasses: numOfClass.length,
     });
   } catch (error) {
@@ -663,8 +694,8 @@ const getAllSubjectClass = async (req, res) => {
     const subjectID = req.body.subject_id;
 
     const getAllSubjectClass = await Class.findAll({
-      where: { subject_id: subjectID, isdeleted:false },
-      attributes: ["class_id", "createdAt","class_courseYearSection"],
+      where: { subject_id: subjectID, isdeleted: false },
+      attributes: ["class_id", "createdAt", "class_courseYearSection"],
     });
 
     if (!getAllSubjectClass) {

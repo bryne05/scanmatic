@@ -21,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(15),
       allowNull: false,
     },
+    item_subject: {
+      type: DataTypes.STRING(150),
+      allowNull: false,
+    },
   });
   return shopItem;
 };

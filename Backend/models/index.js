@@ -75,6 +75,7 @@ db.shopItems.belongsTo(db.professors, {
   foreignKey: "prof_id",
 });
 
+
 //Students and Transaction
 db.students.hasMany(db.transactions, {
   foreignKey: "stud_id",

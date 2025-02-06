@@ -17,6 +17,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER(5),
       allowNull: false,
     },
+    isVerified:{
+      type:DataTypes.BOOLEAN,
+      allowNull:false
+    }
   });
   return Transaction;
 };
