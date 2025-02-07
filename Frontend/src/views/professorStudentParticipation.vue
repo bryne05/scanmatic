@@ -58,11 +58,18 @@
     <Teleport to="body">
       <div v-if="isModalVisible" :class="{ show: isModalVisible }">
         <div class="modal text-center">
-          <div class="modal-content d-flex align-items-center justify-content-center flex-column">
-            <h2>Attendance Details for <br> {{ fullName }}</h2>
+          <div
+            class="modal-content d-flex align-items-center justify-content-center flex-column"
+          >
+            <h2>
+              Attendance Details for <br />
+              {{ fullName }}
+            </h2>
 
-            <!-- Search input for filtering by date -->
             <input
+              type="text"
+              v-model="dateSearchTerm"
+              placeholder="Search by date Ex: m/d/yyyy"
               style="
                 color: black;
                 background-color: white;
@@ -70,14 +77,40 @@
                 width: 400px;
                 height: 50px;
                 margin-top: 5px;
+                margin-bottom: 5px;
               "
-              type="text"
-              v-model="searchTerm"
-              placeholder="Search by date Ex: m/d/yyyy"
             />
 
-            <!-- Table displaying the attendance details -->
-            <table class="table my-table">
+            <div class="d-flex justify-content-center mb-2">
+              <label
+                v-for="status in ['All', 'Present', 'Absent']"
+                :key="status"
+                class="me-3 radio-label"
+                :class="{
+                  active:
+                    statusFilter === status ||
+                    (status === 'All' && statusFilter === ''),
+                }"
+              >
+                <input
+                  type="radio"
+                  :value="status === 'All' ? '' : status"
+                  v-model="statusFilter"
+                  class="me-1 hidden-radio"
+                />
+                <span
+                  class="custom-radio"
+                  :class="{
+                    active:
+                      statusFilter === status ||
+                      (status === 'All' && statusFilter === ''),
+                  }"
+                ></span>
+                {{ status }}
+              </label>
+            </div>
+
+            <table class="table my-table" style="height: 100px !important">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -113,9 +146,11 @@ import { useRouter } from "vue-router";
 import { useShopData } from "../composables/useShopData";
 import { useSubjectData } from "../composables/useSubjectData";
 const isModalVisible = ref(false);
-
+const statusFilter = ref("");
 const closeModal = () => {
   isModalVisible.value = false;
+  dateSearchTerm.value = "";
+  statusFilter.value = "";
 };
 const { clearStateDataProfessor } = useShopData();
 const { clearStateSubject } = useSubjectData();
@@ -133,6 +168,7 @@ const uniqueProgramLevel = ref([]);
 const StudentEntry = ref([]);
 const AllSubjectSession = ref([]);
 const searchTerm = ref("");
+const dateSearchTerm = ref("");
 const fullentrydata = ref([]);
 let fullName = ref("");
 let attendanceDetails = ref([]);
@@ -167,7 +203,8 @@ const openStudentParticipation = (programLevel) => {
 
   let tableHTML = `
     <div class="table-responsive">
-      <table class="table">
+      <input class="form-control mb-2" type="text" id="studentSearch" placeholder="Search students...">
+      <table class="table" id="studentTable">
         <thead>
           <tr>
             <th>Program Level</th>
@@ -182,8 +219,19 @@ const openStudentParticipation = (programLevel) => {
         <tbody>
   `;
 
-  // Loop through the students in the filtered program
-  filteredProgram.students.forEach((student) => {
+  // Sort students by last name, then first name (using a copy)
+  const sortedStudents = [...filteredProgram.students].sort((a, b) => {
+    const lastNameA = a.last_name || "";
+    const lastNameB = b.last_name || "";
+    if (lastNameA !== lastNameB) {
+      return lastNameA.localeCompare(lastNameB);
+    }
+    const firstNameA = a.first_name || "";
+    const firstNameB = b.first_name || "";
+    return firstNameA.localeCompare(firstNameB);
+  });
+
+  sortedStudents.forEach((student) => {
     // Get the attendance details for the student (you may need to match it with attendance data)
     const studentAttendance = fullentrydata.value.entry.filter(
       (entry) => entry.student.stud_id === student.stud_id
@@ -197,7 +245,7 @@ const openStudentParticipation = (programLevel) => {
         : "No Attendance";
 
     tableHTML += `
-      <tr>
+      <tr class="student-row">
         <td>${programLevel}</td>
         <td>${student.first_name || "-"}</td>
         <td>${student.middle_name || "-"}</td>
@@ -205,8 +253,10 @@ const openStudentParticipation = (programLevel) => {
         <td>${attendanceCount} / ${classCount}</td>
         <td>${latestAttendedDate}</td>
         <td>
-          <button class="btn btn-primary details-btn pl-4 pr-4" data-id="${student.stud_id}">
-            View 
+          <button class="btn btn-primary details-btn pl-4 pr-4" data-id="${
+            student.stud_id
+          }">
+            View
           </button>
         </td>
       </tr>
@@ -219,12 +269,11 @@ const openStudentParticipation = (programLevel) => {
     </div>
   `;
 
-  // Show the table in a SweetAlert modal
   Swal.fire({
     title: `Student List for ${programLevel}`,
     html: tableHTML,
     width: "1400px",
-    allowOutsideClick: false, // Prevent closing by clicking outside
+    allowOutsideClick: true, // Prevent closing by clicking outside
     allowEscapeKey: false, // Prevent closing by pressing Esc key
     confirmButtonText: "OK",
     didOpen: () => {
@@ -243,6 +292,25 @@ const openStudentParticipation = (programLevel) => {
             student.last_name,
             student.courseYearSection
           );
+        });
+      });
+
+      // Search functionality
+      const searchInput = document.getElementById("studentSearch");
+      const studentTable = document.getElementById("studentTable");
+      const studentRows = studentTable.querySelectorAll(".student-row");
+
+      searchInput.addEventListener("keyup", (event) => {
+        const searchTerm = event.target.value.toLowerCase();
+
+        studentRows.forEach((row) => {
+          const studentName =
+            `${row.cells[1].textContent} ${row.cells[2].textContent} ${row.cells[3].textContent}`.toLowerCase(); // Combine first, middle, last names
+          if (studentName.includes(searchTerm)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
         });
       });
     },
@@ -522,9 +590,14 @@ const showModal = (
 
 // Filter attendance details based on search term (date)
 const filteredAttendanceDetails = computed(() => {
-  return attendanceDetails.value.filter((detail) =>
-    detail.date.toLowerCase().includes(searchTerm.value.toLowerCase())
-  );
+  return attendanceDetails.value.filter((detail) => {
+    const dateMatch = detail.date
+      .toLowerCase()
+      .includes(dateSearchTerm.value.toLowerCase());
+    const statusMatch =
+      statusFilter.value === "" || detail.status === statusFilter.value;
+    return dateMatch && statusMatch;
+  });
 });
 
 const getAttendanceCount = (studentId) => {
@@ -560,6 +633,39 @@ const logout = async () => {
 </script>
 
 <style scoped>
+.radio-label {
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.hidden-radio {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.custom-radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  margin-right: 5px;
+  transition: border-color 0.3s, background-color 0.3s;
+  background-color: transparent;
+}
+
+.custom-radio.active {
+  border-color: blue;
+  background-color: blue;
+}
+
+.radio-label {
+  color: #333;
+  transition: color 0.3s;
+}
+
 .modal {
   position: fixed;
   top: 0;

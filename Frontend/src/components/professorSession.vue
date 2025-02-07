@@ -103,7 +103,7 @@
   {{ session.class_courseYearSection }}
 </div>
 <div v-else>
-<b>Open Session {{session.isOpen}}</b> 
+<b>Open Session </b> 
 </div>
 
                 Point Value:{{ session.clas_token }}<br />
