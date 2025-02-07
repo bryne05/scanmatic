@@ -72,8 +72,9 @@ onMounted(() => {
           <div class="card-body">
             <h5 class="card-title">{{ item.item_name }}</h5>
             <p class="card-text">
-              Quantity: {{ item.item_quantity }}<br />
+              
               Point Value: {{ item.item_price }} Points <br />
+              Subject: {{ item.item_subject }} <br>
               Creator: {{ item.professor.first_name }}
               {{ item.professor.middle_name }} {{ item.professor.last_name }}
             </p>

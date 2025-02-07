@@ -94,14 +94,16 @@ const formatDate = (dateString) => {
     </div>
 
     <div class="text">
+      <h1>Claimed Incentives</h1>
       <div class="table-responsive">
         <table class="table">
           <thead>
             <tr class="tr">
               <th scope="col">Incentive Label</th>
-              <th scope="col">Quantity</th>
+            
               <th scope="col">Point Value</th>
               <th scope="col">Date</th>
+                <th scope="col">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -110,9 +112,10 @@ const formatDate = (dateString) => {
               :key="transaction.createdAt"
             >
               <td>{{ transaction.item_name }}</td>
-              <td>{{ transaction.item_quantity }}</td>
+          
               <td>{{ transaction.item_price }}</td>
               <td>{{ formatDate(transaction.createdAt) }}</td>
+              <td>{{ transaction.isVerified ? 'Verified' : 'Pending' }}</td>
             </tr>
           </tbody>
         </table>

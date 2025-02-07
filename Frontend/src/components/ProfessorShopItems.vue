@@ -24,6 +24,7 @@
             <p class="card-text">
               Quantity: {{ item.item_quantity }}<br />
               Point Value: {{ item.item_price }} Points <br />
+              Subject: {{ item.item_subject }} <br />
               Program Level: {{ item.item_classSection }}
             </p>
 
@@ -94,6 +95,18 @@
                 class="form-control cus-border"
                 placeholder="Enter the point value for this incentive"
               />
+
+              <label class="form-label fw-bold inv">Subject Name</label><br />
+              <select class="form-control cus-border" v-model="selectedSubject">
+                <option value="">Choose...</option>
+                <option
+                  v-for="subject in professorSubject"
+                  :key="subject.id"
+                  :value="subject.subject_name"
+                >
+                  {{ subject.subject_name }}
+                </option>
+              </select>
 
               <label class="form-label fw-bold inv">Program Level</label>
 
@@ -177,7 +190,17 @@
                 class="form-control cus-border"
                 placeholder="Enter new the price for this incentive"
               />
-
+              <label class="form-label fw-bold inv">Subject Name</label><br />
+              <select class="form-control cus-border" v-model="updatesubject">
+                <option value="">Choose...</option>
+                <option
+                  v-for="subject in professorSubject"
+                  :key="subject.id"
+                  :value="subject.subject_name"
+                >
+                  {{ subject.subject_name }}
+                </option>
+              </select>
               <label class="form-label fw-bold inv">Program Level</label>
 
               <input
@@ -212,7 +235,7 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import { baseURL } from "../config";
 import Swal from "sweetalert2";
-import { useShopData } from '../composables/useShopData';
+import { useShopData } from "../composables/useShopData";
 
 const { professorShopItems, loading, refreshAllData } = useShopData();
 
@@ -224,27 +247,84 @@ const currentItemName = ref(null);
 const currentQuantity = ref(null);
 const currentPrice = ref(null);
 const currentCourseYear = ref(null);
-
+const currentSubject = ref(null);
+const professorSubject = ref([]);
 //AddShop
 const itemName = ref("");
 const quantity = ref("");
 const price = ref("");
 const courseYear = ref("");
-
+const selectedSubject = ref("");
 //UpdateShop
 const updateitemName = ref("");
 const updatequantity = ref("");
 const updateprice = ref("");
 const updatecourseYear = ref("");
-
+const updatesubject = ref("");
 const setUpdateItemData = (item) => {
   currentItemId.value = item.item_id;
   currentItemName.value = item.item_name;
   currentQuantity.value = item.item_quantity;
   currentPrice.value = item.item_price;
   currentCourseYear.value = item.item_classSection;
+  currentSubject.value = item.item_subject;
 };
 
+const fetchSubjects = async () => {
+  try {
+    const response = await axios.get(`${baseURL}/api/professor/getAllSubject`, {
+      headers: {
+        proftoken: `${proftoken}`,
+        "ngrok-skip-browser-warning": "69420",
+      },
+    });
+    const subjects = response.data.subject;
+
+    subjects.sort((a, b) => {
+      const nameA = a.subject_name.toLowerCase();
+      const nameB = b.subject_name.toLowerCase();
+
+      // Extract alphanumeric parts (letters and numbers)
+      const partsA = nameA.match(/([a-z]+|\d+)/g); // Matches letters or numbers
+      const partsB = nameB.match(/([a-z]+|\d+)/g);
+
+      if (!partsA || !partsB) {
+        // Handle cases where no alphanumeric parts are found
+        return nameA.localeCompare(nameB); // Fallback to basic string compare
+      }
+
+      for (let i = 0; i < Math.min(partsA.length, partsB.length); i++) {
+        const partA = partsA[i];
+        const partB = partsB[i];
+
+        const numA = Number(partA);
+        const numB = Number(partB);
+
+        if (!isNaN(numA) && !isNaN(numB)) {
+          if (numA !== numB) {
+            return numA - numB;
+          }
+        } else if (!isNaN(numA)) {
+          return -1;
+        } else if (!isNaN(numB)) {
+          return 1;
+        } else {
+          const comparison = partA.localeCompare(partB);
+          if (comparison !== 0) {
+            return comparison;
+          }
+        }
+      }
+
+      return partsA.length - partsB.length; // If all parts are equal, compare length
+    });
+
+    professorSubject.value = subjects;
+  } catch (error) {
+    console.error("Error getting subjects:", error);
+    Swal.fire("Error", "Failed to fetch subjects", "error");
+  }
+};
 const updateItem = async () => {
   const confirmationResult = await Swal.fire({
     title: "Update incentive",
@@ -262,8 +342,10 @@ const updateItem = async () => {
         item_quantity: updatequantity.value || currentQuantity.value,
         item_price: updateprice.value || currentPrice.value,
         item_classSection: updatecourseYear.value || currentCourseYear.value,
+        item_subject: updatesubject.value || currentSubject.value,
       };
 
+    
       const response = await axios.put(
         `${baseURL}/api/professor/updateProfessorShopItem/${currentItemId.value}`,
         updatedData,
@@ -274,9 +356,9 @@ const updateItem = async () => {
           },
         }
       );
-        if (response.status === 200) {
+      if (response.status === 200) {
         await refreshAllData();
-        
+
         Swal.fire({
           title: "Success",
           text: "Incentive updated successfully",
@@ -287,6 +369,7 @@ const updateItem = async () => {
         updatequantity.value = "";
         updateprice.value = "";
         updatecourseYear.value = "";
+        updatesubject.value = "";
       } else {
         Swal.fire({
           title: "Error",
@@ -306,7 +389,13 @@ const updateItem = async () => {
 };
 
 const addItem = async () => {
-  if (!itemName.value || !quantity.value || !price.value || !courseYear.value) {
+  if (
+    !itemName.value ||
+    !quantity.value ||
+    !price.value ||
+    !courseYear.value ||
+    !selectedSubject.value
+  ) {
     Swal.fire("Error", "All fields are required", "error");
     return;
   }
@@ -318,6 +407,7 @@ const addItem = async () => {
         item_quantity: quantity.value,
         item_price: price.value,
         item_classSection: courseYear.value,
+        item_subject: selectedSubject.value,
       },
       {
         headers: {
@@ -329,7 +419,7 @@ const addItem = async () => {
 
     if (response.status === 200) {
       await refreshAllData();
-      
+
       Swal.fire("Success", "Incentive added successfully!", "success");
 
       // Clear form fields
@@ -369,9 +459,9 @@ const deleteItem = async (item) => {
         }
       );
 
-        if (response.status === 200) {
+      if (response.status === 200) {
         await refreshAllData();
-        
+
         Swal.fire({
           title: "Success",
           text: "Incentive Deleted successfully",
@@ -397,11 +487,14 @@ const deleteItem = async (item) => {
 
 onMounted(() => {
   refreshAllData();
+  fetchSubjects();
 });
-
 </script>
 
 <style scoped>
+.subject-selector {
+  background-color: white;
+}
 body {
   margin: 0;
   padding: 0;

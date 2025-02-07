@@ -40,11 +40,33 @@
       </nav>
     </div>
   </div>
+  <br />
+  <br />
 
   <div v-if="studentData" class="container-fluid text-start">
     <div class="white-bg">
       <h1 class="mt-2 mb-2 text-center">Student Profile</h1>
+
       <ul class="f-size">
+        <div class="imgdiv text-center">
+          <img
+            :src="imageSrc || '/profile-user.png'"
+            alt="Student Image"
+            width="200"
+            height="200"
+            v-if="imageSrc || !imageSrc"
+          />
+
+          <br />
+          <button class="uploadimage" @click="fileTrigger">Upload Image</button>
+          <input
+            type="file"
+            ref="fileInput"
+            accept="image/*"
+            style="display: none"
+            @change="handleFileChange"
+          />
+        </div>
         <li>First Name: {{ studentData.first_name }}</li>
         <li>Middle Name: {{ studentData.middle_name }}</li>
         <li>Last Name: {{ studentData.last_name }}</li>
@@ -228,12 +250,17 @@ import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 import { useShopData } from "../composables/useShopData";
 
-
 const { clearStateData } = useShopData();
 const token = localStorage.getItem("studtoken");
 const router = useRouter();
 
 const studentData = ref(null);
+
+import defaultimage from "../assets/profile-user.png";
+const imageSrc = ref(null);
+
+const fileInput = ref(null);
+const imageFile = ref(null);
 
 const firstName = ref("");
 const middleName = ref("");
@@ -242,6 +269,9 @@ const courseYearSection = ref("");
 const newPass = ref("");
 const confirmPass = ref("");
 
+const setdefaultimage = () => {
+  imageSrc.value = defaultimage;
+};
 onMounted(async () => {
   // Make the API request when the component is mounted
   try {
@@ -301,10 +331,82 @@ onMounted(async () => {
         studentData.value = updatedStudent.data;
       }
     }
+    fetchImage();
   } catch (error) {
     console.error("Error getting data:", error);
   }
 });
+
+const fileTrigger = async () => {
+  // Access the hidden file input and trigger it
+  fileInput.value.click();
+};
+
+// Handle image upload (sending to the server)
+const uploadImage = async () => {
+  if (!imageFile.value) return;
+
+  const formData = new FormData();
+  formData.append("image", imageFile.value);
+
+  try {
+    // Send the image to the server (replace with your API URL)
+    const response = await axios.post(
+      `${baseURL}/api/student/studentImgUpload`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          studtoken: token,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      console.log("Image uploaded successfully!");
+      fetchImage();
+    }
+  } catch (error) {
+    console.error("Error uploading image:", error);
+  }
+};
+
+const handleFileChange = (event) => {
+  const file = event.target.files[0]; // Get the first file selected
+
+  if (file && file.type.startsWith("image")) {
+    imageFile.value = file;
+    uploadImage();
+  } 
+};
+
+// Fetch the image from the backend
+const fetchImage = async () => {
+  try {
+    // Make the GET request using axios with responseType set to 'blob'
+    const response = await axios.get(
+      `${baseURL}/api/student/studentImgRetrieve`,
+      {
+        headers: {
+          studtoken: token, // Add any necessary authorization token here
+        },
+        responseType: "blob", // Set response type to 'blob' for binary data
+      }
+    );
+
+    // Check if the response is successful
+    if (response.status === 200) {
+      // Create an object URL from the Blob data and assign it to imageSrc
+      const imageURL = URL.createObjectURL(response.data);
+      imageSrc.value = imageURL; // Use object URL for the image source
+    } else {
+      setdefaultimage();
+    }
+  } catch (error) {
+    console.error("Error fetching image:", error);
+    setdefaultimage();
+  }
+};
 
 const updatePassword = async () => {
   if (!newPass.value || !confirmPass.value) {
@@ -461,6 +563,22 @@ const logout = async () => {
 </script>
 
 <style>
+.imgdiv {
+  margin-right: 40px;
+}
+.uploadimage {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 30px;
+  color: white;
+  transition: 0.5s;
+}
+
+.uploadimage:hover {
+  background-color: white;
+  border-color: black;
+  color: black;
+}
 .text {
   margin-top: 100px;
   color: white;
@@ -506,7 +624,7 @@ const logout = async () => {
   background-color: white;
   border-radius: 20px;
   width: 700px;
-  height: 60svh;
+  height: 75vh;
   overflow: hidden !important;
   margin-bottom: 80px;
 }
@@ -522,7 +640,7 @@ const logout = async () => {
   }
   .white-bg {
     width: 80vw;
-    height: 60svh;
+    height: 75svh;
   }
 }
 
@@ -531,7 +649,7 @@ const logout = async () => {
     width: 200px;
   }
   .white-bg {
-    height: 65svh;
+    height: 75svh;
   }
 }
 </style>

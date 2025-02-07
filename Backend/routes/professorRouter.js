@@ -58,6 +58,12 @@ router.get(
   shopController.getProfessorShopTransaction
 );
 
+router.put(
+  "/verifyTransaction",
+  authenticateProfToken,
+  shopController.verifyTransaction
+);
+
 //Subject
 router.post(
   "/createSubject",
@@ -81,7 +87,6 @@ router.delete(
 );
 
 //Class
-
 router.post(
   "/createClass/:subject_id",
   authenticateProfToken,
@@ -94,18 +99,44 @@ router.get(
   attendanceController.getClass
 );
 
+router.get(
+  "/getSingleClass/:subject_id/:class_id",
+  authenticateProfToken,
+  attendanceController.getSingleClass
+);
+
 router.put(
   "/updateClass/:subject_id/:class_id",
   authenticateProfToken,
   attendanceController.updateClass
 );
 
-router.delete(
+//Class Deletion
+router.get(
+  "/getClassDeleted/:subject_id",
+  authenticateProfToken,
+  attendanceController.getClassDeleted
+);
+
+router.put(
+  "/deleteClassRestore/:subject_id/:class_id",
+  authenticateProfToken,
+  attendanceController.deleteClassRestore
+);
+
+router.put(
   "/deleteClass/:subject_id/:class_id",
   authenticateProfToken,
   attendanceController.deleteClass
 );
 
+router.delete(
+  "/deleteClassPerma/:subject_id/:class_id",
+  authenticateProfToken,
+  attendanceController.deleteClassPerma
+);
+
+router.post("/getAllSubjectClass", attendanceController.getAllSubjectClass);
 //Attendance
 router.post(
   "/createAttendance/:class_id",

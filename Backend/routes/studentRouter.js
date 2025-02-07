@@ -2,6 +2,11 @@ const studentController = require("../controllers/studentController");
 const shopController = require("../controllers/shopController");
 const { authenticateStudToken } = require("../middleware/auth");
 const router = require("express").Router();
+const multer = require("multer");
+
+// Set up Multer to handle file uploads (in memory storage)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 router.post("/registerStudent", studentController.registerStudent);
 router.post("/loginStudent", studentController.loginStudent);
@@ -14,6 +19,24 @@ router.put(
   "/updateStudent/",
   authenticateStudToken,
   studentController.updateStudentProfile
+);
+
+router.get(
+  "/studentImgRetrieve",
+  authenticateStudToken,
+  studentController.retrieveImg
+);
+
+router.post(
+  "/studentImgUpload",
+  authenticateStudToken,
+  upload.single("image"),
+  studentController.studentuploadImg
+);
+router.get(
+  "/getStudentClassAndSubject",
+  authenticateStudToken,
+  studentController.getStudentClassAndSubject
 );
 
 //Student Shop

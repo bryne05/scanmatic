@@ -6,7 +6,7 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
   timezone: dbConfig.timezone,
-  dialectModule: require("pg"),
+  // dialectModule: require("pg"),
   // pool: {
   //   max: dbConfig.pool.max,
   //   min: dbConfig.pool.min,
@@ -74,6 +74,7 @@ db.professors.hasMany(db.shopItems, {
 db.shopItems.belongsTo(db.professors, {
   foreignKey: "prof_id",
 });
+
 
 //Students and Transaction
 db.students.hasMany(db.transactions, {

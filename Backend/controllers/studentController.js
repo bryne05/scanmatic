@@ -5,6 +5,9 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 //main model
 const Student = db.students;
+const Class = db.classes;
+const Attendance = db.attendances;
+const Subject = db.subjects;
 
 const registerStudent = async (req, res) => {
   try {
@@ -161,13 +164,15 @@ const updateStudentProfile = async (req, res) => {
 const changeStudentPassword = async (req, res) => {
   try {
     let studentID = req.stud_id;
-   const hashPassword = await bcrypt.hash(req.body.password, 10);
+    const hashPassword = await bcrypt.hash(req.body.password, 10);
 
-    
-    await Student.update({password: hashPassword}, {
-      where: { stud_id: studentID },
-    });
- 
+    await Student.update(
+      { password: hashPassword },
+      {
+        where: { stud_id: studentID },
+      }
+    );
+
     res.status(200).json({ message: "Password changed Successfully" });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
@@ -175,10 +180,126 @@ const changeStudentPassword = async (req, res) => {
   }
 };
 
+const studentuploadImg = async (req, res) => {
+  try {
+    // Get studentID from the URL parameter
+    const studentID = req.stud_id;
+
+    // Find the student by their primary key (studentID)
+    const findStudent = await Student.findByPk(studentID);
+
+    if (!findStudent) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    // Get the image buffer from the uploaded file
+    const image = req.file.buffer;
+
+    // Update the student's image
+    findStudent.image = image;
+
+    // Save the updated student record
+    await findStudent.save();
+
+    res.status(200).json({
+      message: "Image uploaded successfully!",
+      student: findStudent,
+    });
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    res.status(500).json({ error: "Failed to upload image" });
+  }
+};
+
+const retrieveImg = async (req, res) => {
+  try {
+    const studentID = req.stud_id;
+    const student = await Student.findByPk(studentID);
+
+    if (!student || !student.image) {
+      return res.status(404).json({ error: "Image not found" });
+    }
+
+    const imageBuffer = student.image;
+
+    // Set MIME type to image/jpeg, assuming the image is a JPG
+    const mimeType = "image/jpeg";
+
+    // Set the correct MIME type in the response header
+    res.setHeader("Content-Type", mimeType);
+
+    // Send the image buffer as binary data
+    res.send(imageBuffer);
+  } catch (error) {
+    console.error("Error fetching image:", error);
+    res.status(500).json({ error: "Failed to fetch image" });
+  }
+};
+
+const { Op } = require("sequelize");
+
+const getStudentClassAndSubject = async (req, res) => {
+  try {
+    const studID = req.stud_id;
+    const studentProgramLevel = req.courseYearSection;
+
+    // Get all classes for the student
+    const studentClassAndSubject = await Class.findAll({
+      where: { class_courseYearSection: studentProgramLevel, isdeleted: false },
+      attributes: ["class_id", ["createdAt", "Class Date"], "subject_id"],
+    });
+
+    if (studentClassAndSubject.length === 0) {
+      return res.status(404).json({ message: "No Class Found" });
+    }
+
+    // Extract unique subject IDs from the results
+    const subjectIds = [
+      ...new Set(studentClassAndSubject.map((item) => item.subject_id)),
+    ];
+
+    // Fetch subject names dynamically for all subject IDs
+    const studentSubjectName = await Subject.findAll({
+      where: { subject_id: { [Op.in]: subjectIds } },
+      attributes: ["subject_id", "subject_name"],
+    });
+
+    if (studentSubjectName.length === 0) {
+      return res.status(404).json({ message: "No Subject Found" });
+    }
+
+    // Fetch attendance records
+    const studentAttendance = await Attendance.findAll({
+      where: { stud_id: studID },
+      attributes: [
+        "attendance_id",
+        "stud_id",
+        "class_id",
+        ["createdAt", "Time in"],
+      ],
+    });
+
+    if (studentAttendance.length === 0) {
+      return res.status(404).json({ message: "No Attendance Found" });
+    }
+
+    res
+      .status(200)
+      .json({ studentSubjectName, studentClassAndSubject, studentAttendance });
+  } catch (error) {
+    console.error("Error fetching Student Class:", error);
+    res.status(500).json({ error: "Failed to fetch Student class" });
+  }
+};
+
+
 module.exports = {
   registerStudent,
   getStudentProfile,
   updateStudentProfile,
   loginStudent,
   changeStudentPassword,
+  studentuploadImg,
+  retrieveImg,
+  getStudentClassAndSubject,
 };

@@ -41,6 +41,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 1,
     },
+    image: {
+      type: DataTypes.BLOB("long"), // store the image as a binary large object
+      allowNull: true, // Image is optional
+    },
   });
   return Student;
 };

@@ -40,7 +40,28 @@
 
   <div class="mt-2 text">
     <h2 class="text">Session</h2>
-    <h3 class="text-start">Subject: {{ subjectName }}</h3>
+
+    <div class="container m-0 p-0">
+      <div class="row">
+        <div class="col-6 d-flex align-items-center">
+          <h3 class="text-start">Subject: {{ subjectName }}</h3>
+        </div>
+        <div class="col-6 d-flex align-items-center justify-content-end">
+          <div class="bin-container">
+            <div class="bin">
+              <button
+                class="btn-recycle btn btn-light"
+                @click="enterRecycleBin()"
+              >
+                <img src="../assets/litter.png" alt="" height="40" width="40" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card -->
     <div>
       <button
         class="btnsyle mb-3"
@@ -66,9 +87,25 @@
               >
                 Enter
               </button>
-              <h5 class="card-title mb-3">{{ session.createdAt }}</h5>
+              <h4 class="card-title mb-3">
+       
+           
+                {{ session.createdAt }}
+              </h4>
+              <h6>
+                Start Time: {{ formatTime(session.start_time) }} &ensp; End
+                Time: {{ formatTime(session.end_time) }}
+              </h6>
               <p class="card-text">
-                Program Level: {{ session.class_courseYearSection }} <br />
+            
+                <div v-if="session.class_courseYearSection.trim() !== ''">
+  Program Level: 
+  {{ session.class_courseYearSection }}
+</div>
+<div v-else>
+<b>Open Session </b> 
+</div>
+
                 Point Value:{{ session.clas_token }}<br />
                 Exp: {{ session.class_exp }} <br />
               </p>
@@ -108,7 +145,6 @@
           <form>
             <div class="modal-header">
               <h5 class="modal-title" id="addsession">Session Details</h5>
-
               <button
                 type="button"
                 class="btn-close"
@@ -118,13 +154,16 @@
             </div>
             <div class="modal-body">
               <div class="col-md-12">
-                <label class="form-label fw-bold inv">Program Level</label>
-                <input
-                  v-model="sessionCourseYearSection"
-                  type="text"
-                  class="form-control cus-border"
-                  placeholder="Ex BSCS 4A,ABM 12B"
-                />
+                <!-- Show Program Level only for Close Session -->
+                <div v-if="!sessionType">
+                  <label class="form-label fw-bold inv">Program Level</label>
+                  <input
+                    v-model="sessionCourseYearSection"
+                    type="text"
+                    class="form-control cus-border"
+                    placeholder="Ex BSCS 4A, ABM 12B"
+                  />
+                </div>
 
                 <label class="form-label fw-bold inv">Point Value</label>
                 <input
@@ -141,6 +180,64 @@
                   class="form-control cus-border"
                   placeholder="Enter exp gained by students"
                 />
+
+                <label class="form-label fw-bold inv mt-2"
+                  >Type of Session</label
+                >
+                <br />
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="flexRadioDefault"
+                  id="flexRadioDefault1"
+                  :value="false"
+                  v-model="sessionType"
+                />
+                <label class="form-check-label" for="flexRadioDefault1">
+                  Close Session
+                </label>
+
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="flexRadioDefault"
+                  id="flexRadioDefault2"
+                  :value="true"
+                  v-model="sessionType"
+                />
+                <label class="form-check-label mb-2" for="flexRadioDefault2">
+                  Open Session
+                </label>
+
+                <br />
+
+                <label class="form-label fw-bold inv">Start Time</label>
+                <VueDatePicker
+                  v-model="sessionStartTime"
+                  time-picker
+                  placeholder="Start Time"
+                  :is24="false"
+                  auto-position="top"
+                  :teleport="true"
+                >
+                  <template #input-icon>
+                    <img class="input-slot-image" src="../assets/clock.png" />
+                  </template>
+                </VueDatePicker>
+
+                <label class="form-label fw-bold inv">End Time</label>
+                <VueDatePicker
+                  v-model="sessionEndTime"
+                  time-picker
+                  placeholder="End Time"
+                  :is24="false"
+                  auto-position="top"
+                  :teleport="true"
+                >
+                  <template #input-icon>
+                    <img class="input-slot-image" src="../assets/clock.png" />
+                  </template>
+                </VueDatePicker>
               </div>
             </div>
             <div class="modal-footer justify-content-center">
@@ -189,18 +286,18 @@
             <div class="modal-body">
               <h6 style="color: gray">
                 <i
-                  >"Leave it blank if you don't want to update certain
-                  details"</i
+                  >"Leave other fields blank if you don't want to update them.
+                  Time fields cannot be left blank."</i
                 >
               </h6>
               <div class="col-md-12">
-                <label class="form-label fw-bold inv">Program Level</label>
+                <div v-if="!updateSessiontype"><label class="form-label fw-bold inv">Program Level</label>
                 <input
                   v-model="updateCourseYearSection"
                   type="text"
                   class="form-control cus-border"
                   placeholder="Enter new Program Level and Year Ex BSCS 4A,ABM 12A"
-                />
+                /></div>
                 <label class="form-label fw-bold inv">Point Value</label>
                 <input
                   v-model="updateSessionToken"
@@ -215,6 +312,63 @@
                   class="form-control cus-border"
                   placeholder="Enter new Experience Point"
                 />
+
+                  <label class="form-label fw-bold inv mt-2"
+                  >Type of Session</label
+                >
+                <br />
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="flexRadioDefault"
+                  id="flexRadioDefault1"
+                  :value="false"
+                  v-model="updateSessiontype"
+                />
+                <label class="form-check-label" for="flexRadioDefault1">
+                  Close Session
+                </label>
+
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="flexRadioDefault"
+                  id="flexRadioDefault2"
+                  :value="true"
+                  v-model="updateSessiontype"
+                />
+                <label class="form-check-label mb-2" for="flexRadioDefault2">
+                  Open Session
+                </label>
+                <br>
+                <label class="form-label fw-bold inv">Start Time</label>
+
+                <VueDatePicker
+                  v-model="updateStartTime"
+                  time-picker
+                  placeholder="Update Start Time"
+                  :is24="false"
+                  auto-position="top"
+                  :teleport="true"
+                >
+                  <template #input-icon>
+                    <img class="input-slot-image" src="../assets/clock.png" />
+                  </template>
+                </VueDatePicker>
+                <label class="form-label fw-bold inv">End Time</label>
+                <VueDatePicker
+                  v-model="updateEndTime"
+                  time-picker
+                  placeholder="Update End Time"
+                  :is24="false"
+                  auto-position="top"
+                  :teleport="true"
+                >
+                  <template #input-icon>
+                    <img class="input-slot-image" src="../assets/clock.png" />
+                  </template>
+                </VueDatePicker>
+
                 <input type="hidden" v-model="currentSessionID" />
               </div>
             </div>
@@ -247,14 +401,49 @@ import { useRouter } from "vue-router";
 import { baseURL } from "../config";
 import Swal from "sweetalert2";
 import axios from "axios";
+import VueDatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 
 const router = useRouter();
-const props = defineProps(["subjectID", "subjectName"]);
+const props = defineProps(["subjectID", "subjectName", "programlevel"]);
 const subjectID = ref(props.subjectID);
 const subjectName = ref(props.subjectName);
-
+const programlevel = ref(props.programlevel);
 const proftoken = localStorage.getItem("proftoken");
 const professorSession = ref([]);
+
+//Current Session
+const currentSessionID = ref(null);
+const currentSessionToken = ref(null);
+const currentSessionExp = ref(null);
+const currentSessionCourseYearSection = ref(null);
+const currentSessiontype = ref(null)
+
+//Add Session
+const sessionToken = ref("");
+const sessionExp = ref("");
+const sessionCourseYearSection = ref("");
+const sessionStartTime = ref("");
+const sessionEndTime = ref("");
+const sessionType = ref(false);
+//Update Session
+const updateSessionToken = ref("");
+const updateSessionExp = ref("");
+const updateCourseYearSection = ref("");
+const updateStartTime = ref("");
+const updateEndTime = ref("");
+const updateSessiontype = ref()
+function formatTime(timeString) {
+  if (!timeString) return ""; // Handle null or undefined
+
+  const [hours, minutes, seconds] = timeString.split(":");
+  let formattedHours = parseInt(hours, 10);
+  const amPm = formattedHours >= 12 ? "PM" : "AM";
+
+  formattedHours = formattedHours % 12 || 12; // Convert to 12-hour format (0 becomes 12)
+
+  return `${formattedHours}:${minutes} ${amPm}`;
+}
 
 const fetchSessions = async () => {
   try {
@@ -268,34 +457,38 @@ const fetchSessions = async () => {
       }
     );
     professorSession.value = response.data.classes;
+    console.log(professorSession.value);
   } catch (error) {
     console.error("Error getting sessions:", error);
     Swal.fire("Error", "Failed to fetch sessions", "error");
   }
 };
 
-//Current Session
-const currentSessionID = ref(null);
-const currentSessionToken = ref(null);
-const currentSessionExp = ref(null);
-const currentSessionCourseYearSection = ref(null);
-
-//Add Session
-const sessionToken = ref("");
-const sessionExp = ref("");
-const sessionCourseYearSection = ref("");
-
-//Update Session
-const updateSessionToken = ref("");
-const updateSessionExp = ref("");
-const updateCourseYearSection = ref("");
-
 const setUpdateSession = (session) => {
   currentSessionID.value = session.class_id;
   currentSessionToken.value = session.class_token;
   currentSessionExp.value = session.class_exp;
   currentSessionCourseYearSection.value = session.class_courseYearSection;
+  
+  // Ensure the session start and end time are parsed correctly
+  updateStartTime.value = session.start_time
+    ? {
+        hours: parseInt(session.start_time.split(":")[0]),
+        minutes: parseInt(session.start_time.split(":")[1]),
+      }
+    : null;
+
+  updateEndTime.value = session.end_time
+    ? {
+        hours: parseInt(session.end_time.split(":")[0]),
+        minutes: parseInt(session.end_time.split(":")[1]),
+      }
+    : null;
+
+  // Set the session type correctly
+  updateSessiontype.value = session.isOpen; // This should match the sessionType value
 };
+
 
 const updateSubject = async () => {
   const confirmationResult = await Swal.fire({
@@ -309,14 +502,40 @@ const updateSubject = async () => {
 
   if (confirmationResult.isConfirmed) {
     try {
+      // Determine the value for class_courseYearSection based on isOpen
+      let classCourseYearSection = "";
+
+      // Check if session is open (isOpen === true)
+      if (updateSessiontype.value === true) {
+        classCourseYearSection = ""; // Open session will have empty class_courseYearSection
+      } else {
+        // If session is not open, use the provided value or the current session value
+        classCourseYearSection = updateCourseYearSection.value || currentSessionCourseYearSection.value;
+
+        // If class_courseYearSection is still empty or null, it is required
+        if (!classCourseYearSection) {
+          Swal.fire({
+            title: "Error",
+            text: "Program Level is required.",
+            icon: "error",
+          });
+          return; // Stop the update process if the field is empty or null
+        }
+      }
+
       const updatedData = {
-        class_courseYearSection:
-          updateCourseYearSection.value ||
-          currentSessionCourseYearSection.value,
+        class_courseYearSection: classCourseYearSection, // Value determined based on isOpen and requirement
         class_token: updateSessionToken.value || currentSessionToken.value,
         class_exp: updateSessionExp.value || currentSessionExp.value,
+        start_time: updateStartTime.value
+          ? `${updateStartTime.value.hours}:${updateStartTime.value.minutes}`
+          : null, // Key change!
+        end_time: updateEndTime.value
+          ? `${updateEndTime.value.hours}:${updateEndTime.value.minutes}`
+          : null, // Key change!
+        isOpen: updateSessiontype.value 
       };
-
+console.log("isOpen Update data:",updatedData.isOpen);
       const response = await axios.put(
         `${baseURL}/api/professor/updateClass/${subjectID.value}/${currentSessionID.value}`,
         updatedData,
@@ -327,7 +546,9 @@ const updateSubject = async () => {
           },
         }
       );
-        if (response.status === 200) {
+
+      if (response.status === 200) {
+        
         Swal.fire({
           title: "Success",
           text: "Sessions updated successfully",
@@ -335,10 +556,10 @@ const updateSubject = async () => {
         });
 
         await fetchSessions();
+
         updateSessionToken.value = "";
         updateSessionExp.value = "";
         updateCourseYearSection.value = "";
-
       } else {
         console.error("Failed to update Sessions:", response.statusText);
         Swal.fire({
@@ -358,15 +579,24 @@ const updateSubject = async () => {
   }
 };
 
+
+
 const addSession = async () => {
   if (
-    !sessionCourseYearSection.value ||
     !sessionToken.value ||
-    !sessionExp.value
+    !sessionExp.value ||
+    !sessionExp.value ||
+    !sessionStartTime.value ||
+    !sessionEndTime
   ) {
-    Swal.fire("Error", "All fields are required", "error");
+    Swal.fire(
+      "Error",
+      "All fields are except Program Level are required",
+      "error"
+    );
     return;
   }
+
   try {
     const response = await axios.post(
       `${baseURL}/api/professor/createClass/${subjectID.value}`,
@@ -374,6 +604,10 @@ const addSession = async () => {
         class_courseYearSection: sessionCourseYearSection.value,
         class_token: sessionToken.value,
         class_exp: sessionExp.value,
+        start_time: `${sessionStartTime.value.hours}:${sessionStartTime.value.minutes}`,
+        end_time: `${sessionEndTime.value.hours}:${sessionEndTime.value.minutes}`,
+        isdeleted: false,
+        isOpen: sessionType.value,
       },
       {
         headers: {
@@ -386,12 +620,14 @@ const addSession = async () => {
     // Handle success or show a notification
     if (response.status === 200) {
       Swal.fire("Success", "Session has been added successfully!", "success");
-        await fetchSessions();
-      
+      await fetchSessions();
+
       sessionToken.value = "";
       sessionExp.value = "";
       sessionCourseYearSection.value = "";
-
+      sessionStartTime.value = "";
+      sessionEndTime.value = "";
+      sessionType.value = false;
     }
   } catch (error) {
     console.error("Error adding item:", error);
@@ -416,8 +652,12 @@ const deleteSession = async (session) => {
 
   if (confirmationResult.isConfirmed) {
     try {
-      const response = await axios.delete(
+      const archiveDelete = {
+        isdeleted: true,
+      };
+      const response = await axios.put(
         `${baseURL}/api/professor/deleteClass/${subjectID.value}/${sessionID}`,
+        archiveDelete,
         {
           headers: {
             proftoken: proftoken,
@@ -425,7 +665,7 @@ const deleteSession = async (session) => {
           },
         }
       );
-        if (response.status === 200) {
+      if (response.status === 200) {
         Swal.fire({
           title: "Success",
           text: "Session deleted successfully",
@@ -433,7 +673,6 @@ const deleteSession = async (session) => {
         });
 
         await fetchSessions();
-
       } else {
         console.error("Failed to delete  shopitem:", response.statusText);
         Swal.fire({
@@ -457,7 +696,6 @@ onMounted(() => {
   fetchSessions();
 });
 
-
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",
@@ -479,19 +717,35 @@ const enterQR = (session) => {
     params: {
       subjectID: subjectID.value,
       sessionID: session.class_id,
+      programlevel: session.class_courseYearSection,
+    },
+  });
+};
+
+const enterRecycleBin = () => {
+  router.push({
+    name: "ProfessorRecycleSession",
+    params: {
+      subjectID: subjectID.value,
     },
   });
 };
 </script>
 
 <style scoped>
+.form-check-input {
+  border: 2px solid gray;
+  margin-right: 5px;
+  margin-left: 10px;
+}
+
 body {
   margin: 0;
   padding: 0;
 }
 
 .scroll-container {
-  max-height: 600px;
+  max-height: 570px;
   overflow-y: auto;
   overflow-x: hidden;
 }

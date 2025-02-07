@@ -11,7 +11,7 @@ import Student from "../views/student.vue";
 import StudentShop from "../views/studentShop.vue";
 import StudentProfile from "../views/studentProfile.vue";
 import StudentTransaction from "../views/studentTransaction.vue";
-
+import AttendanceDetails from "../views/studentAttendanceDetails.vue";
 //Professor
 import ProfessorLogin from "../views/LoginViewProf.vue";
 import Professor from "../views/professor.vue";
@@ -19,6 +19,7 @@ import ProfessorShop from "../views/professorShop.vue";
 import ProfessorProfile from "../views/professorProfile.vue";
 import ProfessorTransaction from "../views/professorTransaction.vue";
 import ProfessorSession from "../components/professorSession.vue";
+import ProfessorRecycleSession from "../components/classRecycleBin.vue"
 import ProfessorStudentParticipation from "../views/professorStudentParticipation.vue";
 
 //admin
@@ -26,6 +27,8 @@ import LoginAdmin from "../views/LoginAdmin.vue";
 import AdminDashboard from "../views/adminDashboard.vue";
 import AdminStudentDashboard from "../views/adminStudentDashboard.vue";
 import AdminProfessorDashboard from "../views/adminProfessorDashboard.vue";
+import AdminMasterlistDashboard from "../views/adminMasterList.vue"
+import AdminProgramMasterlist from "../components/adminProgramMasterlist.vue"
 const routes = [
   {
     path: "/admin",
@@ -46,6 +49,17 @@ const routes = [
     path: "/adminProfessorDashboard",
     name: "adminProfessorDashboard",
     component: AdminProfessorDashboard,
+  },
+  {
+    path: "/adminMasterlistDashboard",
+    name: "AdminMasterlistDashboard",
+    component: AdminMasterlistDashboard,
+  },
+  {
+    path: "/adminProgramMasterlist/:programlevel",
+    name: "AdminProgramMasterlist",
+    component: AdminProgramMasterlist,
+    props: true,
   },
   {
     path: "/",
@@ -71,6 +85,11 @@ const routes = [
     path: "/student",
     name: "Student",
     component: Student,
+  },
+  {
+    path: "/student/attendancedetails",
+    name: "AttendanceDetails",
+    component: AttendanceDetails,
   },
   {
     path: "/student/shop",
@@ -114,7 +133,13 @@ const routes = [
     props: true,
   },
   {
-    path: "/professor/session/qrscanner/:subjectID/:sessionID",
+    path: "/professor/RecycleSession/:subjectID/:subjectName",
+    name: "ProfessorRecycleSession",
+    component: ProfessorRecycleSession,
+    props: true,
+  },
+  {
+    path: "/professor/session/qrscanner/:subjectID/:sessionID/:programlevel",
     name: "QrScanner",
     component: QrScanner,
     props: true,
