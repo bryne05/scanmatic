@@ -44,11 +44,23 @@ const submitForm = async () => {
       router.push({ name: "Professor" });
     }
   } catch (errorProfessor) {
-    Swal.fire({
-      title: "Error!",
-      text: "Invalid Username or Password",
-      icon: "error",
-    });
+    console.error("Login Error:", errorProfessor); // Log the full error object
+
+    if (errorProfessor.response) {
+      // Check for a server response
+      Swal.fire({
+        title: "Error!",
+        text: errorProfessor.response.data.message || "Server Error",
+        icon: "error",
+      });
+    } else {
+      // Network error or other client-side error
+      Swal.fire({
+        title: "Error!",
+        text: "A network error occurred.",
+        icon: "error",
+      });
+    }
   }
 };
 </script>

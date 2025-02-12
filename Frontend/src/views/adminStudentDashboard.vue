@@ -10,6 +10,62 @@ const token = localStorage.getItem("admintoken");
 
 const allStudent = ref([]);
 
+const validateStudent = async (data) => {
+  const result = await Swal.fire({
+    title: "Do you want to approve this Professor?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "No",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const stud_id = data;
+      console.log(stud_id);
+      const response = await axios.post(
+        `${baseURL}/api/admin/validateStudent/${stud_id}`,
+        null,
+        {
+          // Use PATCH for updates
+          headers: {
+            admintoken: `${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        Swal.fire({
+          title: "Student Approved!",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        // Update allStudent ref
+        const index = allStudent.value.findIndex((p) => p.stud_id === stud_id);
+        if (index !== -1) {
+          allStudent.value[index].isValidated = true;
+        }
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.data.message || "Failed to approve student", // Show error message from API if available
+          icon: "error",
+        });
+        console.error("API Error:", response.data); // Log the error for debugging
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: "An error occurred during validation.",
+        icon: "error",
+      });
+      console.error("Validation Error:", error);
+    }
+  }
+};
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",
@@ -168,7 +224,6 @@ const back = async () => {
     </button>
   </div>
 
-
   <div class="text text-center">
     <div class="table-responsive">
       <table class="table">
@@ -178,6 +233,7 @@ const back = async () => {
             <th scope="col">Middle Name</th>
             <th scope="col">Last Name</th>
             <th scope="col">Program Level</th>
+            <th scope="col">Validate</th>
             <th scope="col">Reset Password</th>
             <th scope="col">Delete Student</th>
           </tr>
@@ -188,6 +244,16 @@ const back = async () => {
             <td>{{ students.middle_name }}</td>
             <td>{{ students.last_name }}</td>
             <td>{{ students.courseYearSection }}</td>
+            <td>
+              <button
+                class="btn btn-success"
+                v-if="!students.isValidated"
+                @click="validateStudent(students.stud_id)"
+              >
+                Approve
+              </button>
+              <span v-else>Approved</span>
+            </td>
             <td>
               <button
                 class="btn btn-primary"
@@ -256,10 +322,9 @@ const back = async () => {
 </template>
 
 <style scoped>
-h1{
-    margin-top: 50px;
-    color: white;
-
+h1 {
+  margin-top: 50px;
+  color: white;
 }
 .return {
   position: relative;

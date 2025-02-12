@@ -10,6 +10,65 @@ const token = localStorage.getItem("admintoken");
 
 const allProfessor = ref([]);
 
+const validateProfessor = async (data) => {
+  const result = await Swal.fire({
+    title: "Do you want to approve this Professor?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "No",
+  });
+
+  if (result.isConfirmed) {
+    const prof_id = data;
+
+    try {
+      const response = await axios.post(
+        `${baseURL}/api/admin/validateProfessor/${prof_id}`,
+        null,
+
+        {
+          headers: {
+            admintoken: `${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        // Or 204 No Content if API returns that
+        Swal.fire({
+          title: "Professor Approved!",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        // Update allProfessor ref
+        const index = allProfessor.value.findIndex(
+          (p) => p.prof_id === prof_id
+        );
+        if (index !== -1) {
+          allProfessor.value[index].isValidated = true;
+        }
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: response.data.message || "Failed to approve professor.", // Show error message from API if available
+          icon: "error",
+        });
+        console.error("API Error:", response.data); // Log the error for debugging
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: "An error occurred during validation.",
+        icon: "error",
+      });
+      console.error("Validation Error:", error);
+    }
+  }
+};
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",
@@ -166,6 +225,7 @@ const back = async () => {
             <th scope="col">First Name</th>
             <th scope="col">Middle Name</th>
             <th scope="col">Last Name</th>
+            <th scope="col">Validate</th>
 
             <th scope="col">Reset Password</th>
             <th scope="col">Delete Professor</th>
@@ -177,6 +237,16 @@ const back = async () => {
             <td>{{ professor.middle_name }}</td>
             <td>{{ professor.last_name }}</td>
 
+            <td>
+              <button
+                class="btn btn-success"
+                v-if="!professor.isValidated"
+                @click="validateProfessor(professor.prof_id)"
+              >
+                Approve
+              </button>
+              <span v-else>Approved</span>
+            </td>
             <td>
               <button
                 class="btn btn-primary"

@@ -23,7 +23,8 @@ const submitForm = async () => {
   }
   //student login
   try {
-    const loginStudent = await axios.post(
+    const loginResponse = await axios.post(
+      // Store the result in loginResponse
       `${baseURL}/api/student/loginStudent`,
       {
         username: username.value,
@@ -31,24 +32,38 @@ const submitForm = async () => {
       }
     );
 
-    if (loginStudent.status === 200) {
-      const token = loginStudent.data.token;
+    console.log("status", loginResponse.status); // Log the status correctly
+
+    if (loginResponse.status === 200) {
+      // Check status after the request completes
+      const token = loginResponse.data.token; // Access data correctly
       localStorage.setItem("studtoken", token);
       Swal.fire({
         title: "Success!",
-        text: "Student logged in successfully.",
+        text: loginResponse.data.message, // Access data correctly
         icon: "success",
       });
 
       router.push({ name: "Student" });
-    }
+    } 
   } catch (errorStudent) {
-    // Handle errors for both professor and student logins
-    Swal.fire({
-      title: "Error!",
-      text: "Invalid Username or Password",
-      icon: "error",
-    });
+    console.error("Login Error:", errorStudent); // Log the full error object
+
+    if (errorStudent.response) {
+      // Check for a server response
+      Swal.fire({
+        title: "Error!",
+        text: errorStudent.response.data.message || "Server Error",
+        icon: "error",
+      });
+    } else {
+      // Network error or other client-side error
+      Swal.fire({
+        title: "Error!",
+        text: "A network error occurred.",
+        icon: "error",
+      });
+    }
   }
 };
 </script>

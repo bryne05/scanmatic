@@ -21,7 +21,8 @@
     "vue": "^3.3.8",
     "vue-qrcode-reader": "^5.4.1",
     "vue-router": "^4.2.5",
-    "vue-timepicker": "^0.0.3"
+    "vue-timepicker": "^0.0.3",
+    "vue3-otp-input": "^0.5.21"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.0",
