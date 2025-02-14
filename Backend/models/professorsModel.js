@@ -1,3 +1,5 @@
+const { defaultValueSchemable } = require("sequelize/lib/utils");
+
 module.exports = (sequelize, DataTypes) => {
   const Professor = sequelize.define("professor", {
     prof_id: {
@@ -24,6 +26,11 @@ module.exports = (sequelize, DataTypes) => {
     last_name: {
       type: DataTypes.STRING(15),
       allowNull: false,
+    },
+    isValidated: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: 0,
     },
   });
   return Professor;

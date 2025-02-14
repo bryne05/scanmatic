@@ -27,6 +27,16 @@ router.post(
 );
 
 router.post(
+  "/validateStudent/:stud_id",
+  authenticateAdminToken,
+  adminController.ValidateStudent
+);
+router.post(
+  "/validateProfessor/:prof_id",
+  authenticateAdminToken,
+  adminController.ValidateProfessor
+);
+router.post(
   "/resetStudentPassword/:stud_id",
   authenticateAdminToken,
   adminController.resetStudentPassword

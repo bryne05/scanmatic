@@ -12,11 +12,19 @@ const createSubject = async (req, res) => {
   try {
     let data = {
       prof_id: req.prof_id,
-      subject_name: req.body.subject_name,
+      subject_name: req.body.subject_name.toUpperCase(),
+      subject_courseYearSection:
+        req.body.subject_courseYearSection.toUpperCase(),
+      subject_start_time: req.body.subject_start_time,
+      subject_end_time: req.body.subject_end_time,
     };
 
     const findExistingSubject = await Subject.findAll({
-      where: { prof_id: req.prof_id, subject_name: data.subject_name },
+      where: {
+        prof_id: req.prof_id,
+        subject_name: data.subject_name,
+        subject_courseYearSection: data.subject_courseYearSection,
+      },
     });
 
     if (findExistingSubject.length > 0) {
@@ -38,7 +46,13 @@ const getAllSubject = async (req, res) => {
 
     const subject = await Subject.findAll({
       where: { prof_id: professorID },
-      attributes: ["subject_id", "subject_name"],
+      attributes: [
+        "subject_id",
+        "subject_name",
+        "subject_courseYearSection",
+        "subject_start_time",
+        "subject_end_time",
+      ],
     });
 
     res.status(200).json({ subject });
@@ -52,17 +66,15 @@ const updateSubject = async (req, res) => {
   try {
     const professorID = req.prof_id;
     const subjectID = req.params.subject_id;
-    const subject_name = req.body.subject_name;
-    const findExistingSubject = await Subject.findAll({
-      where: { prof_id: professorID, subject_name: subject_name },
-    });
+    const updateSubject = {
+      subject_name: req.body.subject_name,
+      subject_courseYearSection:
+        req.body.subject_courseYearSection.toUpperCase(),
+      subject_start_time: req.body.subject_start_time,
+      subject_end_time: req.body.subject_end_time,
+    };
 
-    if (findExistingSubject.length > 0) {
-      res.status(400).json({ message: "Subject Already Existing" });
-      return;
-    }
-
-    await Subject.update(req.body, {
+    await Subject.update(updateSubject, {
       where: { prof_id: professorID, subject_id: subjectID },
     });
 

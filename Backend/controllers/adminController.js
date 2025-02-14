@@ -53,7 +53,13 @@ const loginAdmin = async (req, res) => {
 const getAllProfessors = async (req, res) => {
   try {
     const professors = await Professor.findAll({
-      attributes: ["prof_id", "first_name", "middle_name", "last_name"],
+      attributes: [
+        "prof_id",
+        "first_name",
+        "middle_name",
+        "last_name",
+        "isValidated",
+      ],
     });
 
     res.status(200).json({ professors });
@@ -72,6 +78,7 @@ const getAllStudent = async (req, res) => {
         "first_name",
         "middle_name",
         "last_name",
+        "isValidated",
       ],
       raw: true,
     });
@@ -137,7 +144,13 @@ const getClassStudentByProgram = async (req, res) => {
       where: {
         courseYearSection: courseYearSection,
       },
-      attributes:["stud_id","first_name","middle_name","last_name", "courseYearSection"]
+      attributes: [
+        "stud_id",
+        "first_name",
+        "middle_name",
+        "last_name",
+        "courseYearSection",
+      ],
     });
 
     if (!students) {
@@ -220,6 +233,51 @@ const resetProfessorPassword = async (req, res) => {
   }
 };
 
+const ValidateStudent = async (req, res) => {
+  try {
+    const studID = req.params.stud_id;
+    const validateStudent = await Student.update(
+      { isValidated: 1 },
+      { where: { stud_id: studID } }
+    );
+
+    if (!validateStudent) {
+      res.status(401).json({ message: " Validation Failed" });
+      return;
+    }
+
+    res.status(200).json({ message: "Student Validated Succesfully" });
+  } catch (error) {
+    console.error("Error validating student", error.message);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+const ValidateProfessor = async (req, res) => {
+  try {
+    const profID = req.params.prof_id;
+
+    const validateStudent = await Professor.update(
+      { isValidated: 1 },
+      { where: { prof_id: profID } }
+    );
+
+    if (!validateStudent) {
+      res.status(401).json({ message: " Validation Failed" });
+      return;
+    }
+
+    res.status(200).json({ message: "Professor Validated Succesfully" });
+  } catch (error) {
+    console.error("Error validating professor", error.message);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 const deleteStudent = async (req, res) => {
   try {
     const stud_id = req.params.stud_id;
@@ -274,4 +332,7 @@ module.exports = {
   deleteStudent,
   getStudentProgramLevel,
   getClassStudentByProgram,
+
+  ValidateStudent,
+  ValidateProfessor,
 };

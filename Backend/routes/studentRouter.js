@@ -38,7 +38,8 @@ router.get(
   authenticateStudToken,
   studentController.getStudentClassAndSubject
 );
-
+//OTP
+router.post("/sendOTP", studentController.sendOTP);
 //Student Shop
 router.get(
   "/getStudentShopItems/",

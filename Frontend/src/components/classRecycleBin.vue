@@ -39,7 +39,7 @@
 
   <div class="mt-2 text">
     <h2 class="text">Recycle Bin</h2>
-    <h3 class="text-start">Subject: {{ subjectName }}</h3>
+    <!-- <h3 class="text-start">Subject: {{ subjectName }}</h3> -->
     <div>
       <div
         class="row scroll-container"
@@ -61,12 +61,12 @@
               <h4 class="card-title mb-3">
                 {{ session.createdAt }}
               </h4>
-              <h6>
+              <!-- <h6>
                 Start Time: {{ formatTime(session.start_time) }} &ensp; End
                 Time: {{ formatTime(session.end_time) }}
-              </h6>
+              </h6> -->
               <p class="card-text">
-                Program Level: {{ session.class_courseYearSection }} <br />
+                <!-- Program Level: {{ session.class_courseYearSection }} <br /> -->
                 Point Value:{{ session.clas_token }}<br />
                 Exp: {{ session.class_exp }} <br />
               </p>

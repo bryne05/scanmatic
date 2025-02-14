@@ -9,7 +9,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(30),
       allowNull: false,
     },
-
+    subject_courseYearSection: {
+      type: DataTypes.STRING(15),
+      allowNull: false,
+    },
+    subject_start_time: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
+    subject_end_time: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
   });
   return Subject;
 };

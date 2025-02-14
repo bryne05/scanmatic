@@ -127,7 +127,7 @@ const routes = [
     component: ProfessorTransaction,
   },
   {
-    path: "/professor/session/:subjectID/:subjectName",
+    path: "/professor/session/:subjectID/:subjectName/:subjectCourse/:startTime/:endTime",
     name: "ProfessorSession",
     component: ProfessorSession,
     props: true,

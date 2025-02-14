@@ -3,11 +3,62 @@ const db = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 //main model
 const Student = db.students;
 const Class = db.classes;
 const Attendance = db.attendances;
 const Subject = db.subjects;
+const otpStore = new Map();
+// Nodemailer transporter setup (REPLACE WITH YOUR EMAIL CREDENTIALS)
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  host: "smtp.gmail",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
+function generateOTP(length = 4) {
+  const digits = "0123456789";
+  let otp = "";
+  for (let i = 0; i < length; i++) {
+    otp += digits[crypto.randomInt(0, digits.length - 1)];
+  }
+  return otp;
+}
+
+const sendOTP = async (req, res) => {
+  const email = req.body.email;
+
+  const otp = generateOTP();
+
+  const expiry = Date.now() + 5 * 60 * 1000; // 5-minute expiry
+
+  otpStore.set(email, { otp, expiry });
+  console.log("otpStore contents:", otpStore);
+  const mailOptions = {
+    from: process.env.EMAIL_USER, // Your email address
+    to: email,
+    subject: "Your OTP for Registration",
+    html: `<p>Your OTP is: <strong>${otp}</strong></p>
+               <p>This OTP will expire in 5 minutes.</p>`, // HTML email with OTP
+  };
+
+  await transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending email:", error);
+      return res.status(500).json({ message: "Failed to send OTP" });
+    } else {
+   
+      return res.status(200).json({ message: "OTP sent successfully" });
+    }
+  });
+};
 
 const registerStudent = async (req, res) => {
   try {
@@ -25,6 +76,19 @@ const registerStudent = async (req, res) => {
     //       .json({ message: `Missing required field: ${field}` });
     //   }
     // }
+    const { otp, email } = req.body;
+    // Or however you're getting the email
+
+    const storedOTP = otpStore.get(email);
+
+    if (
+      !storedOTP ||
+      storedOTP.otp !== String(otp) ||
+      storedOTP.expiry < Date.now()
+    ) {
+      // Convert otp to string
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
 
     const hashPassword = await bcrypt.hash(req.body.password, 10);
     let data = {
@@ -94,6 +158,12 @@ const loginStudent = async (req, res) => {
       res.status(401).json({ message: "Invalid username or password" });
       return;
     }
+
+    if (!student.isValidated) {
+      res.status(403).json({ message: "Student not Validated" });
+      return;
+    }
+
     //Create a token if the login verified
     const token = jwt.sign(
       {
@@ -107,7 +177,8 @@ const loginStudent = async (req, res) => {
     );
     res.status(200).json({ message: "Student Logged in successfully", token });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    cachesonsole.error("Server error:", error); // Log the error on the server!
+    res.status(500).json({ message: "Internal Server Error" }); // Consistent error response
   }
 };
 
@@ -292,7 +363,6 @@ const getStudentClassAndSubject = async (req, res) => {
   }
 };
 
-
 module.exports = {
   registerStudent,
   getStudentProfile,
@@ -302,4 +372,5 @@ module.exports = {
   studentuploadImg,
   retrieveImg,
   getStudentClassAndSubject,
+  sendOTP,
 };
