@@ -2,7 +2,7 @@
 <script setup>
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
-import ProfSubject from "../components/ProfessorSubject.vue";
+import ProfEvent from "../components/ProfessorEvents.vue";
 import { useShopData } from "../composables/useShopData";
 import { useSubjectData } from "../composables/useSubjectData";
 
@@ -50,7 +50,7 @@ const logout = async () => {
                 Profile
               </RouterLink>
             </li>
-            <li class="nav-item">
+   <li class="nav-item">
               <RouterLink class="nav-link pointer curr" to="/professor/event">
                 Events
               </RouterLink>
@@ -72,8 +72,8 @@ const logout = async () => {
   </div>
 
   <div class="mt-2 text">
-    <h2 class="text">My Subjects</h2>
-    <ProfSubject />
+    <h2 class="text">Events</h2>
+    <ProfEvent />
   </div>
 </template>
 

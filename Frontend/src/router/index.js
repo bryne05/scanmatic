@@ -19,16 +19,16 @@ import ProfessorShop from "../views/professorShop.vue";
 import ProfessorProfile from "../views/professorProfile.vue";
 import ProfessorTransaction from "../views/professorTransaction.vue";
 import ProfessorSession from "../components/professorSession.vue";
-import ProfessorRecycleSession from "../components/classRecycleBin.vue"
+import ProfessorRecycleSession from "../components/classRecycleBin.vue";
 import ProfessorStudentParticipation from "../views/professorStudentParticipation.vue";
-
+import ProfessorEvents from "../views/professorEvent.vue";
 //admin
 import LoginAdmin from "../views/LoginAdmin.vue";
 import AdminDashboard from "../views/adminDashboard.vue";
 import AdminStudentDashboard from "../views/adminStudentDashboard.vue";
 import AdminProfessorDashboard from "../views/adminProfessorDashboard.vue";
-import AdminMasterlistDashboard from "../views/adminMasterList.vue"
-import AdminProgramMasterlist from "../components/adminProgramMasterlist.vue"
+import AdminMasterlistDashboard from "../views/adminMasterList.vue";
+import AdminProgramMasterlist from "../components/adminProgramMasterlist.vue";
 const routes = [
   {
     path: "/admin",
@@ -137,6 +137,11 @@ const routes = [
     name: "ProfessorRecycleSession",
     component: ProfessorRecycleSession,
     props: true,
+  },
+  {
+    path: "/professor/event",
+    name: "ProfessorEvents",
+    component: ProfessorEvents,
   },
   {
     path: "/professor/session/qrscanner/:subjectID/:sessionID/:programlevel",

@@ -156,4 +156,15 @@ router.get(
   attendanceController.getStudentEntry
 );
 
+//Event
+router.post(
+  "/createEvent",
+  authenticateProfToken,
+  attendanceController.createEvent
+);
+router.get(
+  "/getEvent",
+  authenticateProfToken,
+  attendanceController.getEvent
+);
 module.exports = router;

@@ -20,7 +20,11 @@
                 Profile
               </RouterLink>
             </li>
-
+   <li class="nav-item">
+              <RouterLink class="nav-link pointer curr" to="/professor/event">
+                Events
+              </RouterLink>
+            </li>
             <li class="nav-item">
               <a
                 class="nav-link pointer curr"

@@ -17,6 +17,7 @@ const createSubject = async (req, res) => {
         req.body.subject_courseYearSection.toUpperCase(),
       subject_start_time: req.body.subject_start_time,
       subject_end_time: req.body.subject_end_time,
+      is_event: false,
     };
 
     const findExistingSubject = await Subject.findAll({
@@ -40,18 +41,51 @@ const createSubject = async (req, res) => {
   }
 };
 
+const createEvent = async (req, res) => {
+  try {
+    let data = {
+      prof_id: req.prof_id,
+      subject_name: req.body.subject_name.toUpperCase(),
+      subject_courseYearSection:"",
+      subject_start_time: req.body.subject_start_time,
+      subject_end_time: req.body.subject_end_time,
+      is_event: true,
+    };
+
+    const findExistingEvent = await Subject.findAll({
+      where: {
+        prof_id: req.prof_id,
+        subject_name: data.subject_name,
+        subject_courseYearSection: data.subject_courseYearSection,
+      },
+    });
+
+    if (findExistingEvent.length > 0) {
+      res.status(400).json({ message: "Event Already Existing" });
+      return;
+    }
+
+    await Subject.create(data);
+    res.status(200).json({ message: "Event Created Successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error creating subject", error.message);
+  }
+};
+
 const getAllSubject = async (req, res) => {
   try {
     const professorID = req.prof_id;
 
     const subject = await Subject.findAll({
-      where: { prof_id: professorID },
+      where: { prof_id: professorID, is_event: false },
       attributes: [
         "subject_id",
         "subject_name",
         "subject_courseYearSection",
         "subject_start_time",
         "subject_end_time",
+        "is_event"
       ],
     });
 
@@ -61,7 +95,28 @@ const getAllSubject = async (req, res) => {
     console.error("Error reading Subject", error);
   }
 };
+const getEvent = async (req, res) => {
+  try {
+    const professorID = req.prof_id;
 
+    const subject = await Subject.findAll({
+      where: { prof_id: professorID, is_event: true },
+      attributes: [
+        "subject_id",
+        "subject_name",
+        "subject_courseYearSection",
+        "subject_start_time",
+        "subject_end_time",
+        "is_event",
+      ],
+    });
+
+    res.status(200).json({ subject });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error reading Subject", error);
+  }
+};
 const updateSubject = async (req, res) => {
   try {
     const professorID = req.prof_id;
@@ -739,4 +794,7 @@ module.exports = {
   getAttendance,
   getStudentEntry,
   getAllSubjectClass,
+
+  createEvent,
+  getEvent,
 };
