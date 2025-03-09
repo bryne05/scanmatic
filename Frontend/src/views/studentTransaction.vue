@@ -9,6 +9,53 @@ import { useShopData } from "../composables/useShopData";
 const { clearStateData } = useShopData();
 const router = useRouter();
 const token = localStorage.getItem("studtoken");
+const downloadCSV = () => {
+  if (!studentTransactions.value || studentTransactions.value.length === 0) {
+    Swal.fire(
+      "No data to download",
+      "Please ensure there is data to download.",
+      "info"
+    );
+    return;
+  }
+
+  let csvContent = "Incentive Label,Point Value,Date,Status\n";
+
+  studentTransactions.value.forEach((transaction) => {
+    csvContent += `${transaction.item_name},${
+      transaction.item_price
+    },${formatDatecsv(transaction.createdAt)},${
+      transaction.isVerified ? "Verified" : "Pending"
+    }\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  Swal.fire({
+    position: "bottom-end",
+    icon: "success",
+    title: "Downloaded Successfully",
+    showConfirmButton: false,
+    timer: 1500,
+    toast: true,
+    width: "350px",
+    height: "auto",
+  });
+  link.setAttribute("download", "Claimed_Incentives.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+const formatDatecsv = (dateString) => {
+  if (!dateString) return "-";
+  const options = { year: "numeric", month: "2-digit", day: "2-digit" }; // Explicitly include year
+  return new Date(dateString).toLocaleDateString(undefined, options);
+};
+const goBack = () => {
+  router.go(-1);
+};
 
 const logout = async () => {
   const result = await Swal.fire({
@@ -100,10 +147,10 @@ const formatDate = (dateString) => {
           <thead>
             <tr class="tr">
               <th scope="col">Incentive Label</th>
-            
+
               <th scope="col">Point Value</th>
               <th scope="col">Date</th>
-                <th scope="col">Status</th>
+              <th scope="col">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -112,19 +159,43 @@ const formatDate = (dateString) => {
               :key="transaction.createdAt"
             >
               <td>{{ transaction.item_name }}</td>
-          
+
               <td>{{ transaction.item_price }}</td>
               <td>{{ formatDate(transaction.createdAt) }}</td>
-              <td>{{ transaction.isVerified ? 'Verified' : 'Pending' }}</td>
+              <td>{{ transaction.isVerified ? "Verified" : "Pending" }}</td>
             </tr>
           </tbody>
         </table>
       </div>
+      <button class="btnsyle" @click="goBack">Back</button>
+      <button class="btnsyle" @click="downloadCSV">Download CSV</button>
     </div>
   </div>
 </template>
 
 <style scoped>
+.btnsyle {
+  margin-left: 6px;
+  margin-top: 10px;
+  background-color: white;
+  color: black;
+  width: 335px;
+  height: 44px;
+  border-radius: 30px;
+  transition: background-color 0.3s ease-in, color 0.3s ease-in;
+}
+
+.btnsyle:hover {
+  background-color: gray;
+  color: white;
+  border-color: white;
+}
+
+@media (max-width: 767px) {
+  .btnsyle {
+    width: 250px;
+  }
+}
 .text {
   max-width: fit-content;
   max-height: 650px;

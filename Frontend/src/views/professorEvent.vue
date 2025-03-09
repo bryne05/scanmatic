@@ -36,7 +36,7 @@ const logout = async () => {
         <div>
           <ul class="navbar-nav">
             <li class="nav-item">
-              <RouterLink class="nav-link pointer curr active" to="/professor">
+              <RouterLink class="nav-link pointer curr" to="/professor">
                 Class
               </RouterLink>
             </li>
@@ -50,8 +50,11 @@ const logout = async () => {
                 Profile
               </RouterLink>
             </li>
-   <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/event">
+            <li class="nav-item">
+              <RouterLink
+                class="nav-link pointer curr active"
+                to="/professor/event"
+              >
                 Events
               </RouterLink>
             </li>

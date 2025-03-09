@@ -1,4 +1,4 @@
-<!-- ProfessorSubject.vue -->
+<!-- ProfessorEvents.vue -->
 <template>
   <div>
     <button
@@ -446,26 +446,25 @@ const deleteItem = async (subject) => {
 provide("subjectDetails", subjectDetails);
 const enterSession = (subject) => {
   router.push({
-    name: "ProfessorSession",
+    name: "ProfessorEventSession",
     params: {
       subjectID: subject.subject_id,
       subjectName: subject.subject_name,
-      subjectCourse: subject.subject_courseYearSection,
       startTime: subject.subject_start_time,
       endTime: subject.subject_end_time,
     },
   });
 };
 
-const enterParticipationRecords = (subject) => {
-  router.push({
-    name: "ParticipantsOverview",
-    params: {
-      subjectID: subject.subject_id,
-      subjectName: subject.subject_name,
-    },
-  });
-};
+// const enterParticipationRecords = (subject) => {
+//   router.push({
+//     name: "ParticipantsOverview",
+//     params: {
+//       subjectID: subject.subject_id,
+//       subjectName: subject.subject_name,
+//     },
+//   });
+// };
 </script>
 
 <style scoped>

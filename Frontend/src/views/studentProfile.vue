@@ -268,10 +268,24 @@ const lastName = ref("");
 const courseYearSection = ref("");
 const newPass = ref("");
 const confirmPass = ref("");
-
+const levelThreshold = ref("");
 const setdefaultimage = () => {
   imageSrc.value = defaultimage;
 };
+
+const fetchLevelThreshold = async () => {
+  try {
+    const response = await axios.get(
+      `${baseURL}/api/admin/getLevelThreshold`,
+      {}
+    );
+
+    levelThreshold.value = response.data.level_threshold;
+  } catch (error) {
+    console.error("Error fetching level threshold", error);
+  }
+};
+
 onMounted(async () => {
   // Make the API request when the component is mounted
   try {
@@ -281,10 +295,10 @@ onMounted(async () => {
         "ngrok-skip-browser-warning": "69420",
       },
     });
+    await fetchLevelThreshold();
     studentData.value = getStudent.data;
 
-    // Check if stud_exp is greater than or equal to 1500
-    if (studentData.value.current_exp >= 1500) {
+    if (studentData.value.current_exp >= levelThreshold.value) {
       const updatedData = {
         current_exp: studentData.value.current_exp - 1500,
         current_token: studentData.value.current_token + 50,
@@ -377,7 +391,7 @@ const handleFileChange = (event) => {
   if (file && file.type.startsWith("image")) {
     imageFile.value = file;
     uploadImage();
-  } 
+  }
 };
 
 // Fetch the image from the backend

@@ -46,7 +46,7 @@ const createEvent = async (req, res) => {
     let data = {
       prof_id: req.prof_id,
       subject_name: req.body.subject_name.toUpperCase(),
-      subject_courseYearSection:"",
+      subject_courseYearSection: " ",
       subject_start_time: req.body.subject_start_time,
       subject_end_time: req.body.subject_end_time,
       is_event: true,
@@ -85,7 +85,7 @@ const getAllSubject = async (req, res) => {
         "subject_courseYearSection",
         "subject_start_time",
         "subject_end_time",
-        "is_event"
+        "is_event",
       ],
     });
 
@@ -108,15 +108,33 @@ const getEvent = async (req, res) => {
         "subject_start_time",
         "subject_end_time",
         "is_event",
+        "createdAt",
       ],
     });
 
-    res.status(200).json({ subject });
+    const formattedClasses = subject.map((subjectInstance) => {
+      const formattedCreatedAt = subjectInstance.createdAt
+        ? formatDate(subjectInstance.createdAt)
+        : null; // Handle nulls
+
+      return {
+        createdAt: formattedCreatedAt, // Use the formatted date
+        subject_id: subjectInstance.subject_id,
+        subject_name: subjectInstance.subject_name,
+        subject_courseYearSection: subjectInstance.subject_courseYearSection,
+        subject_start_time: subjectInstance.subject_start_time,
+        subject_end_time: subjectInstance.subject_end_time,
+        is_event: subjectInstance.is_event,
+      };
+    });
+
+    res.status(200).json({ subject: formattedClasses });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
     console.error("Error reading Subject", error);
   }
 };
+
 const updateSubject = async (req, res) => {
   try {
     const professorID = req.prof_id;
@@ -194,10 +212,10 @@ const createClass = async (req, res) => {
         },
       });
 
-      if (findExistingClass.length > 0) {
-        res.status(400).json({ message: "Class Already Existed" });
-        return;
-      }
+      // if (findExistingClass.length > 0) {
+      //   res.status(400).json({ message: "Class Already Existed" });
+      //   return;
+      // }
     }
 
     const classes = await Class.create(data);

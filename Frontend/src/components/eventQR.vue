@@ -6,7 +6,7 @@
         <div>
           <ul class="navbar-nav">
             <li class="nav-item">
-              <RouterLink class="nav-link pointer curr active" to="/professor">
+              <RouterLink class="nav-link pointer curr" to="/professor">
                 Class
               </RouterLink>
             </li>
@@ -21,7 +21,10 @@
               </RouterLink>
             </li>
             <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/event">
+              <RouterLink
+                class="nav-link pointer curr active"
+                to="/professor/event"
+              >
                 Events
               </RouterLink>
             </li>
@@ -76,7 +79,7 @@
   </div>
   <button class="btnsyle mb-3" @click="goBack">Back</button>
   <button class="btnsyle mb-3" @click="generateCSV">Download CSV</button>
-  <button class="btnsyle mb-3" @click="seeMasterList">See Master list</button>
+  <!-- <button class="btnsyle mb-3" @click="seeMasterList">See Master list</button> -->
 </template>
 
 <script setup>
@@ -173,54 +176,71 @@ const onDetect = async (result) => {
   }
 };
 
-const seeMasterList = async () => {
-  try {
-    if (studentsByProgram.value.length === 0) {
-      Swal.fire("No Students", "No students found for this program.", "info");
-      return;
-    }
+// const seeMasterList = async () => {
+//   try {
+//     if (studentsByProgram.value.length === 0) {
+//       Swal.fire("No Students", "No students found for this program.", "info");
+//       return;
+//     }
 
-    let htmlContent = `<ul style="list-style-type:none;">`;
+//     let htmlContent = `<ul style="list-style-type:none;">`;
 
-    studentsByProgram.value.forEach((student, num) => {
-      htmlContent += `
-        <li class="text-start">
-          
-          <strong>${num + 1}. ${student.first_name} ${student.middle_name} ${
-        student.last_name
-      }</strong><br>
-         
-         
-        </li>
-        
-      `;
-    });
+//     studentsByProgram.value.forEach((student, num) => {
+//       htmlContent += `
+//         <li class="text-start">
 
-    htmlContent += `</ul>`;
+//           <strong>${num + 1}. ${student.first_name} ${student.middle_name} ${
+//         student.last_name
+//       }</strong><br>
 
-    Swal.fire({
-      position: "top-end",
-      title: `Master List for ${programlevel.value}`,
-      html: htmlContent,
-      width: 600,
-    });
-  } catch (error) {
-    console.error("Error fetching students:", error); // Important: Log the error!
-    Swal.fire("Error", "An error occurred while fetching students.", "error"); // Show error Swal
-  }
-};
+//         </li>
+
+//       `;
+//     });
+
+//     htmlContent += `</ul>`;
+
+//     Swal.fire({
+//       position: "top-end",
+//       title: `Master List for ${programlevel.value}`,
+//       html: htmlContent,
+//       width: 600,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching students:", error); // Important: Log the error!
+//     Swal.fire("Error", "An error occurred while fetching students.", "error"); // Show error Swal
+//   }
+// };
 
 const fetchMasterList = async () => {
   try {
-    const response = await axios.post(
-      `${baseURL}/api/admin/getClassStudentByProgram`,
-      { courseYearSection: programlevel.value }
-    );
+    if (!attendance.value || attendance.value.length === 0) {
+      Swal.fire("Error", "No attendance data available.", "error");
+      return;
+    }
 
-    studentsByProgram.value = response.data.students;
+    // Extract unique program levels from attendance.value
+    const programLevels = [
+      ...new Set(
+        attendance.value.map((attendant) => attendant.student.courseYearSection)
+      ),
+    ];
+
+    let allStudents = [];
+
+    // Fetch students for each program level
+    for (const programLevel of programLevels) {
+      const response = await axios.post(
+        `${baseURL}/api/admin/getClassStudentByProgram`,
+        { courseYearSection: programLevel }
+      );
+      allStudents = allStudents.concat(response.data.students);
+    }
+
+    studentsByProgram.value = allStudents;
   } catch (error) {
-    console.error("Error fetching MasterList:", error); // Important: Log the error!
-    Swal.fire("Error", "An error occurred while fetching students.", "error"); // Show error Swal
+    console.error("Error fetching MasterList:", error);
+    Swal.fire("Error", "An error occurred while fetching students.", "error");
   }
 };
 const fetchImage = async (qr) => {
@@ -368,29 +388,30 @@ const goBack = () => {
 };
 
 const generateCSV = () => {
-  if (studentsByProgram.value.length === 0) {
-    Swal.fire("Error", "No student data available.", "error");
+  if (
+    !attendance.value ||
+    attendance.value.length === 0 ||
+    !studentsByProgram.value ||
+    studentsByProgram.value.length === 0
+  ) {
+    Swal.fire("Error", "No student or attendance data available.", "error");
     return;
   }
 
   const datePart = new Date().toLocaleDateString("en-CA");
-  const programLevel =
-    studentsByProgram.value[0]?.courseYearSection?.replace(/\s/g, "") ||
-    "noprogram";
-  const filename = `Attendance_${datePart}_${programLevel}.csv`;
+  const filename = `Event Attendance_${datePart}.csv`;
 
-  const csvData = studentsByProgram.value.map((masterStudent) => {
-    // Find the matching attendance record
-    const attendanceRecord = attendance.value.find((attendant) => {
-      return String(attendant.stud_id) === String(masterStudent.stud_id);
-    });
+  const csvData = studentsByProgram.value.map((student) => {
+    const attendanceRecord = attendance.value.find(
+      (attendant) => String(attendant.stud_id) === String(student.stud_id) // Fix applied here
+    );
 
     return {
       Date: datePart,
-      "First Name": masterStudent.first_name,
-      "Middle Name": masterStudent.middle_name || "",
-      "Last Name": masterStudent.last_name,
-      "Program Level": masterStudent.courseYearSection,
+      "First Name": student.first_name,
+      "Middle Name": student.middle_name || "",
+      "Last Name": student.last_name,
+      "Program Level": student.courseYearSection,
       "Time in": attendanceRecord
         ? new Date(attendanceRecord.createdAt).toLocaleTimeString()
         : "Absent",
@@ -403,16 +424,6 @@ const generateCSV = () => {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   if (link.download !== undefined) {
-    Swal.fire({
-      position: "bottom-end",
-      icon: "success",
-      title: "Downloaded Successfully",
-      showConfirmButton: false,
-      timer: 1500,
-      toast: true,
-      width: "350px",
-      height: "auto",
-    });
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
     link.setAttribute("download", filename);
@@ -426,6 +437,17 @@ const generateCSV = () => {
       "error"
     );
   }
+
+  Swal.fire({
+    position: "bottom-end",
+    icon: "success",
+    title: "Downloaded Successfully",
+    showConfirmButton: false,
+    timer: 1500,
+    toast: true,
+    width: "350px",
+    height: "auto",
+  });
 };
 
 const logout = async () => {

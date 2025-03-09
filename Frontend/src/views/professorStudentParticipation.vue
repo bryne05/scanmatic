@@ -19,11 +19,11 @@
               Profile
             </RouterLink>
           </li>
-   <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/event">
-                Events
-              </RouterLink>
-            </li>
+          <li class="nav-item">
+            <RouterLink class="nav-link pointer curr" to="/professor/event">
+              Events
+            </RouterLink>
+          </li>
           <li class="nav-item">
             <a
               class="nav-link pointer curr"
@@ -39,23 +39,66 @@
     </nav>
   </div>
 
-  <div class="text">
+  <div class="text d-flex flex-column align-items-center m-4 p-4">
     <h1 class="text-center mb-4">Subject: {{ subjectName }}</h1>
+    <h1 class="text-center mb-4">Program Level: {{ subjectProgramLevel }}</h1>
 
-    <div class="container">
-      <div
-        class="col-12 card-col overflow-auto d-flex align-items-center justify-content-start flex-wrap gap-3"
-      >
-        <div
-          class="my-card d-flex align-items-center justify-content-center"
-          v-for="subjectProgramLevel in uniqueProgramLevel"
-          :key="subjectProgramLevel"
-          @click="openStudentParticipation(subjectProgramLevel)"
-        >
-          <h2 style="color: black">{{ subjectProgramLevel }}</h2>
-        </div>
-      </div>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th v-for="session in uniqueSessions" :key="session.class_id">
+              {{ formatDate(session.createdAt) }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="student in masterlistStudents" :key="student.stud_id">
+            <td>
+              <div
+                class="ALINK"
+                @click="
+                  showModal(
+                    student.stud_id,
+                    student.first_name,
+                    student.middle_name,
+                    student.last_name,
+                    student.courseYearSection
+                  )
+                "
+              >
+                {{ student.first_name }} {{ student.middle_name }}
+                {{ student.last_name }}
+              </div>
+            </td>
+            <td
+              v-for="session in uniqueSessions"
+              :key="session.class_id"
+              class="attendance-cell"
+            >
+              <div class="attendance-grid-wrapper">
+                <div
+                  class="attendance-box"
+                  :class="{
+                    'bg-success': isStudentPresent(
+                      student.stud_id,
+                      session.class_id
+                    ),
+                    'bg-danger': !isStudentPresent(
+                      student.stud_id,
+                      session.class_id
+                    ),
+                  }"
+                ></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+    <button class="btnsyle" @click="goBack">Back</button>
+    <button class="btnsyle" @click="downloadCSV">Download CSV</button>
   </div>
 
   <div>
@@ -163,9 +206,10 @@ const router = useRouter();
 const professorToken = localStorage.getItem("proftoken");
 const masterlist = ref([]);
 const professorParticipants = ref([]);
-const props = defineProps(["subjectID", "subjectName"]);
+const props = defineProps(["subjectID", "subjectName", "subjectProgramLevel"]);
 const subjectID = ref(props.subjectID);
 const subjectName = ref(props.subjectName);
+const subjectProgramLevel = ref(props.subjectProgramLevel);
 const numberOfClasses = ref(0); // Initialize to 0
 
 const uniqueProgramLevel = ref([]);
@@ -178,153 +222,205 @@ let fullName = ref("");
 let attendanceDetails = ref([]);
 const courseYearSectionCount = ref([]);
 
-const openStudentParticipation = (programLevel) => {
-  // Filter the masterlist based on the selected programLevel
-
-  console.log(programLevel);
-  const filteredProgram = fullentrydata.value?.masterlist?.find(
-    (item) => item.courseYearSection === programLevel
-  );
-  const filteredEntries = StudentEntry.value.filter(
-    (entry) => entry.student.courseYearSection === programLevel
-  );
-
-  // Count the number of unique classes attended by students for the selected program level
-  const classCount = new Set(
-    filteredEntries.map((entry) => entry.class.class_id)
-  ).size;
-
-  console.log("studentParticipation", filteredProgram);
-  // Check if there are students in the filtered program
-  if (!filteredProgram || !filteredProgram.students.length) {
+const downloadCSV = () => {
+  if (!masterlistStudents.value || masterlistStudents.value.length === 0) {
     Swal.fire(
-      "No data available",
-      "There are no students for this class.",
+      "No data to download",
+      "Please ensure there is data to download.",
       "info"
     );
     return;
   }
 
-  let tableHTML = `
-    <div class="table-responsive">
-      <input class="form-control mb-2" type="text" id="studentSearch" placeholder="Search students...">
-      <table class="table" id="studentTable">
-        <thead>
-          <tr>
-            <th>Program Level</th>
-            <th>First Name</th>
-            <th>Middle Name</th>
-            <th>Last Name</th>
-            <th>No. of times attended</th>
-            <th>Latest attended Date</th>
-            <th>Attendance Details</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
+  let csvContent = "Student Name,";
+  const dates = uniqueSessions.value.map((session) =>
+    formatDate(session.createdAt)
+  );
+  csvContent += dates.join(",") + "\n";
 
-  // Sort students by last name, then first name (using a copy)
-  const sortedStudents = [...filteredProgram.students].sort((a, b) => {
-    const lastNameA = a.last_name || "";
-    const lastNameB = b.last_name || "";
-    if (lastNameA !== lastNameB) {
-      return lastNameA.localeCompare(lastNameB);
-    }
-    const firstNameA = a.first_name || "";
-    const firstNameB = b.first_name || "";
-    return firstNameA.localeCompare(firstNameB);
+  masterlistStudents.value.forEach((student) => {
+    let row = `${student.first_name} ${student.middle_name} ${student.last_name},`;
+    uniqueSessions.value.forEach((session) => {
+      row += isStudentPresent(student.stud_id, session.class_id)
+        ? "Present,"
+        : "Absent,";
+    });
+    csvContent += row + "\n";
   });
 
-  sortedStudents.forEach((student) => {
-    // Get the attendance details for the student (you may need to match it with attendance data)
-    const studentAttendance = fullentrydata.value.entry.filter(
-      (entry) => entry.student.stud_id === student.stud_id
-    );
-
-    // Calculate attendance count (if the student attended any classes)
-    const attendanceCount = studentAttendance.length;
-    const latestAttendedDate =
-      attendanceCount > 0
-        ? new Date(studentAttendance[0].latestAttendedDate).toLocaleDateString()
-        : "No Attendance";
-
-    tableHTML += `
-      <tr class="student-row">
-        <td>${programLevel}</td>
-        <td>${student.first_name || "-"}</td>
-        <td>${student.middle_name || "-"}</td>
-        <td>${student.last_name || "-"}</td>
-        <td>${attendanceCount} / ${classCount}</td>
-        <td>${latestAttendedDate}</td>
-        <td>
-          <button class="btn btn-primary details-btn pl-4 pr-4" data-id="${
-            student.stud_id
-          }">
-            View
-          </button>
-        </td>
-      </tr>
-    `;
-  });
-
-  tableHTML += `
-        </tbody>
-      </table>
-    </div>
-  `;
-
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute(
+    "download",
+    `attendance_${subjectName.value.replace(/\s+/g, "_")}.csv`
+  );
   Swal.fire({
-    title: `Student List for ${programLevel}`,
-    html: tableHTML,
-    width: "1400px",
-    allowOutsideClick: true, // Prevent closing by clicking outside
-    allowEscapeKey: false, // Prevent closing by pressing Esc key
-    confirmButtonText: "OK",
-    didOpen: () => {
-      // After the Swal is open, attach event listener to the button
-      const detailButtons = document.querySelectorAll(".details-btn");
-      detailButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const studentId = button.getAttribute("data-id");
-          const student = filteredProgram.students.find(
-            (student) => student.stud_id == studentId
-          );
-          showModal(
-            student.stud_id,
-            student.first_name,
-            student.middle_name,
-            student.last_name,
-            student.courseYearSection
-          );
-        });
-      });
-
-      // Search functionality
-      const searchInput = document.getElementById("studentSearch");
-      const studentTable = document.getElementById("studentTable");
-      const studentRows = studentTable.querySelectorAll(".student-row");
-
-      searchInput.addEventListener("keyup", (event) => {
-        const searchTerm = event.target.value.toLowerCase();
-
-        studentRows.forEach((row) => {
-          const studentName =
-            `${row.cells[1].textContent} ${row.cells[2].textContent} ${row.cells[3].textContent}`.toLowerCase(); // Combine first, middle, last names
-          if (studentName.includes(searchTerm)) {
-            row.style.display = "";
-          } else {
-            row.style.display = "none";
-          }
-        });
-      });
-    },
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Handle OK button click (e.g., you might not need to do anything here if you just want to prevent closing)
-      console.log("OK clicked");
-    }
+    position: "bottom-end",
+    icon: "success",
+    title: "Downloaded Successfully",
+    showConfirmButton: false,
+    timer: 1500,
+    toast: true,
+    width: "350px",
+    height: "auto",
   });
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
+
+const goBack = () => {
+  router.go(-1);
+};
+// const openStudentParticipation = (programLevel) => {
+//   // Filter the masterlist based on the selected programLevel
+
+//   console.log(programLevel);
+//   const filteredProgram = fullentrydata.value?.masterlist?.find(
+//     (item) => item.courseYearSection === programLevel
+//   );
+//   const filteredEntries = StudentEntry.value.filter(
+//     (entry) => entry.student.courseYearSection === programLevel
+//   );
+
+//   // Count the number of unique classes attended by students for the selected program level
+//   const classCount = new Set(
+//     filteredEntries.map((entry) => entry.class.class_id)
+//   ).size;
+
+//   console.log("studentParticipation", filteredProgram);
+//   // Check if there are students in the filtered program
+//   if (!filteredProgram || !filteredProgram.students.length) {
+//     Swal.fire(
+//       "No data available",
+//       "There are no students for this class.",
+//       "info"
+//     );
+//     return;
+//   }
+
+//   let tableHTML = `
+//     <div class="table-responsive">
+//       <input class="form-control mb-2" type="text" id="studentSearch" placeholder="Search students...">
+//       <table class="table" id="studentTable">
+//         <thead>
+//           <tr>
+//             <th>Program Level</th>
+//             <th>First Name</th>
+//             <th>Middle Name</th>
+//             <th>Last Name</th>
+//             <th>No. of times attended</th>
+//             <th>Latest attended Date</th>
+//             <th>Attendance Details</th>
+//           </tr>
+//         </thead>
+//         <tbody>
+//   `;
+
+//   // Sort students by last name, then first name (using a copy)
+//   const sortedStudents = [...filteredProgram.students].sort((a, b) => {
+//     const lastNameA = a.last_name || "";
+//     const lastNameB = b.last_name || "";
+//     if (lastNameA !== lastNameB) {
+//       return lastNameA.localeCompare(lastNameB);
+//     }
+//     const firstNameA = a.first_name || "";
+//     const firstNameB = b.first_name || "";
+//     return firstNameA.localeCompare(firstNameB);
+//   });
+
+//   sortedStudents.forEach((student) => {
+//     // Get the attendance details for the student (you may need to match it with attendance data)
+//     const studentAttendance = fullentrydata.value.entry.filter(
+//       (entry) => entry.student.stud_id === student.stud_id
+//     );
+
+//     // Calculate attendance count (if the student attended any classes)
+//     const attendanceCount = studentAttendance.length;
+//     const latestAttendedDate =
+//       attendanceCount > 0
+//         ? new Date(studentAttendance[0].latestAttendedDate).toLocaleDateString()
+//         : "No Attendance";
+
+//     tableHTML += `
+//       <tr class="student-row">
+//         <td>${programLevel}</td>
+//         <td>${student.first_name || "-"}</td>
+//         <td>${student.middle_name || "-"}</td>
+//         <td>${student.last_name || "-"}</td>
+//         <td>${attendanceCount} / ${classCount}</td>
+//         <td>${latestAttendedDate}</td>
+//         <td>
+//           <button class="btn btn-primary details-btn pl-4 pr-4" data-id="${
+//             student.stud_id
+//           }">
+//             View
+//           </button>
+//         </td>
+//       </tr>
+//     `;
+//   });
+
+//   tableHTML += `
+//         </tbody>
+//       </table>
+//     </div>
+//   `;
+
+//   Swal.fire({
+//     title: `Student List for ${programLevel}`,
+//     html: tableHTML,
+//     width: "1400px",
+//     allowOutsideClick: true, // Prevent closing by clicking outside
+//     allowEscapeKey: false, // Prevent closing by pressing Esc key
+//     confirmButtonText: "OK",
+//     didOpen: () => {
+//       // After the Swal is open, attach event listener to the button
+//       const detailButtons = document.querySelectorAll(".details-btn");
+//       detailButtons.forEach((button) => {
+//         button.addEventListener("click", () => {
+//           const studentId = button.getAttribute("data-id");
+//           const student = filteredProgram.students.find(
+//             (student) => student.stud_id == studentId
+//           );
+//           showModal(
+//             student.stud_id,
+//             student.first_name,
+//             student.middle_name,
+//             student.last_name,
+//             student.courseYearSection
+//           );
+//         });
+//       });
+
+//       // Search functionality
+//       const searchInput = document.getElementById("studentSearch");
+//       const studentTable = document.getElementById("studentTable");
+//       const studentRows = studentTable.querySelectorAll(".student-row");
+
+//       searchInput.addEventListener("keyup", (event) => {
+//         const searchTerm = event.target.value.toLowerCase();
+
+//         studentRows.forEach((row) => {
+//           const studentName =
+//             `${row.cells[1].textContent} ${row.cells[2].textContent} ${row.cells[3].textContent}`.toLowerCase(); // Combine first, middle, last names
+//           if (studentName.includes(searchTerm)) {
+//             row.style.display = "";
+//           } else {
+//             row.style.display = "none";
+//           }
+//         });
+//       });
+//     },
+//   }).then((result) => {
+//     if (result.isConfirmed) {
+//       // Handle OK button click (e.g., you might not need to do anything here if you just want to prevent closing)
+//       console.log("OK clicked");
+//     }
+//   });
+// };
 
 const fetchAllSubjectSession = async () => {
   try {
@@ -343,6 +439,38 @@ const fetchAllSubjectSession = async () => {
     );
   }
 };
+const masterlistStudents = computed(() => {
+  if (
+    fullentrydata.value.masterlist &&
+    fullentrydata.value.masterlist.length > 0
+  ) {
+    return fullentrydata.value.masterlist[0].students;
+  }
+  return [];
+});
+
+const uniqueSessions = computed(() => {
+  if (AllSubjectSession.value) {
+    return AllSubjectSession.value.filter(
+      (session, index, self) =>
+        self.findIndex((s) => s.class_id === session.class_id) === index
+    );
+  }
+  return [];
+});
+
+const isStudentPresent = (studentId, classId) => {
+  return StudentEntry.value.some(
+    (entry) =>
+      entry.student.stud_id === studentId && entry.class.class_id === classId
+  );
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return "-";
+  return new Date(dateString).toLocaleDateString();
+};
+
 onMounted(async () => {
   try {
     const response = await axios.get(
@@ -357,30 +485,7 @@ onMounted(async () => {
 
     StudentEntry.value = response.data.entry;
     masterlist.value = response.data.masterlist;
-    uniqueProgramLevel.value = response.data.uniqueCourseYearSections;
-    numberOfClasses.value = response.data.numberOfClasses;
     fullentrydata.value = response.data;
-    console.log("Student Entry", response.data);
-    console.log("Student Entry.value", StudentEntry.value);
-
-    // Aggregate attendance data for efficient lookup
-    const aggregatedData = response.data.entry.reduce((acc, current) => {
-      const studentId = current.student.stud_id;
-      if (!acc[studentId]) {
-        acc[studentId] = { attendanceCount: 0, latestAttendedDate: null };
-      }
-      acc[studentId].attendanceCount++;
-      if (
-        !acc[studentId].latestAttendedDate ||
-        new Date(current.latestAttendedDate) >
-          new Date(acc[studentId].latestAttendedDate)
-      ) {
-        acc[studentId].latestAttendedDate = current.latestAttendedDate;
-      }
-      return acc;
-    }, {});
-
-    professorParticipants.value = aggregatedData;
     await fetchAllSubjectSession();
   } catch (error) {
     console.error("Error fetching student entry:", error);
@@ -467,8 +572,6 @@ const goToAttendanceDetails = (studentId, firstname, middlename, lastname) => {
   );
 };
 
-// Show the modal and initialize any data or state when opened
-
 const showModal = (
   studentId,
   firstname,
@@ -476,21 +579,17 @@ const showModal = (
   lastname,
   courseYearSection
 ) => {
-  // Prepare student information and full name
   console.log("Student Info:", studentId, firstname, middlename, lastname);
   fullName.value = `${firstname} ${middlename} ${lastname}`;
 
-  // Log all subject sessions available
   console.log("All subject sessions:", AllSubjectSession.value);
 
-  // Helper function to check if a student is enrolled in a session
   const getEnrolledStudentsInSession = (sessionId) => {
     return StudentEntry.value.filter(
       (entry) => entry.class.class_id === sessionId
     );
   };
 
-  // Filter sessions that have enrolled students and match the student's courseYearSection
   const filteredSessions = AllSubjectSession.value.filter((session) => {
     console.log(
       `Filtering session ${session.class_courseYearSection} for ${courseYearSection}`
@@ -498,8 +597,6 @@ const showModal = (
 
     const enrolledStudents = getEnrolledStudentsInSession(session.class_id);
 
-    // Only include the session if it matches the student's courseYearSection
-    // or it's an open session (class_courseYearSection is empty)
     const isValidSession =
       session.class_courseYearSection === courseYearSection ||
       session.class_courseYearSection.trim() === "";
@@ -612,11 +709,11 @@ const getLatestAttendanceDate = (studentId) => {
   return professorParticipants.value[studentId]?.latestAttendedDate || null;
 };
 
-const formatDate = (dateString) => {
-  if (!dateString) return "-"; // Handle cases where date is null
-  const options = { year: "numeric", month: "long", day: "numeric" };
-  return new Date(dateString).toLocaleDateString(undefined, options);
-};
+// const formatDate = (dateString) => {
+//   if (!dateString) return "-"; // Handle cases where date is null
+//   const options = { year: "numeric", month: "long", day: "numeric" };
+//   return new Date(dateString).toLocaleDateString(undefined, options);
+// };
 
 const logout = async () => {
   const result = await Swal.fire({
@@ -637,6 +734,54 @@ const logout = async () => {
 </script>
 
 <style scoped>
+.btnsyle {
+  margin-left: 6px;
+  margin-top: 10px;
+  background-color: white;
+  color: black;
+  width: 335px;
+  height: 44px;
+  border-radius: 30px;
+  transition: background-color 0.3s ease-in, color 0.3s ease-in;
+}
+
+.btnsyle:hover {
+  background-color: gray;
+  color: white;
+  border-color: white;
+}
+
+@media (max-width: 767px) {
+  .btnsyle {
+    width: 250px;
+  }
+}
+.ALINK {
+  text-decoration: none;
+  color: black;
+  cursor: pointer;
+}
+table.table-bordered th {
+  padding: 10px;
+}
+table.table-bordered {
+  background-color: white;
+}
+table.table-bordered th:first-child,
+table.table-bordered td:first-child {
+  position: sticky;
+  left: 0;
+  background-color: white;
+  z-index: 1;
+}
+.bg-success,
+.bg-danger {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: 5px; /* Add some spacing */
+  border-radius: 5px;
+}
 .radio-label {
   position: relative;
   cursor: pointer;

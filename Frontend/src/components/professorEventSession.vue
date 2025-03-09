@@ -43,14 +43,12 @@
   </div>
 
   <div class="mt-2 text">
-    <h2 class="text">Session</h2>
+    <h2 class="text">Event Session</h2>
 
     <div class="container m-0 p-0">
       <div class="row">
         <div class="col-6 d-flex align-items-start flex-column">
-          <h3 class="text-start">Subject: {{ subjectName }}</h3>
-
-          <h3 class="text-start">Program Level: {{ programlevel }}</h3>
+          <h3 class="text-start">Event: {{ subjectName }}</h3>
         </div>
         <div class="col-6 d-flex align-items-center justify-content-end">
           <div class="bin-container">
@@ -543,7 +541,7 @@ const updateSubject = async () => {
 
       const updatedData = {
         // class_courseYearSection: classCourseYearSection, // Value determined based on isOpen and requirement
-        class_courseYearSection: programlevel.value,
+        class_courseYearSection: "",
         class_token: updateSessionToken.value || currentSessionToken.value,
         class_exp: updateSessionExp.value || currentSessionExp.value,
         // start_time: updateStartTime.value
@@ -616,13 +614,13 @@ const addSession = async () => {
       `${baseURL}/api/professor/createClass/${subjectID.value}`,
       {
         // class_courseYearSection: sessionCourseYearSection.value,
-        class_courseYearSection: programlevel.value,
+        class_courseYearSection: " ",
         class_token: sessionToken.value,
         class_exp: sessionExp.value,
         start_time: startTime.value,
         end_time: endTime.value,
         isdeleted: false,
-        isOpen: false,
+        isOpen: true,
       },
       {
         headers: {
@@ -729,7 +727,7 @@ const logout = async () => {
 
 const enterQR = (session) => {
   router.push({
-    name: "QrScanner",
+    name: "EventQr",
     params: {
       subjectID: subjectID.value,
       sessionID: session.class_id,

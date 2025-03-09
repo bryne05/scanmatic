@@ -1,5 +1,6 @@
 const { authenticateAdminToken } = require("../middleware/auth");
 const adminController = require("../controllers/adminController.js");
+const { admin } = require("../models/index.js");
 const router = require("express").Router();
 
 router.post("/loginAdmin", adminController.loginAdmin);
@@ -56,6 +57,14 @@ router.delete(
   "/deleteProfessor/:prof_id",
   authenticateAdminToken,
   adminController.deleteProfessor
+);
+
+router.get("/getLevelThreshold", adminController.getLevelThreshold);
+
+router.put(
+  "/updateLevelThreshold",
+  authenticateAdminToken,
+  adminController.updateLevelThreshold
 );
 
 module.exports = router;

@@ -105,7 +105,7 @@ const showSubjectAttendance = (subjectID, subjectName) => {
       date: new Date(cls["Class Date"]).toLocaleDateString(),
       status: attendanceRecord ? "Present" : "Absent",
       time: attendanceRecord
-        ? new Date(attendanceRecord["Time in"]).toLocaleTimeString([], {
+        ? new Date(attendanceRecord["Time in"]).toLocaleTimeString({
             hour: "2-digit",
             minute: "2-digit",
           })
@@ -139,7 +139,8 @@ const showSubjectAttendance = (subjectID, subjectName) => {
   tableHTML += `
       </tbody>
     </table>
-  `;
+    <button id="download-csv-btn" class="btn btn-primary">Download CSV</button>
+  `; // Added Download CSV Button
 
   Swal.fire({
     title: `Attendance for ${subjectName}`,
@@ -149,6 +150,7 @@ const showSubjectAttendance = (subjectID, subjectName) => {
     didOpen: () => {
       const searchInput = document.getElementById("date-search");
       const tableRows = document.querySelectorAll(".my-table tbody tr");
+      const downloadCsvBtn = document.getElementById("download-csv-btn"); // Get the button
 
       searchInput.addEventListener("keyup", () => {
         const searchTerm = searchInput.value.toLowerCase();
@@ -163,10 +165,43 @@ const showSubjectAttendance = (subjectID, subjectName) => {
           }
         });
       });
+
+      // Download CSV Button Click Handler
+      downloadCsvBtn.addEventListener("click", () => {
+        let csvContent = "Date,Time In,Status\n"; // CSV Header
+
+        attendanceDetails.forEach((detail) => {
+          csvContent += `${detail.date},${detail.time},${detail.status}\n`;
+        });
+
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        Swal.fire({
+          position: "bottom-end",
+          icon: "success",
+          title: "Downloaded Successfully",
+          showConfirmButton: false,
+          timer: 1500,
+          toast: true,
+          width: "350px",
+          height: "auto",
+        });
+        link.setAttribute("download", `${subjectName}_attendance.csv`); // Filename
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
     },
   });
 
-  console.log(`Attendance Details for Subject ${subjectName}:`, attendanceDetails);
+  console.log(
+    `Attendance Details for Subject ${subjectName}:`,
+    attendanceDetails
+  );
 };
 
 const logout = async () => {
@@ -188,7 +223,6 @@ const goBack = () => {
   router.back();
 };
 </script>
-
 
 <style scoped>
 .card-col {

@@ -10,6 +10,7 @@ const Student = db.students;
 const Attendance = db.attendances;
 const Professor = db.professors;
 const Admin = db.admin;
+const Settings = db.settings;
 let studentMasterLists = {};
 const loginAdmin = async (req, res) => {
   try {
@@ -321,6 +322,65 @@ const deleteProfessor = async (req, res) => {
   }
 };
 
+const getLevelThreshold = async (req, res) => {
+  try {
+    const response = await Settings.findByPk(1);
+
+    if (!response) {
+      res.status(404).json({ message: "data not found" });
+    }
+
+    res.status(200).json(response);
+    console.log(response);
+  } catch (error) {
+    console.error("Error reading level threshold ", error.message);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+const updateLevelThreshold = async (req, res) => {
+  try {
+    const newThreshold = req.body.level_threshold;
+
+   
+    if (newThreshold === undefined) {
+      return res.status(400).json({ message: "level_threshold is required" });
+    }
+
+   
+    if (typeof newThreshold !== "number" || isNaN(newThreshold)) {
+      return res
+        .status(400)
+        .json({ message: "level_threshold must be a number" });
+    }
+
+    const response = await Settings.update(
+      { level_threshold: newThreshold }, // Correct way to update
+      { where: { settings_id: 1 } }
+    );
+
+    if (response[0] === 0) {
+      return res.status(404).json({ message: "Level threshold not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Level threshold updated successfully" });
+  } catch (error) {
+    console.error("Error updating level threshold:", error); // Log the error
+
+    // Handle specific Sequelize errors if needed
+    // if (error instanceof Sequelize.ValidationError) {
+    //   return res.status(400).json({ message: "Validation error", errors: error.errors });
+    // }
+
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
 module.exports = {
   loginAdmin,
   getAllProfessors,
@@ -335,4 +395,6 @@ module.exports = {
 
   ValidateStudent,
   ValidateProfessor,
+  getLevelThreshold,
+  updateLevelThreshold,
 };

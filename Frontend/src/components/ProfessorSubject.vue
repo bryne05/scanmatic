@@ -485,6 +485,7 @@ const enterParticipationRecords = (subject) => {
     params: {
       subjectID: subject.subject_id,
       subjectName: subject.subject_name,
+      subjectProgramLevel: subject.subject_courseYearSection,
     },
   });
 };
