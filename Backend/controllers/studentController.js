@@ -54,7 +54,6 @@ const sendOTP = async (req, res) => {
       console.error("Error sending email:", error);
       return res.status(500).json({ message: "Failed to send OTP" });
     } else {
-   
       return res.status(200).json({ message: "OTP sent successfully" });
     }
   });
@@ -182,6 +181,44 @@ const loginStudent = async (req, res) => {
   }
 };
 
+const generateNewJwtToken = async (req, res) => {
+  try {
+    const { oldToken } = req.body;
+
+    // Verify and decode the old token
+    const decoded = jwt.verify(oldToken, process.env.TOKEN);
+
+    // Extract the necessary claims from the decoded token
+    const { stud_id, courseYearSection } = decoded;
+
+    const QrToken = jwt.sign(
+      {
+        stud_id,
+        courseYearSection,
+      },
+      process.env.TOKEN,
+      {
+        expiresIn: "10s",
+      }
+    );
+    // Generate a new token with the same claims and expiration
+    const newToken = jwt.sign(
+      {
+        stud_id,
+        courseYearSection,
+      },
+      process.env.TOKEN,
+      {
+        expiresIn: "24h", 
+      }
+    );
+
+    res.status(200).json({ newToken, QrToken });
+  } catch (error) {
+    console.error("Error generating new JWT token:", error);
+    res.status(500).json({ message: "Failed to generate new token" });
+  }
+};
 const getStudentProfile = async (req, res) => {
   try {
     let studentID = req.stud_id;
@@ -373,4 +410,5 @@ module.exports = {
   retrieveImg,
   getStudentClassAndSubject,
   sendOTP,
+  generateNewJwtToken,
 };

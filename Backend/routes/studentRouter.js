@@ -40,6 +40,7 @@ router.get(
 );
 //OTP
 router.post("/sendOTP", studentController.sendOTP);
+router.post("/generateNewToken", studentController.generateNewJwtToken);
 //Student Shop
 router.get(
   "/getStudentShopItems/",

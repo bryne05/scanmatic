@@ -11,18 +11,20 @@ import { useShopData } from "../composables/useShopData";
 
 const { clearStateData } = useShopData();
 
-const token = localStorage.getItem("studtoken");
+const token = ref(localStorage.getItem("studtoken")); // Make token reactive
 const size = 300;
-
+const qrToken = ref("")
 const router = useRouter();
 const studentData = ref(null);
+const showQrCode = ref(false);
+const timer = ref(25);
+const intervalId = ref(null);
 
 onMounted(async () => {
-  // Make the API request when the component is mounted
   try {
     const getStudent = await axios.get(`${baseURL}/api/student/getStudent`, {
       headers: {
-        studtoken: `${token}`,
+        studtoken: token.value, // Use token.value
         "ngrok-skip-browser-warning": "69420",
       },
     });
@@ -50,6 +52,37 @@ const logout = async () => {
 
 const goToAttendanceDetails = () => {
   router.push({ name: "AttendanceDetails" });
+};
+
+const showQRCodeAndStartTimer = async () => {
+  try {
+    const response = await axios.post(
+      `${baseURL}/api/student/generateNewToken`,
+      {
+        oldToken: token.value,
+      }
+    );
+
+    if (response.data && response.data.newToken) {
+      token.value = response.data.newToken;
+      qrToken.value = response.data.QrToken // Update token.value
+      localStorage.setItem("studtoken", token.value);
+      showQrCode.value = true;
+      timer.value = 10;
+
+      intervalId.value = setInterval(() => {
+        timer.value--;
+        if (timer.value <= 0) {
+          clearInterval(intervalId.value);
+          showQrCode.value = false;
+        }
+      }, 1000);
+    } else {
+      console.error("Failed to generate new token");
+    }
+  } catch (error) {
+    console.error("Error generating new token:", error);
+  }
 };
 </script>
 
@@ -93,9 +126,18 @@ const goToAttendanceDetails = () => {
   </div>
 
   <div class="container-fluid col-12 mt-5">
-    <div class="bg-white">
-      <h1>Student QR Code</h1>
-      <qrcode-vue :value="token" :size="size" level="H" />
+    <button class="attendance-btn" v-if="!showQrCode" @click="showQRCodeAndStartTimer">
+      Generate QR Code
+    </button>
+    <div v-if="showQrCode">
+      <div class="bg-white">
+        <h1>Student QR Code</h1>
+        <qrcode-vue :value="qrToken" :size="size" level="H" />
+        <p>
+          QR Code will disappear in
+          <span style="color: red">{{ timer }} </span> seconds
+        </p>
+      </div>
     </div>
   </div>
 
