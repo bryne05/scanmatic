@@ -23,6 +23,8 @@
     "nodemailer": "^6.10.0",
     "nodemon": "^3.0.1",
     "pg": "^8.13.1",
-    "sequelize": "^6.35.1"
+    "sequelize": "^6.35.1",
+    "websocket": "^1.0.35",
+    "ws": "^8.18.1"
   }
 }

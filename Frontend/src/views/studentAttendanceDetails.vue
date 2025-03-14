@@ -43,11 +43,34 @@
       class="card-col d-flex flex-wrap overflow-auto justify-content-start gap-3"
     >
       <div
-        class="my-card d-flex align-items-center justify-content-center"
+        class="my-card d-flex align-items-center justify-content-center flex-column"
         v-for="subject in studentSubjectName"
-        :key="subject"
+        :key="subject.subject_id"
         @click="showSubjectAttendance(subject.subject_id, subject.subject_name)"
       >
+        <div class="streak d-flex">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            :fill="subjectStreaks[subject.subject_id] === 0 ? 'gray' : 'red'"
+            class="bi bi-fire"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M8 16c3.314 0 6-2 6-5.5 0-1.5-.5-4-2.5-6 .25 1.5-1.25 2-1.25 2C11 4 9 .5 6 0c.357 2 .5 4-2 6-1.25 1-2 2.729-2 4.5C2 14 4.686 16 8 16m0-1c-1.657 0-3-1-3-2.75 0-.75.25-2 1.25-3C6.125 10 7 10.5 7 10.5c-.375-1.25.5-3.25 2-3.5-.179 1-.25 2 1 3 .625.5 1 1.364 1 2.25C11 14 9.657 15 8 15"
+            />
+          </svg>
+          <h6
+            style="margin-left: 3px; font-size: 30px"
+            :style="{
+              color: subjectStreaks[subject.subject_id] === 0 ? 'gray' : 'red',
+            }"
+          >
+            {{ subjectStreaks[subject.subject_id] || 0 }}
+          </h6>
+        </div>
+
         <h4>{{ subject.subject_name }}</h4>
       </div>
     </div>
@@ -68,6 +91,7 @@ const router = useRouter();
 const studentAttendance = ref([]);
 const studentClassAndSubject = ref([]);
 const studentSubjectName = ref([]);
+const subjectStreaks = ref({});
 
 onMounted(async () => {
   try {
@@ -85,13 +109,51 @@ onMounted(async () => {
       getStudentClassAndSubject.data.studentClassAndSubject;
     studentSubjectName.value =
       getStudentClassAndSubject.data.studentSubjectName;
+
+    calculateAllSubjectStreaks();
   } catch (error) {
     console.error("Error fetching student data:", error);
   }
 });
 
+const calculateAllSubjectStreaks = () => {
+  studentSubjectName.value.forEach((subject) => {
+    // Get all relevant classes for the subject
+    const relevantClasses = studentClassAndSubject.value
+      .filter((cls) => cls.subject_id === subject.subject_id)
+      .map((cls) => ({
+        date: new Date(cls["Class Date"]).toDateString(), // Normalize date format
+        isPresent: studentAttendance.value.some(
+          (entry) => entry.class_id === cls.class_id
+        ),
+      }));
+
+    // Remove duplicate dates (keep only the latest attendance status for each day)
+    const uniqueAttendance = {};
+    relevantClasses.forEach((record) => {
+      uniqueAttendance[record.date] = record.isPresent;
+    });
+
+    // Convert the object back into an array sorted by date (oldest to newest)
+    const attendanceDetails = Object.entries(uniqueAttendance)
+      .map(([date, isPresent]) => ({ date: new Date(date), isPresent }))
+      .sort((a, b) => a.date - b.date); // Sort ascending (oldest to newest)
+
+    let streak = 0;
+
+    for (const record of attendanceDetails) {
+      if (record.isPresent) {
+        streak++; // Increase streak if present
+      } else {
+        streak = 0; // Reset streak if absent
+      }
+    }
+
+    subjectStreaks.value[subject.subject_id] = streak;
+  });
+};
+
 const showSubjectAttendance = (subjectID, subjectName) => {
-  // Filter classes for the selected subject
   const relevantClasses = studentClassAndSubject.value.filter(
     (cls) => cls.subject_id === subjectID
   );
@@ -102,7 +164,8 @@ const showSubjectAttendance = (subjectID, subjectName) => {
     );
 
     return {
-      date: new Date(cls["Class Date"]).toLocaleDateString(),
+      date: new Date(cls["Class Date"]),
+      formattedDate: new Date(cls["Class Date"]).toLocaleDateString(),
       status: attendanceRecord ? "Present" : "Absent",
       time: attendanceRecord
         ? new Date(attendanceRecord["Time in"]).toLocaleTimeString({
@@ -110,7 +173,25 @@ const showSubjectAttendance = (subjectID, subjectName) => {
             minute: "2-digit",
           })
         : "No Entry",
+      isPresent: !!attendanceRecord,
     };
+  });
+
+  attendanceDetails.sort((a, b) => a.date - b.date);
+
+  // Calculate the longest streak based on consecutive "Present" days
+  let longestStreak = 0;
+  let currentStreak = 0;
+
+  attendanceDetails.forEach((detail) => {
+    if (detail.isPresent) {
+      currentStreak++;
+      if (currentStreak > longestStreak) {
+        longestStreak = currentStreak;
+      }
+    } else {
+      currentStreak = 0; // Reset streak if absent
+    }
   });
 
   let tableHTML = `
@@ -129,7 +210,7 @@ const showSubjectAttendance = (subjectID, subjectName) => {
   attendanceDetails.forEach((detail) => {
     tableHTML += `
       <tr>
-        <td>${detail.date}</td>
+        <td>${detail.formattedDate}</td>
         <td>${detail.time}</td>
         <td>${detail.status}</td>
       </tr>
@@ -140,7 +221,8 @@ const showSubjectAttendance = (subjectID, subjectName) => {
       </tbody>
     </table>
     <button id="download-csv-btn" class="btn btn-primary">Download CSV</button>
-  `; // Added Download CSV Button
+    <div><strong>Longest Streak: </strong>${longestStreak} Consecutive Days</div>
+  `;
 
   Swal.fire({
     title: `Attendance for ${subjectName}`,
@@ -150,7 +232,7 @@ const showSubjectAttendance = (subjectID, subjectName) => {
     didOpen: () => {
       const searchInput = document.getElementById("date-search");
       const tableRows = document.querySelectorAll(".my-table tbody tr");
-      const downloadCsvBtn = document.getElementById("download-csv-btn"); // Get the button
+      const downloadCsvBtn = document.getElementById("download-csv-btn");
 
       searchInput.addEventListener("keyup", () => {
         const searchTerm = searchInput.value.toLowerCase();
@@ -166,12 +248,11 @@ const showSubjectAttendance = (subjectID, subjectName) => {
         });
       });
 
-      // Download CSV Button Click Handler
       downloadCsvBtn.addEventListener("click", () => {
-        let csvContent = "Date,Time In,Status\n"; // CSV Header
+        let csvContent = "Date,Time In,Status\n";
 
         attendanceDetails.forEach((detail) => {
-          csvContent += `${detail.date},${detail.time},${detail.status}\n`;
+          csvContent += `${detail.formattedDate},${detail.time},${detail.status}\n`;
         });
 
         const blob = new Blob([csvContent], {
@@ -190,7 +271,7 @@ const showSubjectAttendance = (subjectID, subjectName) => {
           width: "350px",
           height: "auto",
         });
-        link.setAttribute("download", `${subjectName}_attendance.csv`); // Filename
+        link.setAttribute("download", `${subjectName}_attendance.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -232,10 +313,10 @@ const goBack = () => {
 }
 
 .my-card {
-  height: 200px;
+  height: 100px;
   width: 300px;
   background-color: white;
-  border-radius: 20px;
+  border-radius: 15px;
   cursor: pointer;
   transition: 0.3s;
   position: inherit;

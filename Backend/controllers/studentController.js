@@ -202,18 +202,8 @@ const generateNewJwtToken = async (req, res) => {
       }
     );
     // Generate a new token with the same claims and expiration
-    const newToken = jwt.sign(
-      {
-        stud_id,
-        courseYearSection,
-      },
-      process.env.TOKEN,
-      {
-        expiresIn: "24h", 
-      }
-    );
 
-    res.status(200).json({ newToken, QrToken });
+    res.status(200).json({ QrToken });
   } catch (error) {
     console.error("Error generating new JWT token:", error);
     res.status(500).json({ message: "Failed to generate new token" });
@@ -400,6 +390,84 @@ const getStudentClassAndSubject = async (req, res) => {
   }
 };
 
+const getStudentSingleClassSubject = async (req, res) => {
+  try {
+    const subjectID = req.body.subject_id;
+    const studID = req.stud_id;
+    const studentProgramLevel = req.courseYearSection;
+
+    // Get all classes for the student
+    const studentSingleClassAndSubject = await Class.findAll({
+      where: {
+        subject_id: subjectID,
+        class_courseYearSection: studentProgramLevel,
+        isdeleted: false,
+      },
+      attributes: ["class_id", ["createdAt", "Class Date"], "subject_id"],
+      order: [["createdAt", "ASC"]], // Sort from oldest to newest
+    });
+
+    if (studentSingleClassAndSubject.length === 0) {
+      return res.status(404).json({ message: "No Class Found" });
+    }
+
+    // Extract valid class IDs
+    const validClassIds = studentSingleClassAndSubject.map(
+      (cls) => cls.class_id
+    );
+
+    // Fetch attendance records only for these classes
+    const studentAttendance = await Attendance.findAll({
+      where: {
+        stud_id: studID,
+        class_id: validClassIds,
+      },
+      attributes: [
+        "attendance_id",
+        "stud_id",
+        "class_id",
+        ["createdAt", "Time in"],
+      ],
+    });
+
+    // Map attendance records for quick lookup
+    const attendanceMap = new Map();
+    studentAttendance.forEach((att) => attendanceMap.set(att.class_id, att));
+
+    // Merge classes with attendance status and count streak
+    let streak = 0;
+    let currentStreak = 0;
+
+    const mergedData = studentSingleClassAndSubject.map((cls) => {
+      const attendanceRecord = attendanceMap.get(cls.class_id);
+      const attended = !!attendanceRecord;
+
+      if (attended) {
+        currentStreak++;
+        streak = Math.max(streak, currentStreak);
+      } else {
+        currentStreak = 0;
+      }
+
+      return {
+        class_id: cls.class_id,
+        "Class Date": cls["Class Date"],
+        subject_id: cls.subject_id,
+        attended,
+        attendanceDetails: attendanceRecord ? attendanceRecord.get() : null,
+      };
+    });
+
+    res.status(200).json({ mergedData, attendanceStreak: streak });
+  } catch (error) {
+    console.error("Error fetching Student Class:", error);
+    res.status(500).json({ error: "Failed to fetch Student class" });
+  }
+};
+
+
+
+
 module.exports = {
   registerStudent,
   getStudentProfile,
@@ -411,4 +479,5 @@ module.exports = {
   getStudentClassAndSubject,
   sendOTP,
   generateNewJwtToken,
+  getStudentSingleClassSubject,
 };

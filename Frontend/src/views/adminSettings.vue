@@ -105,6 +105,7 @@ const updateLevelThreshold = async () => {
     });
   }
 };
+
 const fetchLevelThreshold = async () => {
   try {
     const response = await axios.get(`${baseURL}/api/admin/getLevelThreshold`, {

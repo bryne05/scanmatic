@@ -1,10 +1,11 @@
+<!-- student.vue -->
 <script setup>
 import { useRouter } from "vue-router";
 import QrcodeVue from "qrcode.vue";
 import axios from "axios";
 import { baseURL } from "../config";
 
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import Swal from "sweetalert2";
 
 import { useShopData } from "../composables/useShopData";
@@ -13,14 +14,17 @@ const { clearStateData } = useShopData();
 
 const token = ref(localStorage.getItem("studtoken")); // Make token reactive
 const size = 300;
-const qrToken = ref("")
+const qrToken = ref("");
 const router = useRouter();
 const studentData = ref(null);
 const showQrCode = ref(false);
 const timer = ref(25);
 const intervalId = ref(null);
+const subjectID = ref("");
+const ws = ref(null);
+const studentId = ref("");
 
-onMounted(async () => {
+const fetchStudent = async () => {
   try {
     const getStudent = await axios.get(`${baseURL}/api/student/getStudent`, {
       headers: {
@@ -32,7 +36,70 @@ onMounted(async () => {
   } catch (error) {
     console.error("Error fetching student data:", error);
   }
+};
+onMounted(async () => {
+  await fetchStudent();
 });
+
+onBeforeUnmount(() => {
+  if (ws.value) ws.value.close();
+});
+
+const triggerStudentAction = async () => {
+  try {
+    const response = await axios.post(
+      `${baseURL}/api/student/getStudentSingleClassAndSubject`,
+      { subject_id: subjectID.value },
+      {
+        headers: {
+          studtoken: token.value, // Use token.value
+          "ngrok-skip-browser-warning": "69420",
+        },
+      }
+    );
+    if (response.status === 200) {
+      if (ws.value) ws.value.close();
+      console.log("response", response.data);
+      const streak = response.data.attendanceStreak;
+      console.log(streak);
+      if (streak % 5 === 0) {
+        await fetchStudent();
+        const studentNewToken = studentData.value.current_token + 50;
+        console.log("studentNewToken:", studentNewToken);
+
+        const updateStudent = await axios.put(
+          `${baseURL}/api/student/updateStudent`,
+          { current_token: studentNewToken },
+          {
+            headers: {
+              studtoken: token.value,
+              "ngrok-skip-browser-warning": "69420",
+            },
+          }
+        );
+
+        if (updateStudent.status === 200) {
+          Swal.fire({
+            title: `You're on fire with a ${streak} streak! 50 points earned!`,
+            width: 600,
+            padding: "3em",
+            color: "#716add",
+            background: "#fff url(../assets/celeb.jpg)",
+            backdrop: `
+    rgba(0,0,123,0.4)
+    url("../assets/congrats.gif")
+    center top
+    no-repeat
+  `,
+          });
+        }
+      }
+    }
+  } catch (error) {
+    if (ws.value) ws.value.close();
+    console.error("Error fetching student streak data:", error);
+  }
+};
 
 const logout = async () => {
   const result = await Swal.fire({
@@ -56,6 +123,34 @@ const goToAttendanceDetails = () => {
 
 const showQRCodeAndStartTimer = async () => {
   try {
+    ws.value = new WebSocket("ws://localhost:6543");
+
+    ws.value.onopen = () => {
+      console.log("Connected to WebSocket server");
+
+      // ✅ Access ws.value before calling send()
+      if (ws.value && ws.value.readyState === WebSocket.OPEN) {
+        console.log("student token:", token.value);
+        ws.value.send(JSON.stringify({ token: token.value }));
+      } else {
+        console.error("WebSocket is not ready to send messages.");
+      }
+    };
+
+    // ✅ Listen for WebSocket messages in real-time
+    ws.value.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.qrCode && data.subject_id) {
+        studentId.value = data.qrCode; // Update student ID in real-time
+        subjectID.value = data.subject_id;
+        console.log("QR Code Detected:", studentId.value);
+        console.log("subject ID Detected:", subjectID.value);
+        triggerStudentAction();
+      }
+    };
+
+    ws.value.onerror = (error) => console.error("WebSocket Error:", error);
+    ws.value.onclose = () => console.log("WebSocket disconnected");
     const response = await axios.post(
       `${baseURL}/api/student/generateNewToken`,
       {
@@ -63,10 +158,9 @@ const showQRCodeAndStartTimer = async () => {
       }
     );
 
-    if (response.data && response.data.newToken) {
-      token.value = response.data.newToken;
-      qrToken.value = response.data.QrToken // Update token.value
-      localStorage.setItem("studtoken", token.value);
+    if (response.data) {
+      qrToken.value = response.data.QrToken; // Update token.value
+
       showQrCode.value = true;
       timer.value = 10;
 
@@ -74,6 +168,7 @@ const showQRCodeAndStartTimer = async () => {
         timer.value--;
         if (timer.value <= 0) {
           clearInterval(intervalId.value);
+
           showQrCode.value = false;
         }
       }, 1000);
@@ -126,7 +221,11 @@ const showQRCodeAndStartTimer = async () => {
   </div>
 
   <div class="container-fluid col-12 mt-5">
-    <button class="attendance-btn" v-if="!showQrCode" @click="showQRCodeAndStartTimer">
+    <button
+      class="attendance-btn"
+      v-if="!showQrCode"
+      @click="showQRCodeAndStartTimer"
+    >
       Generate QR Code
     </button>
     <div v-if="showQrCode">

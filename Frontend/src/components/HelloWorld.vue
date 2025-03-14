@@ -1,3 +1,5 @@
+<!-- HelloWorld.vue -->
+
 <template>
   <div>
     <div class="pos">
@@ -80,7 +82,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from "vue";
+import { onBeforeUnmount, ref, onMounted } from "vue";
 import { QrcodeStream } from "vue-qrcode-reader";
 import { baseURL } from "../config";
 import axios from "axios";
@@ -114,10 +116,41 @@ const setdefaultimage = () => {
   imageSrc.value = defaultimage;
 };
 
+const ws = new WebSocket("ws://localhost:6543");
+
+ws.onopen = () => {
+  console.log("WebSocket connected!");
+  ws.send(JSON.stringify({ type: "scanner" }));
+};
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log("Received WebSocket message:", data);
+
+  if (data.success) {
+    Swal.fire({
+      title: "Student Attendance Recorded",
+      text: "Attendance has been successfully marked!",
+      icon: "success",
+    });
+  }
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket Error:", error);
+};
+
+ws.onclose = () => {
+  console.log("WebSocket connection closed.");
+};
+
 const onDetect = async (result) => {
   try {
     if (result && result.length > 0 && result[0].rawValue) {
       rawValue.value = result[0].rawValue;
+      console.log("qrcode:", rawValue.value);
+      console.log("subjectID:", subjectID.value);
+    
 
       const response = await axios.post(
         `${baseURL}/api/professor/createAttendance/${sessionID.value}`,
@@ -130,6 +163,12 @@ const onDetect = async (result) => {
         }
       );
       if (response.status === 200) {
+          ws.send(
+          JSON.stringify({
+            qrCode: rawValue.value,
+            subject_id: subjectID.value,
+          })
+        );
         await fetchImage(rawValue.value);
         const getAttend = await axios.get(
           `${baseURL}/api/professor/getAttendance/${sessionID.value}`,
@@ -292,6 +331,12 @@ onMounted(async () => {
   }
 });
 
+onBeforeUnmount(() => {
+  if (ws) {
+    ws.close();
+    console.log("WebSocket closed on unmount");
+  }
+});
 const checkTimeRange = () => {
   if (!startTime.value || !endTime.value || !dateCreated.value) {
     isWithinTimeRange.value = false;

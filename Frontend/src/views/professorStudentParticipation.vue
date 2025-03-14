@@ -274,153 +274,6 @@ const downloadCSV = () => {
 const goBack = () => {
   router.go(-1);
 };
-// const openStudentParticipation = (programLevel) => {
-//   // Filter the masterlist based on the selected programLevel
-
-//   console.log(programLevel);
-//   const filteredProgram = fullentrydata.value?.masterlist?.find(
-//     (item) => item.courseYearSection === programLevel
-//   );
-//   const filteredEntries = StudentEntry.value.filter(
-//     (entry) => entry.student.courseYearSection === programLevel
-//   );
-
-//   // Count the number of unique classes attended by students for the selected program level
-//   const classCount = new Set(
-//     filteredEntries.map((entry) => entry.class.class_id)
-//   ).size;
-
-//   console.log("studentParticipation", filteredProgram);
-//   // Check if there are students in the filtered program
-//   if (!filteredProgram || !filteredProgram.students.length) {
-//     Swal.fire(
-//       "No data available",
-//       "There are no students for this class.",
-//       "info"
-//     );
-//     return;
-//   }
-
-//   let tableHTML = `
-//     <div class="table-responsive">
-//       <input class="form-control mb-2" type="text" id="studentSearch" placeholder="Search students...">
-//       <table class="table" id="studentTable">
-//         <thead>
-//           <tr>
-//             <th>Program Level</th>
-//             <th>First Name</th>
-//             <th>Middle Name</th>
-//             <th>Last Name</th>
-//             <th>No. of times attended</th>
-//             <th>Latest attended Date</th>
-//             <th>Attendance Details</th>
-//           </tr>
-//         </thead>
-//         <tbody>
-//   `;
-
-//   // Sort students by last name, then first name (using a copy)
-//   const sortedStudents = [...filteredProgram.students].sort((a, b) => {
-//     const lastNameA = a.last_name || "";
-//     const lastNameB = b.last_name || "";
-//     if (lastNameA !== lastNameB) {
-//       return lastNameA.localeCompare(lastNameB);
-//     }
-//     const firstNameA = a.first_name || "";
-//     const firstNameB = b.first_name || "";
-//     return firstNameA.localeCompare(firstNameB);
-//   });
-
-//   sortedStudents.forEach((student) => {
-//     // Get the attendance details for the student (you may need to match it with attendance data)
-//     const studentAttendance = fullentrydata.value.entry.filter(
-//       (entry) => entry.student.stud_id === student.stud_id
-//     );
-
-//     // Calculate attendance count (if the student attended any classes)
-//     const attendanceCount = studentAttendance.length;
-//     const latestAttendedDate =
-//       attendanceCount > 0
-//         ? new Date(studentAttendance[0].latestAttendedDate).toLocaleDateString()
-//         : "No Attendance";
-
-//     tableHTML += `
-//       <tr class="student-row">
-//         <td>${programLevel}</td>
-//         <td>${student.first_name || "-"}</td>
-//         <td>${student.middle_name || "-"}</td>
-//         <td>${student.last_name || "-"}</td>
-//         <td>${attendanceCount} / ${classCount}</td>
-//         <td>${latestAttendedDate}</td>
-//         <td>
-//           <button class="btn btn-primary details-btn pl-4 pr-4" data-id="${
-//             student.stud_id
-//           }">
-//             View
-//           </button>
-//         </td>
-//       </tr>
-//     `;
-//   });
-
-//   tableHTML += `
-//         </tbody>
-//       </table>
-//     </div>
-//   `;
-
-//   Swal.fire({
-//     title: `Student List for ${programLevel}`,
-//     html: tableHTML,
-//     width: "1400px",
-//     allowOutsideClick: true, // Prevent closing by clicking outside
-//     allowEscapeKey: false, // Prevent closing by pressing Esc key
-//     confirmButtonText: "OK",
-//     didOpen: () => {
-//       // After the Swal is open, attach event listener to the button
-//       const detailButtons = document.querySelectorAll(".details-btn");
-//       detailButtons.forEach((button) => {
-//         button.addEventListener("click", () => {
-//           const studentId = button.getAttribute("data-id");
-//           const student = filteredProgram.students.find(
-//             (student) => student.stud_id == studentId
-//           );
-//           showModal(
-//             student.stud_id,
-//             student.first_name,
-//             student.middle_name,
-//             student.last_name,
-//             student.courseYearSection
-//           );
-//         });
-//       });
-
-//       // Search functionality
-//       const searchInput = document.getElementById("studentSearch");
-//       const studentTable = document.getElementById("studentTable");
-//       const studentRows = studentTable.querySelectorAll(".student-row");
-
-//       searchInput.addEventListener("keyup", (event) => {
-//         const searchTerm = event.target.value.toLowerCase();
-
-//         studentRows.forEach((row) => {
-//           const studentName =
-//             `${row.cells[1].textContent} ${row.cells[2].textContent} ${row.cells[3].textContent}`.toLowerCase(); // Combine first, middle, last names
-//           if (studentName.includes(searchTerm)) {
-//             row.style.display = "";
-//           } else {
-//             row.style.display = "none";
-//           }
-//         });
-//       });
-//     },
-//   }).then((result) => {
-//     if (result.isConfirmed) {
-//       // Handle OK button click (e.g., you might not need to do anything here if you just want to prevent closing)
-//       console.log("OK clicked");
-//     }
-//   });
-// };
 
 const fetchAllSubjectSession = async () => {
   try {
@@ -451,10 +304,12 @@ const masterlistStudents = computed(() => {
 
 const uniqueSessions = computed(() => {
   if (AllSubjectSession.value) {
-    return AllSubjectSession.value.filter(
-      (session, index, self) =>
-        self.findIndex((s) => s.class_id === session.class_id) === index
-    );
+    return AllSubjectSession.value
+      .filter(
+        (session, index, self) =>
+          self.findIndex((s) => s.class_id === session.class_id) === index
+      )
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sorting from newest to oldest
   }
   return [];
 });
@@ -491,86 +346,6 @@ onMounted(async () => {
     console.error("Error fetching student entry:", error);
   }
 });
-
-const goToAttendanceDetails = (studentId, firstname, middlename, lastname) => {
-  attendanceDetails = AllSubjectSession.value.map((session) => {
-    const attendanceRecord = StudentEntry.value.find(
-      (entry) =>
-        entry.student.stud_id === studentId &&
-        entry.class.class_id === session.class_id
-    );
-
-    return {
-      date: new Date(session.createdAt).toLocaleDateString(),
-      status: attendanceRecord ? "Present" : "Absent",
-      time: attendanceRecord
-        ? new Date(attendanceRecord.latestAttendedDate).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "No Entry",
-    };
-  });
-
-  let tableHTML = `
-    <input style="color:black; background-color:white; border: 1px solid gray; width:400px;height:50px; margin-top:5px;" type="text" id="date-search" placeholder="Search by date Ex: m/d/yyyy"/>
-    <table class="table my-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Time In</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  attendanceDetails.forEach((detail) => {
-    tableHTML += `
-      <tr>
-        <td>${detail.date}</td>
-        <td>${detail.time}</td>
-        <td>${detail.status}</td>
-      </tr>
-    `;
-  });
-
-  tableHTML += `
-      </tbody>
-    </table>
-  `;
-
-  Swal.fire({
-    title: `Attendance Details <br> ${firstname} ${middlename} ${lastname}`,
-    html: tableHTML,
-    width: "800px",
-
-    didOpen: () => {
-      // After the Swal is open, add event listener
-      const searchInput = document.getElementById("date-search");
-      const tableRows = document.querySelectorAll(".my-table tbody tr");
-
-      searchInput.addEventListener("keyup", () => {
-        const searchTerm = searchInput.value.toLowerCase();
-
-        tableRows.forEach((row) => {
-          const dateCell = row.cells[0].textContent.toLowerCase(); // Get date from the first cell
-
-          if (dateCell.includes(searchTerm)) {
-            row.style.display = ""; // Show the row
-          } else {
-            row.style.display = "none"; // Hide the row
-          }
-        });
-      });
-    },
-  });
-
-  console.log(
-    `Attendance Details for Student ${studentId}:`,
-    attendanceDetails
-  );
-};
 
 const showModal = (
   studentId,
@@ -700,20 +475,6 @@ const filteredAttendanceDetails = computed(() => {
     return dateMatch && statusMatch;
   });
 });
-
-const getAttendanceCount = (studentId) => {
-  return professorParticipants.value[studentId]?.attendanceCount || 0;
-};
-
-const getLatestAttendanceDate = (studentId) => {
-  return professorParticipants.value[studentId]?.latestAttendedDate || null;
-};
-
-// const formatDate = (dateString) => {
-//   if (!dateString) return "-"; // Handle cases where date is null
-//   const options = { year: "numeric", month: "long", day: "numeric" };
-//   return new Date(dateString).toLocaleDateString(undefined, options);
-// };
 
 const logout = async () => {
   const result = await Swal.fire({

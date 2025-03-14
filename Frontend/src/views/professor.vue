@@ -1,10 +1,12 @@
 <!-- professor.vue -->
 <script setup>
+import { nextTick } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import ProfSubject from "../components/ProfessorSubject.vue";
 import { useShopData } from "../composables/useShopData";
 import { useSubjectData } from "../composables/useSubjectData";
+import student from "../views/student.vue"
 
 const { clearStateDataProfessor } = useShopData();
 const { clearStateSubject } = useSubjectData();
@@ -26,6 +28,8 @@ const logout = async () => {
     router.push("/ZXNzb3IiLCJVfrvonD");
   }
 };
+
+
 </script>
 
 <template>
@@ -73,6 +77,7 @@ const logout = async () => {
 
   <div class="mt-2 text">
     <h2 class="text">My Subjects</h2>
+   
     <ProfSubject />
   </div>
 </template>
