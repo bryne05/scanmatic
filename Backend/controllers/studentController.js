@@ -465,8 +465,35 @@ const getStudentSingleClassSubject = async (req, res) => {
   }
 };
 
+const getStudentLeaderboard = async (req, res) => {
+  try {
+    const studID = req.stud_id;
+    const studentProgramLevel = req.courseYearSection;
 
+    // Get all classes for the student
+    const studentLeaderboard = await Student.findAll({
+      where: {
+        courseYearSection: studentProgramLevel,
+      },
+      attributes: [
+        "first_name",
+        "middle_name",
+        "last_name",
+        "current_exp",
+        "current_level",
+      ],
+      order: [["current_level", "DESC"]], // Sort from oldest to newest
+    });
 
+    if (!getStudentLeaderboard) {
+      res.status(400).json({ error: "Failed to get Leaderboards" });
+    }
+    res.status(200).json({ studentLeaderboard });
+  } catch (error) {
+    console.error("Error fetching Student Class:", error);
+    res.status(500).json({ error: "Failed to fetch Student class" });
+  }
+};
 
 module.exports = {
   registerStudent,
@@ -480,4 +507,5 @@ module.exports = {
   sendOTP,
   generateNewJwtToken,
   getStudentSingleClassSubject,
+  getStudentLeaderboard,
 };

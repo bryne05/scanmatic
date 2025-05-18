@@ -45,7 +45,7 @@ const submitForm = async () => {
       });
 
       router.push({ name: "Student" });
-    } 
+    }
   } catch (errorStudent) {
     console.error("Login Error:", errorStudent); // Log the full error object
 
@@ -69,12 +69,13 @@ const submitForm = async () => {
 </script>
 
 <template>
-  <div class="container-fluid d-flex flex-column">
-    <Box />
-
-    <div class="row white-bg">
-      <div class="col-2"></div>
-      <div class="col-md-8">
+  <div
+    class="container-fluid d-flex justify-content-center align-items-center flex-column"
+  >
+    <div class="row d-flex justify-content-center align-items-center text-center">
+      <div class="col-md-12 mt-5"><Box /></div>
+      <div class="col-md-4"></div>
+      <div class="col-md-4 white-bg ">
         <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
         <h4 class="text-center inv">Greetings Students!</h4>
         <form action="" class="text-start mx-5">
@@ -105,12 +106,18 @@ const submitForm = async () => {
           </p>
         </div>
       </div>
-      <div class="col-2"></div>
+      <div class="col-md-4"></div>
     </div>
   </div>
 </template>
 
 <style scoped>
+body {
+  background-color: black !important ;
+  background-image: url(../assets/bg.jpg) !important;
+  background-size: cover !important;
+}
+
 .cus-border {
   border-width: 1px;
   border-color: black;

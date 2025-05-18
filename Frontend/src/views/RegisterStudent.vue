@@ -1,9 +1,11 @@
 <template>
-  <div class="container-fluid reg">
-    <Box />
-    <div class="row white-bg pb-3">
-      <div class="col-2"></div>
-      <div class="col-md-8 reg">
+  <div
+    class="container-fluid d-flex justify-content-center align-items-center text-center"
+  >
+    <div class="">
+      <div class="col-md-12"><Box /></div>
+
+      <div class="col-md-12 white-bg reg p-4">
         <h1 class="text-center inv">Hi, Student!!</h1>
         <h4 class="text-center inv">Register</h4>
         <form @submit.prevent="submitForm" class="text-start">
@@ -90,7 +92,7 @@
           </div>
         </form>
       </div>
-      <div class="col-2"></div>
+     
     </div>
 
     <Teleport to="body">
@@ -120,7 +122,7 @@
             </button>
             <p v-else>{{ resendCountdown }}</p>
           </div>
-          
+
           <p v-if="otpError" class="error">{{ otpError }}</p>
           <div class="modal-buttons">
             <button @click="registerStudent" class="btn btn-success">

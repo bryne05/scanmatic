@@ -66,11 +66,11 @@ const submitForm = async () => {
 </script>
 
 <template>
-  <div class="container-fluid d-flex flex-column">
+  <div class="container-fluid d-flex justify-content-center align-items-center flex-column pt-5">
     <Box />
 
     <div class="row white-bg">
-      <div class="col-2"></div>
+<div class="col-2"></div>
       <div class="col-md-8">
         <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
         <h4 class="text-center inv">Greetings Professors!!</h4>

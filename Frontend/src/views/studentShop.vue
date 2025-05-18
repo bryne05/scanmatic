@@ -1,88 +1,40 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { useShopData } from "../composables/useShopData";
-import Swal from "sweetalert2";
-import ShopItems from '../components/ShopItems.vue';
 
+import ShopItems from "../components/ShopItems.vue";
+import navbar from "../components/studentNavBar.vue";
 const { clearStateData, fetchStudentData } = useShopData();
 const router = useRouter();
-
-const logout = async () => {
-  const result = await Swal.fire({
-    title: "Do you want to log out?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "No",
-  });
-
-  if (result.isConfirmed) {
-    localStorage.removeItem("studtoken");
-
-    // Clear the student data and re-fetch
-    clearStateData();
-    
-
-    router.push("/"); // Redirect to home or login
-  }
-};
 </script>
 
 <template>
-  <div>
-    <div class="pos">
-      <nav class="navbar navbar-expand bg-light inv">
-        <a class="navbar-brand left">ScanMatic</a>
-        <div>
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/student">
-                Qr Code
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink
-                class="nav-link pointer curr active"
-                to="/student/shop"
-              >
-                Incentives
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/student/profile">
-                Profile
-              </RouterLink>
-            </li>
+  <div
+    :style="{
+      backgroundColor: '#c7c7c7',
+      fontFamily: 'Outfit-Regular',
+      minHeight: '100vh',
+    }"
+  >
+    <navbar />
 
-            <li class="nav-item">
-              <a
-                class="nav-link pointer curr"
-                style="color: red"
-                @click="logout"
-              >
-                Logout
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </div>
-  </div>
-
-  <div class="mt-5 text">
-    <div class="scroll-container">
+    <div class="text">
       <ShopItems />
+
+      <div class="claim-btn d-flex justify-content-center align-items-center">
+        <RouterLink to="/student/transaction">
+          <button class="btnsyle mt-4">Claimed Incentives</button>
+        </RouterLink>
+      </div>
     </div>
-    <RouterLink to="/student/transaction">
-      <button class="btnsyle mt-4">Claimed Incentives</button>
-    </RouterLink>
   </div>
 </template>
 
 <style scoped>
-.text {
-  margin-top: 100px;
-  color: white;
+* {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
 }
 .btnsyle {
   background-color: white;
@@ -98,10 +50,18 @@ const logout = async () => {
   color: white;
   border-color: white;
 }
+.text {
+  margin-top: 100px !important;
+}
 
 @media (max-width: 767px) {
   .btnsyle {
     width: 250px;
+  }
+}
+@media (min-width: 1200px) {
+  .claim-btn {
+    display: none !important;
   }
 }
 </style>

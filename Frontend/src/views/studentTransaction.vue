@@ -5,10 +5,11 @@ import axios from "axios";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 import { useShopData } from "../composables/useShopData";
-
+import navbar from "../components/studentNavBar.vue";
 const { clearStateData } = useShopData();
 const router = useRouter();
 const token = localStorage.getItem("studtoken");
+
 const downloadCSV = () => {
   if (!studentTransactions.value || studentTransactions.value.length === 0) {
     Swal.fire(
@@ -101,74 +102,55 @@ const formatDate = (dateString) => {
 
 <template>
   <div>
-    <div class="pos">
-      <nav class="navbar navbar-expand bg-light inv">
-        <a class="navbar-brand left">ScanMatic</a>
-        <div>
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/student">
-                Qr Code
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink
-                class="nav-link pointer curr active"
-                to="/student/shop"
-              >
-                Incentives
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/student/profile">
-                Profile
-              </RouterLink>
-            </li>
-
-            <li class="nav-item">
-              <a
-                class="nav-link pointer curr"
-                to="/"
-                style="color: red"
-                @click="logout"
-              >
-                Logout
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </div>
-
-    <div class="text">
-      <h1>Claimed Incentives</h1>
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
-            <tr class="tr">
-              <th scope="col">Incentive Label</th>
-
-              <th scope="col">Point Value</th>
-              <th scope="col">Date</th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="transaction in studentTransactions"
-              :key="transaction.createdAt"
+    <navbar />
+    <div
+      :style="{
+        backgroundColor: '#c7c7c7',
+        fontFamily: 'Outfit-Regular',
+        minHeight: '100vh',
+        overflow: 'visible',
+      }"
+    >
+      <div class="container cont">
+        <div class="row">
+          <div class="col-12 text-center"><h1>Claimed Incentives</h1></div>
+          <div class="col-12 text-center">
+            <div
+              class="table-responsive bg d-flex justify-content-center align-items-center"
             >
-              <td>{{ transaction.item_name }}</td>
+              <table class="table">
+                <thead>
+                  <tr class="tr">
+                    <th scope="col">INCENTIVE LABEL</th>
 
-              <td>{{ transaction.item_price }}</td>
-              <td>{{ formatDate(transaction.createdAt) }}</td>
-              <td>{{ transaction.isVerified ? "Verified" : "Pending" }}</td>
-            </tr>
-          </tbody>
-        </table>
+                    <th scope="col">POINT VALUE</th>
+                    <th scope="col">DATE</th>
+                    <th scope="col">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="transaction in studentTransactions"
+                    :key="transaction.createdAt"
+                  >
+                    <td>{{ transaction.item_name }}</td>
+
+                    <td>{{ transaction.item_price }}</td>
+                    <td>{{ formatDate(transaction.createdAt) }}</td>
+                    <td>
+                      {{ transaction.isVerified ? "Verified" : "Pending" }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="col-12">
+              <button class="btnsyle" @click="goBack">Back</button>
+              <button class="btnsyle" @click="downloadCSV">Download CSV</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <button class="btnsyle" @click="goBack">Back</button>
-      <button class="btnsyle" @click="downloadCSV">Download CSV</button>
     </div>
   </div>
 </template>
@@ -177,18 +159,18 @@ const formatDate = (dateString) => {
 .btnsyle {
   margin-left: 6px;
   margin-top: 10px;
-  background-color: white;
-  color: black;
+  background-color: black;
+  color: white;
   width: 335px;
   height: 44px;
+  border: black 2px solid;
   border-radius: 30px;
   transition: background-color 0.3s ease-in, color 0.3s ease-in;
 }
 
 .btnsyle:hover {
-  background-color: gray;
-  color: white;
-  border-color: white;
+  background-color: white;
+  color: black;
 }
 
 @media (max-width: 767px) {
@@ -197,7 +179,7 @@ const formatDate = (dateString) => {
   }
 }
 .text {
-  max-width: fit-content;
+  max-width: 60vw;
   max-height: 650px;
   overflow-y: auto;
   margin-top: 50px;
@@ -205,5 +187,26 @@ const formatDate = (dateString) => {
 }
 .tr {
   position: relative;
+  font-size: 20px;
+  font-family: Outfit-Bold;
+}
+td {
+  color: rgb(41, 41, 41) !important;
+  font-family: Outfit-regular;
+  font-size: 16px;
+}
+
+.bg {
+  background-color: white;
+  padding: 15px 15px 0px 15px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}
+.cont {
+  padding-top: 100px;
+}
+
+.table-responsive {
+  margin: 10px;
 }
 </style>

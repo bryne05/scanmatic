@@ -40,6 +40,12 @@ router.get(
   studentController.getStudentClassAndSubject
 );
 
+router.get(
+  "/getStudentLeaderboard",
+  authenticateStudToken,
+  studentController.getStudentLeaderboard
+);
+
 router.post(
   "/getStudentSingleClassAndSubject",
   authenticateStudToken,

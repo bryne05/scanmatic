@@ -1,80 +1,58 @@
 <template>
-  <div>
-    <div class="pos">
-      <nav class="navbar navbar-expand bg-light inv">
-        <a class="navbar-brand left">ScanMatic</a>
-        <div>
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr active" to="/student">
-                Qr Code
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/student/shop">
-                Incentives
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/student/profile">
-                Profile
-              </RouterLink>
-            </li>
-
-            <li class="nav-item">
-              <a
-                class="nav-link pointer curr"
-                to="/"
-                style="color: red"
-                @click="logout"
-              >
-                Logout
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </div>
-  </div>
-
-  <div class="container col-12 mt-5">
-    <h1 style="color: white">My Attendance</h1>
+  <navbar />
+  <div
+    :style="{
+      backgroundColor: '#c7c7c7',
+      fontFamily: 'Outfit-Regular',
+      minHeight: '100vh',
+      overflow: 'visible',
+    }"
+  >
     <div
-      class="card-col d-flex flex-wrap overflow-auto justify-content-start gap-3"
+      class="container col-12 d-flex flex-column justify-content-center align-items-center"
+      style="padding-top: 100px"
     >
+      <h1 style="color: black">My Attendance</h1>
       <div
-        class="my-card d-flex align-items-center justify-content-center flex-column"
-        v-for="subject in studentSubjectName"
-        :key="subject.subject_id"
-        @click="showSubjectAttendance(subject.subject_id, subject.subject_name)"
+        class="card-col d-flex flex-wrap align-items-center justify-content-start gap-3"
       >
-        <div class="streak d-flex">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            :fill="subjectStreaks[subject.subject_id] === 0 ? 'gray' : 'red'"
-            class="bi bi-fire"
-            viewBox="0 0 16 16"
-          >
-            <path
-              d="M8 16c3.314 0 6-2 6-5.5 0-1.5-.5-4-2.5-6 .25 1.5-1.25 2-1.25 2C11 4 9 .5 6 0c.357 2 .5 4-2 6-1.25 1-2 2.729-2 4.5C2 14 4.686 16 8 16m0-1c-1.657 0-3-1-3-2.75 0-.75.25-2 1.25-3C6.125 10 7 10.5 7 10.5c-.375-1.25.5-3.25 2-3.5-.179 1-.25 2 1 3 .625.5 1 1.364 1 2.25C11 14 9.657 15 8 15"
-            />
-          </svg>
-          <h6
-            style="margin-left: 3px; font-size: 30px"
-            :style="{
-              color: subjectStreaks[subject.subject_id] === 0 ? 'gray' : 'red',
-            }"
-          >
-            {{ subjectStreaks[subject.subject_id] || 0 }}
-          </h6>
-        </div>
+        <div
+          class="my-card d-flex align-items-center justify-content-center flex-column shadow-lg"
+          v-for="subject in studentSubjectName"
+          :key="subject.subject_id"
+          @click="
+            showSubjectAttendance(subject.subject_id, subject.subject_name)
+          "
+        >
+          <div class="streak d-flex">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              :fill="subjectStreaks[subject.subject_id] === 0 ? 'gray' : 'red'"
+              class="bi bi-fire"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M8 16c3.314 0 6-2 6-5.5 0-1.5-.5-4-2.5-6 .25 1.5-1.25 2-1.25 2C11 4 9 .5 6 0c.357 2 .5 4-2 6-1.25 1-2 2.729-2 4.5C2 14 4.686 16 8 16m0-1c-1.657 0-3-1-3-2.75 0-.75.25-2 1.25-3C6.125 10 7 10.5 7 10.5c-.375-1.25.5-3.25 2-3.5-.179 1-.25 2 1 3 .625.5 1 1.364 1 2.25C11 14 9.657 15 8 15"
+              />
+            </svg>
+            <h6
+              style="margin-left: 3px; font-size: 30px"
+              :style="{
+                color:
+                  subjectStreaks[subject.subject_id] === 0 ? 'gray' : 'red',
+              }"
+            >
+              {{ subjectStreaks[subject.subject_id] || 0 }}
+            </h6>
+          </div>
 
-        <h4>{{ subject.subject_name }}</h4>
+          <h4>{{ subject.subject_name }}</h4>
+        </div>
       </div>
+      <button class="attendance-btn" @click="goBack">Back</button>
     </div>
-    <button class="attendance-btn" @click="goBack">Back</button>
   </div>
 </template>
 
@@ -84,6 +62,7 @@ import axios from "axios";
 import { baseURL } from "../config";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
+import navbar from "../components/studentNavBar.vue";
 
 const token = localStorage.getItem("studtoken");
 
@@ -320,23 +299,26 @@ const goBack = () => {
   cursor: pointer;
   transition: 0.3s;
   position: inherit;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
 }
 
 .my-card:hover {
   scale: 1.03;
 }
 .attendance-btn {
-  background-color: white;
-  color: black;
+  background-color: black;
+  color: white;
   border-radius: 40px;
   transition: 0.3s;
   border: none;
   padding-top: 13px;
   padding-bottom: 13px;
+  width: 200px;
+  border: 2px solid black;
 }
 .attendance-btn:hover {
-  background-color: gray;
-  color: white;
+  background-color: white;
+  color: black;
 }
 
 .text {

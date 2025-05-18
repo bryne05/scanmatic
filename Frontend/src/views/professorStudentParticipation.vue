@@ -1,104 +1,112 @@
 <template>
-  <div class="pos">
-    <nav class="navbar navbar-expand bg-light inv">
-      <a class="navbar-brand left">ScanMatic</a>
-      <div>
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <RouterLink class="nav-link pointer curr active" to="/professor">
-              Class
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink class="nav-link pointer curr" to="/professor/shop">
-              Incentives
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink class="nav-link pointer curr" to="/professor/profile">
-              Profile
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink class="nav-link pointer curr" to="/professor/event">
-              Events
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <a
-              class="nav-link pointer curr"
-              to="/ZXNzb3IiLCJVfrvonD"
-              style="color: red"
-              @click="logout"
-            >
-              Logout
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  </div>
-
-  <div class="text d-flex flex-column align-items-center m-4 p-4">
-    <h1 class="text-center mb-4">Subject: {{ subjectName }}</h1>
-    <h1 class="text-center mb-4">Program Level: {{ subjectProgramLevel }}</h1>
-
-    <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Student Name</th>
-            <th v-for="session in uniqueSessions" :key="session.class_id">
-              {{ formatDate(session.createdAt) }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="student in masterlistStudents" :key="student.stud_id">
-            <td>
-              <div
-                class="ALINK"
-                @click="
-                  showModal(
-                    student.stud_id,
-                    student.first_name,
-                    student.middle_name,
-                    student.last_name,
-                    student.courseYearSection
-                  )
-                "
-              >
-                {{ student.first_name }} {{ student.middle_name }}
-                {{ student.last_name }}
-              </div>
-            </td>
-            <td
-              v-for="session in uniqueSessions"
-              :key="session.class_id"
-              class="attendance-cell"
-            >
-              <div class="attendance-grid-wrapper">
-                <div
-                  class="attendance-box"
-                  :class="{
-                    'bg-success': isStudentPresent(
-                      student.stud_id,
-                      session.class_id
-                    ),
-                    'bg-danger': !isStudentPresent(
-                      student.stud_id,
-                      session.class_id
-                    ),
-                  }"
-                ></div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <navbar />
+  <div
+    :style="{
+      backgroundColor: '#c7c7c7',
+      fontFamily: 'Outfit-Regular',
+      minHeight: '100vh',
+      overflow: 'visible',
+    }"
+  >
+    <div v-if="isLoading" class="loading-overlay">
+      <moon-loader :loading="isLoading" color="white" size="150px" />
     </div>
-    <button class="btnsyle" @click="goBack">Back</button>
-    <button class="btnsyle" @click="downloadCSV">Download CSV</button>
+    <div v-else class="container pad">
+      <div class="row d-flex flex-column">
+        <div class="col-12">
+          <div class="text-center" style="font-family: Outfit-bold">
+            <h1>STUDENT OVERVIEW PARTICIPATION</h1>
+          </div>
+          <p class="text-center" style="font-size: 18px">
+            This section lists the
+            <i>
+              <b>{{ subjectProgramLevel }} </b>
+            </i>
+            students and their participation in
+            <i>
+              <b>{{ subjectName }} </b> </i
+            >. <br />
+            Hover over student's name, then click to view their detailed
+            individual participation.
+          </p>
+          <h1></h1>
+        </div>
+
+        <div class="col-12 pt-4">
+          <div class="table-responsive tt">
+            <table class="table table-bordered text-center">
+              <thead>
+                <tr>
+                  <th v-if="uniqueSessions.length > 0">Master List</th>
+
+                  <th v-else>
+                    This subject does not have any classes available at the
+                    moment.
+                  </th>
+                  <th v-for="session in uniqueSessions" :key="session.class_id">
+                    {{ formatDate(session.createdAt) }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="student in masterlistStudents"
+                  :key="student.stud_id"
+                >
+                  <td>
+                    <div
+                      class="ALINK"
+                      @click="
+                        showModal(
+                          student.stud_id,
+                          student.first_name,
+                          student.middle_name,
+                          student.last_name,
+                          student.courseYearSection
+                        )
+                      "
+                    >
+                      {{ student.first_name }} {{ student.middle_name }}
+                      {{ student.last_name }}
+                    </div>
+                  </td>
+                  <td
+                    v-for="session in uniqueSessions"
+                    :key="session.class_id"
+                    class="attendance-cell"
+                  >
+                    <div
+                      class="attendance-grid-wrapper d-flex justify-content-center align-items-center"
+                    >
+                      <div
+                        class="attendance-box"
+                        :class="{
+                          'bg-success': isStudentPresent(
+                            student.stud_id,
+                            session.class_id
+                          ),
+                          'bg-danger': !isStudentPresent(
+                            student.stud_id,
+                            session.class_id
+                          ),
+                        }"
+                      ></div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div
+          class="col-12 pt-3 d-flex justify-content-center align-items-center gap-3"
+        >
+          <button class="btnsyle" @click="goBack">Back</button>
+          <button class="btnsyle" @click="downloadCSV">Download CSV</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div>
@@ -177,7 +185,7 @@
               </tbody>
             </table>
 
-            <button @click="closeModal">Close</button>
+            <button class="btnsyle" @click="closeModal">Close</button>
           </div>
         </div>
       </div>
@@ -192,6 +200,10 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useShopData } from "../composables/useShopData";
 import { useSubjectData } from "../composables/useSubjectData";
+import { MoonLoader } from "vue3-spinner";
+
+const isLoading = ref(true);
+import navbar from "../components/professorNavBar.vue";
 const isModalVisible = ref(false);
 const statusFilter = ref("");
 const closeModal = () => {
@@ -327,6 +339,7 @@ const formatDate = (dateString) => {
 };
 
 onMounted(async () => {
+  isLoading.value = true;
   try {
     const response = await axios.get(
       `${baseURL}/api/professor/getStudentEntry/${subjectID.value}`,
@@ -344,6 +357,8 @@ onMounted(async () => {
     await fetchAllSubjectSession();
   } catch (error) {
     console.error("Error fetching student entry:", error);
+  } finally {
+    isLoading.value = false;
   }
 });
 
@@ -495,21 +510,47 @@ const logout = async () => {
 </script>
 
 <style scoped>
+.pad {
+  padding-top: 110px;
+}
 .btnsyle {
-  margin-left: 6px;
-  margin-top: 10px;
-  background-color: white;
-  color: black;
-  width: 335px;
+  background-color: black;
+  color: white;
+  width: 300px;
   height: 44px;
+  border: black 1px solid;
   border-radius: 30px;
   transition: background-color 0.3s ease-in, color 0.3s ease-in;
 }
 
 .btnsyle:hover {
-  background-color: gray;
+  background-color: white;
+  color: black;
+}
+
+.loading-overlay {
+  position: fixed; /* Important: Stays in the viewport */
+  top: 0;
+  left: 0;
+  width: 100%; /* Covers the entire width */
+  height: 100%; /* Covers the entire height */
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.5
+  ); /* Semi-transparent background to dim the content */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centers content vertically */
+  align-items: center; /* Centers content horizontally */
+  z-index: 1000; /* Ensures it's on top of other elements */
+}
+
+.loading-text {
   color: white;
-  border-color: white;
+  font-size: 1.2em;
+  margin-top: 20px;
 }
 
 @media (max-width: 767px) {
@@ -517,10 +558,24 @@ const logout = async () => {
     width: 250px;
   }
 }
+
+.tt {
+  background-color: white;
+  padding: 15px 15px 0px 15px;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+}
 .ALINK {
   text-decoration: none;
   color: black;
   cursor: pointer;
+  display: flex;
+  transition: 0.2s;
+}
+
+.ALINK:hover {
+  transform: scale(1.03);
+  font-weight: 700;
 }
 table.table-bordered th {
   padding: 10px;

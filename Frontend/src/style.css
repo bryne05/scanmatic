@@ -1,120 +1,36 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@font-face {
+  font-family: Outfit-Bold;
+  src: url(../src/assets/Fonts/Outfit-Bold.ttf);
 }
 
-.mar {
-  margin-bottom: 5px;
-  margin-right: 5px;
+@font-face {
+  font-family: Outfit-Thin;
+  src: url(../src/assets/Fonts/Outfit-Thin.ttf);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+@font-face {
+  font-family: Outfit-Regular;
+  src: url(../src/assets/Fonts/Outfit-Regular.ttf);
 }
 
-body {
-  margin: 0;
-  display: flex;
-  /* place-items: center; */
-  /* min-width: 320px;
-  min-height: 100vh; */
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
 .input-slot-image {
-  height: 18px;
-  width: auto;
-  margin-left: 10px;
-  margin-bottom: 3px;
+  width: 20px;
+  height: 20px;
+  margin-left: 5px;
+  margin-bottom: 2px;
 }
-/* ----NAV--- */
-.pos {
-  overflow: visible !important;
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  width: 100vw !important;
+body {
+  background-image: url("../src/assets/bg.jpg");
+  background-size: cover; /* This is the key property */
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
   margin: 0 !important;
   padding: 0 !important;
 }
-.left {
-  margin-left: 20px;
-  color: black;
-}
-.pointer {
-  font-size: clamp(0.2rem, 3vw + 0.1rem, 1.1rem) !important;
-  cursor: pointer;
-}
-.curr {
-  color: black;
-}
 
-/* ----NAV--- */
-.card {
-  padding: 2em;
-}
-
-.inv {
-  caret-color: transparent;
-}
-.swal2-modal .swal2-styled:focus {
-  -webkit-box-shadow: none;
-  box-shadow: none;
-}
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
