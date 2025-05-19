@@ -104,19 +104,14 @@ const formatDate = (dateString) => {
   <div>
     <navbar />
     <div
-      :style="{
-        backgroundColor: '#c7c7c7',
-        fontFamily: 'Outfit-Regular',
-        minHeight: '100vh',
-        overflow: 'visible',
-      }"
+     class="bg-2"
     >
       <div class="container cont">
         <div class="row">
           <div class="col-12 text-center"><h1>Claimed Incentives</h1></div>
           <div class="col-12 text-center">
             <div
-              class="table-responsive bg d-flex justify-content-center align-items-center"
+              class="table-responsive bg-t d-flex justify-content-center align-items-center"
             >
               <table class="table">
                 <thead>
@@ -196,7 +191,7 @@ td {
   font-size: 16px;
 }
 
-.bg {
+.bg-t {
   background-color: white;
   padding: 15px 15px 0px 15px;
   border-radius: 10px;

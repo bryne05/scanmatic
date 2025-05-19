@@ -15,21 +15,10 @@ const router = useRouter();
 </script>
 
 <template>
-  <div
-    :style="{
-      backgroundColor: '#c7c7c7',
-      fontFamily: 'Outfit-Regular',
-      minHeight: '100vh',
-      overflow: 'visible',
-    }"
-  >
+  <div class="bg">
     <navbar />
     <div>
-      
-
       <ProfSubject />
     </div>
   </div>
 </template>
-
-

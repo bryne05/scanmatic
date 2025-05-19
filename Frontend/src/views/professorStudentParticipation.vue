@@ -1,12 +1,7 @@
 <template>
   <navbar />
   <div
-    :style="{
-      backgroundColor: '#c7c7c7',
-      fontFamily: 'Outfit-Regular',
-      minHeight: '100vh',
-      overflow: 'visible',
-    }"
+   class="bg"
   >
     <div v-if="isLoading" class="loading-overlay">
       <moon-loader :loading="isLoading" color="white" size="150px" />
@@ -200,6 +195,8 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useShopData } from "../composables/useShopData";
 import { useSubjectData } from "../composables/useSubjectData";
+
+
 import { MoonLoader } from "vue3-spinner";
 
 const isLoading = ref(true);
@@ -491,22 +488,7 @@ const filteredAttendanceDetails = computed(() => {
   });
 });
 
-const logout = async () => {
-  const result = await Swal.fire({
-    title: "Do you want to log out?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "No",
-  });
 
-  if (result.isConfirmed) {
-    localStorage.removeItem("proftoken");
-    clearStateDataProfessor();
-    clearStateSubject();
-    router.push("/ZXNzb3IiLCJVfrvonD");
-  }
-};
 </script>
 
 <style scoped>
@@ -526,25 +508,6 @@ const logout = async () => {
 .btnsyle:hover {
   background-color: white;
   color: black;
-}
-
-.loading-overlay {
-  position: fixed; /* Important: Stays in the viewport */
-  top: 0;
-  left: 0;
-  width: 100%; /* Covers the entire width */
-  height: 100%; /* Covers the entire height */
-  background-color: rgba(
-    0,
-    0,
-    0,
-    0.5
-  ); /* Semi-transparent background to dim the content */
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Centers content vertically */
-  align-items: center; /* Centers content horizontally */
-  z-index: 1000; /* Ensures it's on top of other elements */
 }
 
 .loading-text {

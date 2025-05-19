@@ -1,129 +1,122 @@
 <template>
-  <div>
-    <div class="pos">
-      <nav class="navbar navbar-expand bg-light inv">
-        <a class="navbar-brand left">ScanMatic</a>
-        <div>
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr active" to="/professor">
-                Class
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/shop">
-                Incentives
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/profile">
-                Profile
-              </RouterLink>
-            </li>
-   <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/event">
-                Events
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <a
-                class="nav-link pointer curr"
-                to="/ZXNzb3IiLCJVfrvonD"
-                style="color: red"
-                @click="logout"
-              >
-                Logout
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
+  <div class="bg">
+    <navbar />
+    <div v-if="isLoading" class="loading-overlay">
+      <moon-loader :loading="isLoading" color="white" size="150px" />
     </div>
-  </div>
+    <div v-else class="container">
+      <div class="row">
+        <div class="col-12 text-center text">
+          <h1 style="font-family: Outfit-bold">RECYCLE BIN</h1>
+          <h5>
+            Deleted <b> {{ subjectName }} </b> sessions are shown here. You have
+            the option to permanently delete or restore these records.
+          </h5>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col-md-6 d-flex gap-2">
+          <div class="int-2 d-flex justify-content-center align-items-center">
+            <img
+              @click="goBack"
+              src="../assets/Prof-Class/back.png"
+              alt="back png"
+            />
+          </div>
+          <div class="int search">
+            <img src="../assets/Prof-Class/search.png" alt="" />
+            <input
+              type="text"
+              class="form-control search"
+              placeholder="Search here by Date..."
+              v-model="searchQuery"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="table-responsive tab">
+            <table class="table table-hover">
+              <thead>
+                <tr class="text-center sticky-header">
+                  <th>VIEW DETAILS</th>
+                  <th @click="sortTable('createdAt')">
+                    DATE <i :class="sortIcon('createdAt')"></i>
+                  </th>
+                  <th>POINT VALUE</th>
+                  <th>EXP</th>
+                  <th>ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="session in filteredSessions"
+                  :key="session.class_id"
+                  class="text-center icons"
+                >
+                  <td>
+                    <img
+                      @click="enterQR(session)"
+                      src="../assets/Prof-Class/enter.png"
+                      alt=""
+                    />
+                  </td>
+                  <td>{{ formatDate(session.createdAt) }}</td>
+                  <td>{{ session.clas_token }}</td>
+                  <td>{{ session.class_exp }}</td>
+                  <td>
+                    <div class="d-flex justify-content-center gap-3">
+                      <img
+                        @click="restoreClass(session)"
+                        src="../assets/Prof-Class/history.png"
+                        alt="recycle icon"
+                      />
 
-  <div class="mt-2 text">
-    <h2 class="text">Recycle Bin</h2>
-    <!-- <h3 class="text-start">Subject: {{ subjectName }}</h3> -->
-    <div>
-      <div
-        class="row scroll-container"
-        :style="{ width: professorSession.length <= 2 ? '80vw' : 'auto' }"
-      >
-        <div
-          class="col-md-4 col-sm-6 mt-3"
-          v-for="session in professorSession"
-          :key="session.class_id"
-        >
-          <div class="card h-100 card-color">
-            <div class="card-body">
-              <button
-                class="btn btn-dark mar w-100 mb-3"
-                @click="enterQR(session)"
-              >
-                Enter
-              </button>
-              <h4 class="card-title mb-3">
-                {{ session.createdAt }}
-              </h4>
-              <!-- <h6>
-                Start Time: {{ formatTime(session.start_time) }} &ensp; End
-                Time: {{ formatTime(session.end_time) }}
-              </h6> -->
-              <p class="card-text">
-                <!-- Program Level: {{ session.class_courseYearSection }} <br /> -->
-                Point Value:{{ session.clas_token }}<br />
-                Exp: {{ session.class_exp }} <br />
-              </p>
-              <button
-                class="btn btn-success mar"
-                data-bs-toggle="modal"
-                data-bs-target="#updateSession"
-                @click="restoreClass(session)"
-              >
-                Restore
-              </button>
-              <button
-                class="btn btn-danger mar"
-                @click="deleteRecycleSession(session)"
-              >
-                Delete
-              </button>
-            </div>
+                      <img
+                        @click="deleteRecycleSession(session)"
+                        src="../assets/Prof-Class/Delete.png"
+                        alt="delete icon"
+                      />
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="filteredSessions.length === 0">
+                  <td colspan="5" class="text-center">No sessions found.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
-    <br />
-    <button class="btnsyle mb-3" @click="goBack">Back</button>
+    <div class="mt-2 text">
+      <div></div>
+      <br />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { baseURL } from "../config";
 import Swal from "sweetalert2";
 import axios from "axios";
+import navbar from "../components/professorNavBar.vue";
+import { MoonLoader } from "vue3-spinner";
+import { format } from "date-fns";
 
+const isLoading = ref(true);
 const router = useRouter();
 const props = defineProps(["subjectID", "subjectName"]);
 const subjectID = ref(props.subjectID);
 const subjectName = ref(props.subjectName);
-
+const programlevel = ref(props.programlevel);
 const proftoken = localStorage.getItem("proftoken");
 const professorSession = ref([]);
-
-function formatTime(timeString) {
-  if (!timeString) return ""; // Handle null or undefined
-
-  const [hours, minutes, seconds] = timeString.split(":");
-  let formattedHours = parseInt(hours, 10);
-  const amPm = formattedHours >= 12 ? "PM" : "AM";
-
-  formattedHours = formattedHours % 12 || 12; // Convert to 12-hour format (0 becomes 12)
-
-  return `${formattedHours}:${minutes} ${amPm}`;
-}
+const searchQuery = ref("");
+const sortConfig = ref({ key: "createdAt", direction: "desc" }); // Default sort
 
 const fetchSessions = async () => {
   try {
@@ -141,14 +134,16 @@ const fetchSessions = async () => {
   } catch (error) {
     console.error("Error getting sessions:", error);
     Swal.fire("Error", "Failed to fetch sessions", "error");
+  } finally {
+    isLoading.value = false;
   }
 };
 
 const restoreClass = async (session) => {
   const currentSessionID = session.class_id;
   const confirmationResult = await Swal.fire({
-    title: "Update Session",
-    text: "Are you sure you want to restore this classs? ",
+    title: "Restore Session",
+    text: "Are you sure you want to restore this class? ",
     icon: "question",
     showCancelButton: true,
     confirmButtonText: "Yes",
@@ -156,6 +151,7 @@ const restoreClass = async (session) => {
   });
 
   if (confirmationResult.isConfirmed) {
+    isLoading.value = true;
     try {
       const response = await axios.put(
         `${baseURL}/api/professor/deleteClassRestore/${subjectID.value}/${currentSessionID}`,
@@ -169,13 +165,14 @@ const restoreClass = async (session) => {
         }
       );
       if (response.status === 200) {
+        await fetchSessions();
+        isLoading.value = false;
+
         Swal.fire({
           title: "Success",
           text: "Class Data Restored successfully",
           icon: "success",
         });
-
-        await fetchSessions();
       } else {
         console.error("Failed to update Sessions:", response.statusText);
         Swal.fire({
@@ -208,6 +205,7 @@ const deleteRecycleSession = async (session) => {
   });
 
   if (confirmationResult.isConfirmed) {
+    isLoading.value = true;
     try {
       const response = await axios.delete(
         `${baseURL}/api/professor/deleteClassPerma/${subjectID.value}/${currentSessionID}`,
@@ -219,14 +217,16 @@ const deleteRecycleSession = async (session) => {
         }
       );
       if (response.status === 200) {
+        await fetchSessions();
+        isLoading.value = false;
+
         Swal.fire({
           title: "Success",
           text: "Class Data Deleted successfully",
           icon: "success",
-        });
-
-        await fetchSessions();
+        }); // 2000 milliseconds = 2 seconds
       } else {
+        isLoading.value = false;
         console.error("Failed to update Sessions:", response.statusText);
         Swal.fire({
           title: "Error",
@@ -244,24 +244,16 @@ const deleteRecycleSession = async (session) => {
     }
   }
 };
-onMounted(() => {
-  fetchSessions();
-});
-
-const logout = async () => {
-  const result = await Swal.fire({
-    title: "Do you want to log out?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "No",
-  });
-
-  if (result.isConfirmed) {
-    localStorage.removeItem("proftoken");
-    router.push("/ZXNzb3IiLCJVfrvonD");
+onMounted(async () => {
+  try {
+    isLoading.value = true;
+    await fetchSessions();
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isLoading.value = false;
   }
-};
+});
 
 const enterQR = (session) => {
   router.push({
@@ -269,6 +261,7 @@ const enterQR = (session) => {
     params: {
       subjectID: subjectID.value,
       sessionID: session.class_id,
+      programlevel: programlevel.value,
     },
   });
 };
@@ -276,9 +269,137 @@ const enterQR = (session) => {
 const goBack = () => {
   router.go(-1);
 };
+
+const formatDate = (dateString) => {
+  try {
+    return format(new Date(dateString), "PPP"); // Format date as "Jan 1, 2024"
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "Invalid Date";
+  }
+};
+
+const filteredSessions = computed(() => {
+  const search = searchQuery.value.toLowerCase();
+  const sessions = professorSession.value;
+
+  const filtered = sessions.filter((session) => {
+    return (
+      formatDate(session.createdAt).toLowerCase().includes(search) ||
+      String(session.point_value).toLowerCase().includes(search) ||
+      String(session.session_exp).toLowerCase().includes(search)
+    );
+  });
+
+  // Perform sorting
+  const sorted = [...filtered].sort((a, b) => {
+    const keyA = a[sortConfig.value.key];
+    const keyB = b[sortConfig.value.key];
+
+    if (sortConfig.value.key === "createdAt") {
+      // Handle date sorting
+      const dateA = new Date(keyA).getTime();
+      const dateB = new Date(keyB).getTime();
+      return sortConfig.value.direction === "asc"
+        ? dateA - dateB
+        : dateB - dateA;
+    } else {
+      // Handle numeric and string sorting
+      if (typeof keyA === "number" && typeof keyB === "number") {
+        return sortConfig.value.direction === "asc" ? keyA - keyB : keyB - keyA;
+      } else {
+        const stringA = String(keyA).toLowerCase();
+        const stringB = String(keyB).toLowerCase();
+        return sortConfig.value.direction === "asc"
+          ? stringA.localeCompare(stringB)
+          : stringB.localeCompare(stringA);
+      }
+    }
+  });
+  return sorted;
+});
+
+const sortTable = (key) => {
+  if (sortConfig.value.key === key) {
+    sortConfig.value.direction =
+      sortConfig.value.direction === "asc" ? "desc" : "asc";
+  } else {
+    sortConfig.value.key = key;
+    sortConfig.value.direction = "desc"; // Default direction for new key
+  }
+};
+
+const sortIcon = (key) => {
+  if (sortConfig.value.key === key) {
+    return sortConfig.value.direction === "asc"
+      ? "bi bi-arrow-up-short"
+      : "bi bi-arrow-down-short";
+  }
+  return "";
+};
 </script>
 
 <style scoped>
+table {
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+.tab {
+  max-height: 500px !important;
+
+  padding: 6px;
+}
+.int {
+  display: flex;
+
+  align-items: center;
+  background-color: white;
+  width: 220px;
+  border-radius: 8px;
+  gap: 3px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+}
+.int img {
+  margin-left: 10px;
+  width: 25px;
+  height: 25px;
+}
+
+.int-2 {
+  background-color: white;
+  border-radius: 8px;
+  width: 50px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.int-2 img {
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.int-2 img:hover {
+  transform: scale(1.2);
+}
+
+.search {
+  border: none;
+}
+
+.search input:focus {
+  border: none !important; /* Change border */
+  box-shadow: none !important; /* Add a shadow */
+  outline: none !important;
+}
+.icons img {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.icons img:hover {
+  transform: scale(1.2);
+}
 .card-color {
   background-color: lightcyan;
 }
@@ -318,5 +439,55 @@ body {
   .scroll-container {
     max-height: 400px;
   }
+}
+
+.table-responsive {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.table-striped > tbody > tr:nth-child(odd) > td,
+.table-striped > tbody > tr:nth-child(odd) > th {
+  background-color: #f9f9f9; /* Light background for odd rows */
+}
+
+.table-hover > tbody > tr:hover > td,
+.table-hover > tbody > tr:hover > th {
+  background-color: greenyellow; /* Slightly darker on hover */
+}
+
+.table thead tr th {
+  background-color: rgb(16, 118, 16); /* Header background */
+  color: white; /* Header text color */
+  font-weight: bold;
+  padding: 12px;
+  border-bottom: 2px solid #ccc;
+}
+
+.table tbody tr td,
+.table tbody tr th {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.table tfoot tr td,
+.table tfoot tr th {
+  padding: 5px;
+  border-top: 2px solid #ccc;
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  background-color: #e0e0e0; /* Consistent header background */
+  z-index: 1;
+}
+
+.text {
+  color: #464646;
+  padding-top: 100px;
+  margin-bottom: 10px;
 }
 </style>

@@ -19,6 +19,40 @@
   margin-left: 5px;
   margin-bottom: 2px;
 }
+.loading-overlay {
+  position: fixed; /* Important: Stays in the viewport */
+  top: 0;
+  left: 0;
+  width: 100%; /* Covers the entire width */
+  height: 100%; /* Covers the entire height */
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.5
+  ); /* Semi-transparent background to dim the content */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centers content vertically */
+  align-items: center; /* Centers content horizontally */
+  z-index: 4000 !important; /* Ensures it's on top of other elements */
+}
+
+.bg {
+  background-image: url("./assets/bg4.jpg");
+  font-family: Outfit-regular;
+  min-height: 100vh !important;
+  background-size: cover;
+  overflow: "visible";
+}
+
+.bg-2 {
+  background-image: url("./assets/newbg.jpg");
+  font-family: Outfit-regular;
+  min-height: 100vh !important;
+  background-size: cover;
+  overflow: "visible";
+}
 body {
   background-image: url("../src/assets/bg.jpg");
   background-size: cover; /* This is the key property */
@@ -33,4 +67,34 @@ html {
   height: 100%;
   margin: 0;
   padding: 0;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0; /* Firefox */
+}
+
+/* For WebKit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 15px; /* Width of the entire scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Color of the track */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #888; /* Color of the thumb */
+  border-radius: 6px; /* Rounded corners for the thumb */
+  border: 2px solid transparent; /* Add a border */
+  background-clip: padding-box; /* Make the border apply to the padding box */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Color of the thumb on hover */
+}
+
+::-webkit-scrollbar-button {
+  display: none; /* Hide the scrollbar buttons */
 }

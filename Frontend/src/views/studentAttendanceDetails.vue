@@ -1,12 +1,7 @@
 <template>
   <navbar />
   <div
-    :style="{
-      backgroundColor: '#c7c7c7',
-      fontFamily: 'Outfit-Regular',
-      minHeight: '100vh',
-      overflow: 'visible',
-    }"
+   class="bg-2"
   >
     <div
       class="container col-12 d-flex flex-column justify-content-center align-items-center"

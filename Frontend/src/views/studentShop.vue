@@ -10,11 +10,7 @@ const router = useRouter();
 
 <template>
   <div
-    :style="{
-      backgroundColor: '#c7c7c7',
-      fontFamily: 'Outfit-Regular',
-      minHeight: '100vh',
-    }"
+    class="bg-2"
   >
     <navbar />
 

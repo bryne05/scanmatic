@@ -495,13 +495,7 @@ const showQRCodeAndStartTimer = async () => {
 <!-- studentProfile.vue -->
 <template>
   <div
-    :style="{
-      backgroundColor: '#c7c7c7',
-      fontFamily: 'Outfit-Regular',
-      minHeight: '100vh',
-      overflow: 'visible',
-  
-    }"
+   class="bg-2"
   >
     <navbar />
     <div>

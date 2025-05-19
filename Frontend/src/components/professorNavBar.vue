@@ -123,22 +123,21 @@ onMounted(() => {
           <li class="nav-item">
             <RouterLink
               class="nav-link pointer curr"
-              to="/professor/profile"
-              :class="{ active: isActive('/professor/profile') }"
-              style="color: black"
-            >
-              Profile
-            </RouterLink>
-          </li>
-
-          <li class="nav-item">
-            <RouterLink
-              class="nav-link pointer curr"
               to="/professor/event"
               :class="{ active: isActive('/professor/event') }"
               style="color: black"
             >
               Events
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              class="nav-link pointer curr"
+              to="/professor/profile"
+              :class="{ active: isActive('/professor/profile') }"
+              style="color: black"
+            >
+              Profile
             </RouterLink>
           </li>
         </ul>

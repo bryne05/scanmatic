@@ -148,7 +148,7 @@ const routes = [
     props: true,
   },
   {
-    path: "/professor/RecycleSession/:subjectID/:subjectName",
+    path: "/professor/RecycleSession/:subjectID/:subjectName/:programlevel",
     name: "ProfessorRecycleSession",
     component: ProfessorRecycleSession,
     props: true,

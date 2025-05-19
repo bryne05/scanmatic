@@ -1,16 +1,20 @@
-<!-- ProfessorSubject.vue -->
 <template>
   <div>
-    <div class="container desc">
+    <div v-if="loading || isLoading" class="loading-overlay">
+      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+    </div>
+
+    <div v-else class="container desc">
       <div class="row">
         <div class="col-xl-6">
           <div class="text-start t">
             <h1 style="font-family: Outfit-bold">MY SUBJECTS</h1>
 
-            <i
-              >An overview of all your subjects. Select, Enter, Update, Delete a
-              Subject, and View Students Participation.</i
-            >
+            <h5>
+              An overview of all your subjects. Each subject corresponds to a
+              unique program of study. Select, Enter, Update, Delete a Subject,
+              and View Students' Participation.
+            </h5>
           </div>
         </div>
         <div class="col-xl-6 d-flex justify-content-end align-items-center">
@@ -22,71 +26,90 @@
             Add Subject
           </button>
         </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6 col-12 d-flex gap-3">
+          <div class="int search">
+            <img src="../assets/Prof-Class/search.png" alt="subject icon" />
+            <input
+              v-model="searchQueryTitle"
+              type="text"
+              class="form-control"
+              placeholder="Search by Subject"
+            />
+          </div>
 
-        <div class="col-12">
-          <div class="row scroll-container pb-3">
-            <div
-              class="col-xxl-4 col-md-6 col-12 mt-3 d-flex justify-content-center align-items-center"
-              v-for="subject in professorSubject"
-              :key="subject.subject_id"
-            >
+          <div class="int-2 search">
+            <img src="../assets/Prof-Class/search.png" alt="course icon" />
+            <input
+              v-model="searchQueryProgram"
+              type="text"
+              class="form-control"
+              placeholder="Search by Program"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="row scroll-container pb-3">
+        <div
+          class="col-xxl-4 col-md-6 col-12 mt-3 d-flex justify-content-center align-items-center"
+          v-for="subject in filteredAndSortedSubjects"
+          :key="subject.subject_id"
+        >
+          <div class="card d-flex justify-content-center align-items-center">
+            <div class="row">
+              <div class="col-2 d-flex justify-content-center">
+                <img src="../assets/Prof-Class/sub.png" alt="book-icon" />
+              </div>
+              <div class="col-7 text-start">
+                <h4>{{ subject.subject_name }}</h4>
+                <h6 class="d-flex align-items-center">
+                  <img
+                    src="../assets/Prof-Class/Delivery Time.png"
+                    alt="time icon"
+                  />
+                  {{ formatTime(subject.subject_start_time) }} -
+                  {{ formatTime(subject.subject_end_time) }}
+                </h6>
+                <h6 class="d-flex align-items-center">
+                  <img
+                    src="../assets/Prof-Class/People.png"
+                    alt="people icon"
+                  />
+                  {{ subject.subject_courseYearSection }}
+                </h6>
+              </div>
+              <div class="col-3 d-flex justify-content-between gap-3">
+                <img
+                  class="icon-btn"
+                  data-bs-toggle="modal"
+                  data-bs-target="#updateSubject"
+                  @click="setUpdateSubject(subject)"
+                  src="../assets/Prof-Class/Create.png"
+                  alt="update icon"
+                />
+
+                <img
+                  class="icon-btn"
+                  @click="deleteItem(subject)"
+                  src="../assets/Prof-Class/Delete.png"
+                  alt="delete icon"
+                />
+              </div>
               <div
-                class="card d-flex justify-content-center align-items-center"
+                class="col-12 d-flex justify-content-center flex-column align-items-center pt-5"
               >
-                <div class="row">
-                  <div class="col-2 d-flex justify-content-center">
-                    <img src="../assets/Prof-Class/Book.png" alt="book-icon" />
-                  </div>
-                  <div class="col-7 text-start">
-                    <h4>{{ subject.subject_name }}</h4>
-                    <h6 class="d-flex align-items-center">
-                      <img
-                        src="../assets/Prof-Class/Delivery Time.png"
-                        alt="time icon"
-                      />
-                      {{ formatTime(subject.subject_start_time) }} -
-                      {{ formatTime(subject.subject_end_time) }}
-                    </h6>
-                    <h6 class="d-flex align-items-center">
-                      <img
-                        src="../assets/Prof-Class/People.png"
-                        alt="people icon"
-                      />
-                      {{ subject.subject_courseYearSection }}
-                    </h6>
-                  </div>
-                  <div class="col-3 d-flex justify-content-between gap-3">
-                    <img
-                      class="icon-btn"
-                      data-bs-toggle="modal"
-                      data-bs-target="#updateSubject"
-                      @click="setUpdateSubject(subject)"
-                      src="../assets/Prof-Class/Create.png"
-                      alt="update icon"
-                    />
+                <button
+                  class="enter-btn text-center"
+                  @click="enterSession(subject)"
+                >
+                  View Sessions
+                </button>
 
-                    <img
-                      class="icon-btn"
-                      @click="deleteItem(subject)"
-                      src="../assets/Prof-Class/Delete.png"
-                      alt="delete icon"
-                    />
-                  </div>
-                  <div
-                    class="col-12 d-flex justify-content-center flex-column align-items-center pt-5"
-                  >
-                    <button
-                      class="enter-btn text-center"
-                      @click="enterSession(subject)"
-                    >
-                      Enter Subject
-                    </button>
-
-                    <a @click="enterParticipationRecords(subject)">
-                      View Participation Overview
-                    </a>
-                  </div>
-                </div>
+                <a @click="enterParticipationRecords(subject)">
+                  View Participation Overview
+                </a>
               </div>
             </div>
           </div>
@@ -95,7 +118,6 @@
     </div>
   </div>
 
-  <!-- Add Subject Modal -->
   <div
     class="modal fade"
     id="addsubject"
@@ -182,7 +204,6 @@
     </div>
   </div>
 
-  <!-- Update Subject Modal -->
   <div
     class="modal fade"
     id="updateSubject"
@@ -281,7 +302,7 @@
 </template>
 
 <script setup>
-import { ref, provide } from "vue";
+import { ref, provide, computed } from "vue";
 import axios from "axios";
 import { baseURL } from "../config";
 import Swal from "sweetalert2";
@@ -289,7 +310,9 @@ import { useRouter } from "vue-router";
 import { useSubjectData } from "../composables/useSubjectData";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+import { MoonLoader } from "vue3-spinner";
 
+const isLoading = ref(false);
 const router = useRouter();
 const proftoken = localStorage.getItem("proftoken");
 const { professorSubject, loading, fetchSubjects } = useSubjectData();
@@ -313,6 +336,10 @@ const updateSubjectName = ref("");
 const updateSubjectCourseYearSection = ref("");
 const updateSubjectStartTime = ref("");
 const updateSubjectEndTime = ref("");
+
+// Search Query
+const searchQueryTitle = ref("");
+const searchQueryProgram = ref("");
 
 function formatTime(timeString) {
   if (!timeString) return ""; // Handle null or undefined
@@ -362,6 +389,7 @@ const updateSubject = async () => {
   });
 
   if (confirmationResult.isConfirmed) {
+    isLoading.value = true;
     try {
       console.log("END", currentSubjectEndTime.value);
       console.log("Start", currentSubjectStartTime.value);
@@ -385,13 +413,13 @@ const updateSubject = async () => {
         }
       );
       if (response.status === 200) {
+        await fetchSubjects();
+        isLoading.value = false;
         Swal.fire({
           title: "Success",
           text: "Subject name updated successfully",
           icon: "success",
         });
-
-        await fetchSubjects();
         updateSubjectName.value = "";
         updateSubjectCourseYearSection.value = "";
       } else {
@@ -468,6 +496,7 @@ const deleteItem = async (subject) => {
   });
 
   if (confirmationResult.isConfirmed) {
+    isLoading.value = true;
     try {
       const response = await axios.delete(
         `${baseURL}/api/professor/deleteSubject/${subjectID}`,
@@ -479,13 +508,13 @@ const deleteItem = async (subject) => {
         }
       );
       if (response.status === 200) {
+        await fetchSubjects();
+        isLoading.value = false;
         Swal.fire({
           title: "Success",
           text: "Subject Deleted successfully",
           icon: "success",
         });
-
-        await fetchSubjects();
       } else {
         Swal.fire({
           title: "Error",
@@ -504,6 +533,7 @@ const deleteItem = async (subject) => {
   }
 };
 provide("subjectDetails", subjectDetails);
+
 const enterSession = (subject) => {
   router.push({
     name: "ProfessorSession",
@@ -527,6 +557,28 @@ const enterParticipationRecords = (subject) => {
     },
   });
 };
+
+// Computed property for filtered subjects
+const filteredAndSortedSubjects = computed(() => {
+  let result = professorSubject.value;
+
+  // Filter by title/subject name
+  if (searchQueryTitle.value) {
+    const titleQuery = searchQueryTitle.value.toLowerCase();
+    result = result.filter((subject) =>
+      subject.subject_name.toLowerCase().includes(titleQuery)
+    );
+  }
+
+  // Filter by program level
+  if (searchQueryProgram.value) {
+    const programQuery = searchQueryProgram.value.toLowerCase();
+    result = result.filter((subject) =>
+      subject.subject_courseYearSection.toLowerCase().includes(programQuery)
+    );
+  }
+  return result;
+});
 </script>
 
 <style scoped>
@@ -618,6 +670,57 @@ const enterParticipationRecords = (subject) => {
 .btnsyle:hover {
   color: black;
   background-color: white;
+}
+
+.int {
+  display: flex;
+
+  align-items: center;
+  background-color: white;
+  width: 320px;
+  border-radius: 8px;
+  gap: 3px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+  height: 45px;
+}
+
+.int-2 {
+  display: flex;
+
+  align-items: center;
+  background-color: white;
+  width: 220px;
+  border-radius: 8px;
+  gap: 3px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.int-2 input {
+  border: none;
+}
+.int-2 img {
+  margin-left: 10px;
+  width: 25px;
+  height: 25px;
+}
+
+.int input {
+  border: none;
+}
+.int img {
+  margin-left: 10px;
+  width: 25px;
+  height: 25px;
+}
+
+.search {
+  border: none;
+}
+
+.search input:focus {
+  border: none !important; /* Change border */
+  box-shadow: none !important; /* Add a shadow */
+  outline: none !important;
 }
 
 @media (max-width: 767px) {
