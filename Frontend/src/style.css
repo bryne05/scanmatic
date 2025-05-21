@@ -13,6 +13,16 @@
   src: url(../src/assets/Fonts/Outfit-Regular.ttf);
 }
 
+tr {
+  vertical-align: middle;
+}
+
+
+
+
+
+
+
 .input-slot-image {
   width: 20px;
   height: 20px;

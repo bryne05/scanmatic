@@ -587,6 +587,11 @@ const goBack = () => {
   margin-bottom: 40px;
 }
 
+
+
+.table-responsive {
+  width: 100%;
+}
 table {
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2) !important;
 }

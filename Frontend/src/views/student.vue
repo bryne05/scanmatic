@@ -97,6 +97,7 @@ const checkLevelUp = async () => {
 const fetchStudent = async () => {
   // Make the API request when the component is mounted
   try {
+    await fetchImage();
     const getStudent = await axios.get(`${baseURL}/api/student/getStudent/`, {
       headers: {
         studtoken: token.value,
@@ -106,8 +107,6 @@ const fetchStudent = async () => {
 
     await fetchLevelThreshold();
     studentData.value = getStudent.data;
-
-    fetchImage();
   } catch (error) {
     console.error("Error getting data:", error);
   }
@@ -494,12 +493,10 @@ const showQRCodeAndStartTimer = async () => {
 </script>
 <!-- studentProfile.vue -->
 <template>
-  <div
-   class="bg-2"
-  >
+  <div class="bg-2">
     <navbar />
     <div>
-      <div class="container-fluid " style="padding-top: 80px;"  >
+      <div class="container-fluid" style="padding-top: 80px">
         <div class="row"><div class="col-4"></div></div>
       </div>
     </div>
@@ -811,7 +808,6 @@ const showQRCodeAndStartTimer = async () => {
 </template>
 
 <style scoped>
-
 hr {
   color: #8e8e8e;
   height: 20px !important;
@@ -1000,7 +996,6 @@ hr {
 
 .imgdiv {
   position: relative;
-
 }
 
 .imgdiv img {

@@ -5,7 +5,9 @@ import { baseURL } from "../config";
 import axios from "axios";
 import Box from "../components/box.vue";
 import Swal from "sweetalert2";
+import { MoonLoader } from "vue3-spinner";
 
+const isLoading = ref(false);
 const router = useRouter();
 
 const username = ref("");
@@ -23,6 +25,7 @@ const submitForm = async () => {
   }
 
   try {
+    isLoading.value = true;
     // Attempt professor login
     const loginProfessor = await axios.post(
       `${baseURL}/api/professor/loginProfessor`,
@@ -35,14 +38,16 @@ const submitForm = async () => {
     if (loginProfessor.status === 200) {
       const token = loginProfessor.data.token;
       localStorage.setItem("proftoken", token);
+
+      isLoading.value = false;
       Swal.fire({
         title: "Success!",
         text: "Professor logged in successfully.",
         icon: "success",
       });
-
-      router.push({ name: "Professor" });
     }
+
+    router.push({ name: "Professor" });
   } catch (errorProfessor) {
     console.error("Login Error:", errorProfessor); // Log the full error object
 
@@ -66,11 +71,18 @@ const submitForm = async () => {
 </script>
 
 <template>
-  <div class="container-fluid d-flex justify-content-center align-items-center flex-column pt-5">
+  <div v-if="loading || isLoading" class="loading-overlay">
+    <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+  </div>
+
+  <div
+    v-else
+    class="container-fluid d-flex justify-content-center align-items-center flex-column pt-5"
+  >
     <Box />
 
     <div class="row white-bg">
-<div class="col-2"></div>
+      <div class="col-2"></div>
       <div class="col-md-8">
         <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
         <h4 class="text-center inv">Greetings Professors!!</h4>

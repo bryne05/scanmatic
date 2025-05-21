@@ -1,95 +1,123 @@
 <!-- HelloWorld.vue -->
-
 <template>
-  <div>
-    <div class="pos">
-      <nav class="navbar navbar-expand bg-light inv">
-        <a class="navbar-brand left">ScanMatic</a>
-        <div>
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr active" to="/professor">
-                Class
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/shop">
-                Incentives
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/profile">
-                Profile
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/event">
-                Events
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <a
-                class="nav-link pointer curr"
-                to="/ZXNzb3IiLCJVfrvonD"
-                style="color: red"
-                @click="logout"
-              >
-                Logout
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </div>
-  </div>
+  <navbar />
 
-  <div>
-    <div class="mm" v-if="isWithinTimeRange">
-      <div class="container">
-        <div class="col-12">
-          <h1 style="color: white">Scanning Qr Codes</h1>
+  <div class="bg">
+    <div v-if="loading || isLoading" class="loading-overlay">
+      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+    </div>
+
+    <div v-else class="container-fluid">
+      <div class="row">
+        <div
+          class="qr-loading d-flex justify-content-center align-items-center flex-column"
+          v-if="qrloading"
+        >
+          <img src="../assets/qr-code.gif" alt="qr code scanner gif" />
+          <h3>Processing QR code...</h3>
         </div>
-        <div class="col-12 d-flex justify-content-center">
-          <div class="size">
-            <qrcode-stream
-              @error="onError"
-              @detect="onDetect"
-              :constraints="cameraConstraints"
-              ref="qrcodeStream"
-              :disabled="!isWithinTimeRange"
-            ></qrcode-stream>
+
+        <div class="desc d-flex flex-wrap" v-else>
+          <div class="col-12 text-center">
+            <h1 style="font-family: Outfit-bold; letter-spacing: 1px">
+              Attendance for {{ dateCreated }}
+            </h1>
+          </div>
+          <div
+            class="col-xl-4 col-lg-12 col-12 d-flex flex-column justify-content-center align-items-center"
+            v-if="isWithinTimeRange"
+          >
+            <h2>SCANNING QR CODE</h2>
+            <div class="size">
+              <qrcode-stream
+                @error="onError"
+                @detect="onDetect"
+                :constraints="cameraConstraints"
+                ref="qrcodeStream"
+                :disabled="!isWithinTimeRange || qrloading"
+              ></qrcode-stream>
+            </div>
+          </div>
+          <div
+            class="col-xl-4 col-lg-12 col-12 d-flex flex-column justify-content-center align-items-center"
+            v-if="isWithinTimeRange"
+          >
+            <div>
+              <div
+                v-if="attendance.length > 0"
+                class="d-flex justify-content-center align-items-center flex-column"
+              >
+                <h2>WELCOME!</h2>
+
+                <div class="cont">
+                  <img :src="imageSrc || defaultimage" alt="" />
+                </div>
+
+                <h2 v-if="lastStudent">
+                  {{ lastStudent.student.first_name }}
+                  {{ lastStudent.student.middle_name }}
+                  {{ lastStudent.student.last_name }}
+                </h2>
+              </div>
+
+              <div class="alt-welcome text-center" v-else>
+                <h2>AWAITING STUDENT QR CODE</h2>
+                <img src="../assets/qr-code.png" alt="" />
+              </div>
+            </div>
+          </div>
+
+          <div v-else>
+            <br />
+            <br />
+          </div>
+          <div
+            class="col-xl-4 col-lg-12 col-12 d-flex justify-content-start flex-column"
+          >
+            <h2 class="text-center">PRESENT STUDENTS</h2>
+            <ol class="text-start">
+              <li
+                v-if="attendance.length > 0"
+                v-for="student in attendance"
+                :key="student.attendance_id"
+              >
+                {{ student.student.first_name }}
+                {{ student.student.middle_name }}
+                {{ student.student.last_name }}
+              </li>
+              <div v-else>
+                <p>No students in the attendance list yet.</p>
+              </div>
+            </ol>
+          </div>
+
+          <div
+            class="col-12 d-flex align-item-center justify-content-center pt-5"
+          >
+            <button class="btnsyle mb-3" @click="goBack">Back</button>
+            <button class="btnsyle mb-3" @click="generateCSV">
+              Download CSV
+            </button>
+            <button class="btnsyle mb-3" @click="seeMasterList">
+              View Master list
+            </button>
           </div>
         </div>
       </div>
     </div>
-    <div v-else>
-      <br />
-      <br />
-    </div>
   </div>
-  <div class="text">
-    <h2>Attendance for {{ dateCreated }}</h2>
-    <ol class="text-start">
-      <li v-for="student in attendance" :key="student.attendance_id">
-        {{ student.student.first_name }} {{ student.student.middle_name }}
-        {{ student.student.last_name }}
-      </li>
-    </ol>
-  </div>
-  <button class="btnsyle mb-3" @click="goBack">Back</button>
-  <button class="btnsyle mb-3" @click="generateCSV">Download CSV</button>
-  <button class="btnsyle mb-3" @click="seeMasterList">See Master list</button>
 </template>
 
 <script setup>
-import { onBeforeUnmount, ref, onMounted } from "vue";
+import { onBeforeUnmount, ref, onMounted, computed } from "vue";
 import { QrcodeStream } from "vue-qrcode-reader";
 import { baseURL } from "../config";
 import axios from "axios";
 import Swal from "sweetalert2";
 import Papa from "papaparse";
 import { useRouter } from "vue-router";
-
+import navbar from "../components/professorNavBar.vue";
+import { MoonLoader } from "vue3-spinner";
 const router = useRouter();
 const props = defineProps(["subjectID", "sessionID", "programlevel"]);
 const subjectID = ref(props.subjectID);
@@ -98,11 +126,13 @@ const programlevel = ref(props.programlevel);
 const rawValue = ref("");
 const proftoken = localStorage.getItem("proftoken");
 
+const isLoading = ref(null);
 const singleClass = ref([]);
 const attendance = ref([]);
 const error = ref("");
 const cameraConstraints = ref({ facingMode: "environment" }); // Set initial constraints
 
+const qrloading = ref(null);
 const studentsByProgram = ref([]);
 import defaultimage from "../assets/profile-user.png";
 const imageSrc = ref(null);
@@ -115,6 +145,15 @@ const isWithinTimeRange = ref(false);
 const setdefaultimage = () => {
   imageSrc.value = defaultimage;
 };
+
+const lastStudent = computed(() => {
+  if (attendance.value.length > 0) {
+    return attendance.value.at(-1);
+    // Or using .at(-1) for modern JS:
+    // return attendance.value.at(-1);
+  }
+  return null; // Return null if the list is empty
+});
 
 const ws = new WebSocket("ws://localhost:6543");
 
@@ -146,15 +185,17 @@ ws.onclose = () => {
 
 const onDetect = async (result) => {
   try {
+    qrloading.value = true;
+
+    console.log("qr load change to true", qrloading.value);
     if (result && result.length > 0 && result[0].rawValue) {
       rawValue.value = result[0].rawValue;
       console.log("qrcode:", rawValue.value);
       console.log("subjectID:", subjectID.value);
-    
 
       const response = await axios.post(
         `${baseURL}/api/professor/createAttendance/${sessionID.value}`,
-        {},
+        null,
         {
           headers: {
             studtoken: rawValue.value,
@@ -162,14 +203,16 @@ const onDetect = async (result) => {
           },
         }
       );
+
       if (response.status === 200) {
-          ws.send(
+        ws.send(
           JSON.stringify({
             qrCode: rawValue.value,
             subject_id: subjectID.value,
           })
         );
         await fetchImage(rawValue.value);
+
         const getAttend = await axios.get(
           `${baseURL}/api/professor/getAttendance/${sessionID.value}`,
           {
@@ -181,34 +224,67 @@ const onDetect = async (result) => {
         );
 
         attendance.value = getAttend.data.attend;
-        console.log(attendance.value);
 
-        // Loop through each student in the attendance list and display their first name
-        for (let i = 0; i < attendance.value.length; i++) {
-          const student = attendance.value[i];
-          const firstName = student.student.first_name;
-          const middleName = student.student.middle_name;
-          const lastName = student.student.last_name;
-          // Display a success message for each student
+        setTimeout(() => {
+          qrloading.value = false; // Hide loading after 3 seconds
           Swal.fire({
-            title: `${firstName} ${middleName} ${lastName}`,
-            text: "Student Attendance Recorded",
-            imageUrl: imageSrc.value,
-            imageWidth: 100,
-            imageHeight: 100,
-            imageAlt: `${firstName}'s photo`,
-            showCloseButton: true,
+            position: "center",
+            icon: "success",
+            title: "Student marked as present.",
+            showConfirmButton: false,
+            timer: 1500,
+            width: "550px",
+            height: "auto",
           });
-        }
-        imageSrc.value = null;
+        }, 3000);
+
+        console.log(attendance.value);
+      } else if (response.status === 400) {
+        isloading.value = false;
+        console.log("create attendance respopnse", response);
+        console.log("mais");
       }
     } else {
+      isloading.value = false;
       Swal.fire("Error", "An error occurred", "error");
+      console.log("create attendance respopnse", response);
+      return;
     }
   } catch (error) {
-    console.error("Error in onDetect:", error);
+    qrloading.value = false;
+    if (error.response) {
+      const errorMessage = error.response.data.message; // Access the "message" from the backend JSON
 
-    Swal.fire("Error", "An error occurred", "error");
+      console.error("Backend Error:", errorMessage); // Log the specific error
+
+      // Display specific SweetAlert based on the message
+      if (errorMessage === "Student Already In class") {
+        Swal.fire({
+          icon: "info", // Use 'info' for informative messages
+          title: "Already Present",
+          text: "This student is already recorded for this session.",
+        });
+      } else {
+        // Fallback for other backend errors
+        Swal.fire(
+          "Error",
+          errorMessage || "An unexpected server error occurred.",
+          "error"
+        );
+      }
+    } else if (error.request) {
+      // The request was made but no response was received (e.g., network error, server down)
+      console.error("Network Error:", error.message);
+      Swal.fire(
+        "Error",
+        "Network error. Please check your internet connection.",
+        "error"
+      );
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error("Axios Setup Error:", error.message);
+      Swal.fire("Error", "An error occurred during request setup.", "error");
+    }
   }
 };
 
@@ -224,21 +300,21 @@ const seeMasterList = async () => {
     studentsByProgram.value.forEach((student, num) => {
       htmlContent += `
         <li class="text-start">
-          
+
           <strong>${num + 1}. ${student.first_name} ${student.middle_name} ${
         student.last_name
       }</strong><br>
-         
-         
+
+
         </li>
-        
+
       `;
     });
 
     htmlContent += `</ul>`;
 
     Swal.fire({
-      position: "top-end",
+      position: "center",
       title: `Master List for ${programlevel.value}`,
       html: htmlContent,
       width: 600,
@@ -262,6 +338,7 @@ const fetchMasterList = async () => {
     Swal.fire("Error", "An error occurred while fetching students.", "error"); // Show error Swal
   }
 };
+
 const fetchImage = async (qr) => {
   try {
     const response = await axios.get(
@@ -289,6 +366,7 @@ const fetchImage = async (qr) => {
 };
 
 onMounted(async () => {
+  isLoading.value = true;
   try {
     const getAttend = await axios.get(
       `${baseURL}/api/professor/getAttendance/${sessionID.value}`,
@@ -323,7 +401,7 @@ onMounted(async () => {
 
     checkTimeRange();
     await fetchMasterList();
-
+    isLoading.value = false;
     console.log("attendance:", attendance.value);
     console.log("Masterlist22:", studentsByProgram.value);
   } catch (error) {
@@ -337,6 +415,7 @@ onBeforeUnmount(() => {
     console.log("WebSocket closed on unmount");
   }
 });
+
 const checkTimeRange = () => {
   if (!startTime.value || !endTime.value || !dateCreated.value) {
     isWithinTimeRange.value = false;
@@ -472,47 +551,44 @@ const generateCSV = () => {
     );
   }
 };
-
-const logout = async () => {
-  const result = await Swal.fire({
-    title: "Do you want to log out?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "No",
-  });
-
-  if (result.isConfirmed) {
-    localStorage.removeItem("proftoken");
-    router.push("/ZXNzb3IiLCJVfrvonD");
-  }
-};
 </script>
 
 <style scoped>
+.cont {
+  border-radius: 50% !important;
+  border: #464646 5px solid;
+}
+.cont img {
+  width: 200px;
+  height: 200px;
+  border-radius: 50% !important;
+}
+h2 {
+  font-family: Outfit-bold;
+  color: #464646;
+}
+.desc {
+  padding-top: 100px;
+  position: relative;
+  z-index: 2;
+}
 .qr-code-disabled {
   margin-top: 200px;
 }
 .text {
   color: white;
-  margin-top: 0px;
   overflow-y: auto;
   max-height: 250px;
 }
-.mm {
-  margin-top: 25px;
-  display: flex;
-  justify-content: center !important;
-  flex-direction: column;
-}
 
 .size {
-  margin: 0 !important;
-  padding: 0 !important;
+  width: 500px !important;
+  height: 500px !important;
 }
+
 .btnsyle {
   margin-left: 6px;
-  margin-top: 10px;
+
   background-color: white;
   color: black;
   width: 335px;
@@ -534,26 +610,55 @@ const logout = async () => {
 }
 
 @media (min-width: 862px) {
+  h2 {
+    font-size: 30px !important;
+  }
   .size {
-    margin-left: 100px;
-    width: 500px;
-    height: 400px;
+    width: 200px;
+    height: 200px;
   }
 }
 
 @media (max-height: 800px) {
-  .mm {
-    margin-top: 45px;
-  }
   .size {
-    margin-left: 10px;
-    margin-top: 20px;
     width: 300px;
     height: 300px;
   }
+}
 
-  .text {
-    height: 200px;
+.qr-loading {
+  background-color: rgba(61, 60, 60, 0.6);
+  width: 100%;
+  height: 100vh;
+  z-index: 1000;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.qr-loading img {
+  width: 500px;
+  height: 500px;
+}
+
+.qr-loading h3 {
+  color: white;
+  font-family: Outfit-regular;
+  margin-top: 30px;
+  font-size: 60px;
+  text-shadow: -1px -1px 0 black, /* Top-left shadow */ 1px -1px 0 black,
+    /* Top-right shadow */ -1px 1px 0 black,
+    /* Bottom-left shadow */ 1px 1px 0 black; /* Bottom-right shadow */
+}
+
+.alt-welcome img {
+  width: 300px;
+  height: 300px;
+}
+@media (max-width: 627px) {
+  .qr-loading img {
+    width: 60vw;
+    height: 40vh;
   }
 }
 </style>

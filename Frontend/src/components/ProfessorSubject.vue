@@ -51,6 +51,7 @@
         </div>
       </div>
 
+      <!-- Subjects -->
       <div class="row scroll-container pb-3">
         <div
           class="col-xxl-4 col-md-6 col-12 mt-3 d-flex justify-content-center align-items-center"
@@ -60,7 +61,7 @@
           <div class="card d-flex justify-content-center align-items-center">
             <div class="row">
               <div class="col-2 d-flex justify-content-center">
-                <img src="../assets/Prof-Class/sub.png" alt="book-icon" />
+                <img src="../assets/Prof-Class/book.png" alt="book-icon" />
               </div>
               <div class="col-7 text-start">
                 <h4>{{ subject.subject_name }}</h4>
