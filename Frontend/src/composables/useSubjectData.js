@@ -2,9 +2,9 @@ import { ref } from "vue";
 import axios from "axios";
 import { baseURL } from "../config";
 import Swal from "sweetalert2";
-import { MoonLoader } from "vue3-spinner";
 
-const isLoading = ref(true);
+
+
 // Shared state for subjects
 const professorSubject = ref([]);
 const loading = ref(false);

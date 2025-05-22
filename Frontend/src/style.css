@@ -19,7 +19,11 @@ tr {
 
 
 
-
+ h1 {
+  font-weight: bold;
+  letter-spacing: 2px;
+  font-family: Outfit-bold;
+}
 
 
 

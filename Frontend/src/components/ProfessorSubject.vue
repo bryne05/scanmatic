@@ -28,30 +28,35 @@
         </div>
       </div>
       <div class="row mb-3">
-        <div class="col-md-6 col-12 d-flex gap-3">
-          <div class="int search">
+        <div class="col-md-8 col-12 d-flex flex-wrap gap-3">
+          <div class="int search flex-grow-1" style="max-width: 350px">
             <img src="../assets/Prof-Class/search.png" alt="subject icon" />
             <input
-              v-model="searchQueryTitle"
+              v-model="searchQueryCombined"
               type="text"
               class="form-control"
-              placeholder="Search by Subject"
+              placeholder="Search Subjects..."
             />
           </div>
 
-          <div class="int-2 search">
-            <img src="../assets/Prof-Class/search.png" alt="course icon" />
-            <input
-              v-model="searchQueryProgram"
-              type="text"
-              class="form-control"
-              placeholder="Search by Program"
-            />
+          <div class="flex-grow-1" style="max-width: 200px">
+            <select
+              class="form-select cus-border"
+              v-model="selectedFilterProgramLevel"
+            >
+              <option value="">All Programs</option>
+              <option
+                v-for="program in uniqueProgramLevels"
+                :key="program"
+                :value="program"
+              >
+                {{ program }}
+              </option>
+            </select>
           </div>
         </div>
       </div>
 
-      <!-- Subjects -->
       <div class="row scroll-container pb-3">
         <div
           class="col-xxl-4 col-md-6 col-12 mt-3 d-flex justify-content-center align-items-center"
@@ -114,6 +119,14 @@
               </div>
             </div>
           </div>
+        </div>
+        <div
+          v-if="
+            !filteredAndSortedSubjects || filteredAndSortedSubjects.length === 0
+          "
+          class="col-12 text-center mt-4 text-muted"
+        >
+          No subjects found matching your criteria.
         </div>
       </div>
     </div>
@@ -341,6 +354,10 @@ const updateSubjectEndTime = ref("");
 // Search Query
 const searchQueryTitle = ref("");
 const searchQueryProgram = ref("");
+const searchQueryCombined = ref("");
+
+// NEW: Program Level Filter Ref
+const selectedFilterProgramLevel = ref("");
 
 function formatTime(timeString) {
   if (!timeString) return ""; // Handle null or undefined
@@ -356,8 +373,8 @@ function formatTime(timeString) {
 
 const setUpdateSubject = (subject) => {
   currentSubjectId.value = subject.subject_id;
-  currentSubjectName.value = subject.subject_name;
-  currentSubjectCourseYearSection.value = subject.subject_courseYearSection;
+  updateSubjectName.value = subject.subject_name; // Set for update modal
+  updateSubjectCourseYearSection.value = subject.subject_courseYearSection; // Set for update modal
   if (subject.subject_start_time) {
     const [hours, minutes] = subject.subject_start_time.split(":");
     updateSubjectStartTime.value = {
@@ -392,15 +409,17 @@ const updateSubject = async () => {
   if (confirmationResult.isConfirmed) {
     isLoading.value = true;
     try {
-      console.log("END", currentSubjectEndTime.value);
-      console.log("Start", currentSubjectStartTime.value);
+      console.log("END", updateSubjectEndTime.value);
+      console.log("Start", updateSubjectStartTime.value);
       const updatedData = {
-        subject_name: updateSubjectName.value || currentSubjectName.value,
-        subject_courseYearSection:
-          updateSubjectCourseYearSection.value ||
-          currentSubjectCourseYearSection.value,
-        subject_start_time: `${updateSubjectStartTime.value.hours}:${updateSubjectStartTime.value.minutes}`,
-        subject_end_time: `${updateSubjectEndTime.value.hours}:${updateSubjectEndTime.value.minutes}`,
+        subject_name: updateSubjectName.value,
+        subject_courseYearSection: updateSubjectCourseYearSection.value,
+        subject_start_time: updateSubjectStartTime.value
+          ? `${updateSubjectStartTime.value.hours}:${updateSubjectStartTime.value.minutes}`
+          : null,
+        subject_end_time: updateSubjectEndTime.value
+          ? `${updateSubjectEndTime.value.hours}:${updateSubjectEndTime.value.minutes}`
+          : null,
       };
 
       const response = await axios.put(
@@ -421,8 +440,11 @@ const updateSubject = async () => {
           text: "Subject name updated successfully",
           icon: "success",
         });
+        // Clear update form fields after successful update
         updateSubjectName.value = "";
         updateSubjectCourseYearSection.value = "";
+        updateSubjectStartTime.value = null;
+        updateSubjectEndTime.value = null;
       } else {
         Swal.fire({
           title: "Error",
@@ -434,9 +456,13 @@ const updateSubject = async () => {
       console.error("Error updating Subject:", error);
       Swal.fire({
         title: "Error",
-        text: "A subject with that name already exist",
+        text:
+          error.response?.data?.message ||
+          "A subject with that name already exists or an unexpected error occurred",
         icon: "error",
       });
+    } finally {
+      isLoading.value = false;
     }
   }
 };
@@ -444,7 +470,7 @@ const updateSubject = async () => {
 const addSubject = async () => {
   if (
     !subjectName.value ||
-    subjectCourseYearSection.value.length === 0 ||
+    !subjectCourseYearSection.value || // Changed from .length === 0 to !value
     !subjectStartTime.value ||
     !subjectEndTime.value
   ) {
@@ -481,7 +507,12 @@ const addSubject = async () => {
     }
   } catch (error) {
     console.error("Error adding subject:", error);
-    Swal.fire("Error", "Subject with that name is already Existing", "error");
+    Swal.fire(
+      "Error",
+      error.response?.data?.message ||
+        "Subject with that name is already Existing or an unexpected error occurred",
+      "error"
+    );
   }
 };
 
@@ -530,6 +561,8 @@ const deleteItem = async (subject) => {
         text: "An error occurred while deleting subject",
         icon: "error",
       });
+    } finally {
+      isLoading.value = false;
     }
   }
 };
@@ -559,25 +592,42 @@ const enterParticipationRecords = (subject) => {
   });
 };
 
+// NEW: Computed property for unique program levels for the dropdown
+const uniqueProgramLevels = computed(() => {
+  const programs = new Set();
+  professorSubject.value.forEach((subject) => {
+    if (subject.subject_courseYearSection) {
+      programs.add(subject.subject_courseYearSection);
+    }
+  });
+  return Array.from(programs).sort();
+});
+
 // Computed property for filtered subjects
 const filteredAndSortedSubjects = computed(() => {
   let result = professorSubject.value;
 
-  // Filter by title/subject name
-  if (searchQueryTitle.value) {
-    const titleQuery = searchQueryTitle.value.toLowerCase();
-    result = result.filter((subject) =>
-      subject.subject_name.toLowerCase().includes(titleQuery)
+  // Filter by combined search query
+  if (searchQueryCombined.value) {
+    const combinedQuery = searchQueryCombined.value.toLowerCase();
+    result = result.filter(
+      (subject) =>
+        subject.subject_name.toLowerCase().includes(combinedQuery) ||
+        subject.subject_courseYearSection.toLowerCase().includes(combinedQuery)
     );
   }
 
-  // Filter by program level
-  if (searchQueryProgram.value) {
-    const programQuery = searchQueryProgram.value.toLowerCase();
-    result = result.filter((subject) =>
-      subject.subject_courseYearSection.toLowerCase().includes(programQuery)
+  // NEW: Filter by selected program level
+  if (selectedFilterProgramLevel.value) {
+    result = result.filter(
+      (subject) =>
+        subject.subject_courseYearSection === selectedFilterProgramLevel.value
     );
   }
+  result.sort((a, b) => {
+    return b.subject_id - a.subject_id;
+  });
+
   return result;
 });
 </script>
@@ -685,9 +735,10 @@ const filteredAndSortedSubjects = computed(() => {
   height: 45px;
 }
 
+/* Removed int-2 as it's not used with the combined search */
+/*
 .int-2 {
   display: flex;
-
   align-items: center;
   background-color: white;
   width: 220px;
@@ -704,6 +755,7 @@ const filteredAndSortedSubjects = computed(() => {
   width: 25px;
   height: 25px;
 }
+*/
 
 .int input {
   border: none;
@@ -717,11 +769,20 @@ const filteredAndSortedSubjects = computed(() => {
 .search {
   border: none;
 }
-
+.search input {
+  font-size: 18px;
+}
 .search input:focus {
   border: none !important; /* Change border */
   box-shadow: none !important; /* Add a shadow */
   outline: none !important;
+}
+
+.form-select.cus-border {
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem; /* Bootstrap's default radius */
+  padding: 0.375rem 2.25rem 0.375rem 0.75rem; /* Standard Bootstrap padding */
+  height: 45px; /* Match height of search input */
 }
 
 @media (max-width: 767px) {

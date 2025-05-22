@@ -52,6 +52,7 @@ const submitForm = async () => {
     console.error("Login Error:", errorProfessor); // Log the full error object
 
     if (errorProfessor.response) {
+      isLoading.value = false;
       // Check for a server response
       Swal.fire({
         title: "Error!",

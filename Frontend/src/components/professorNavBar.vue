@@ -1,13 +1,46 @@
-<script setup lang="ts">
-// Add lang="ts" to the script tag
+<script setup>
 import { RouterLink, useRouter, useRoute } from "vue-router";
 import Swal from "sweetalert2";
-import { onMounted, ref } from "vue";
-import { Collapse } from "bootstrap"; // Import Collapse
+import { onMounted, ref, watch } from "vue"; // Import 'watch'
+import { Collapse } from "bootstrap";
+
+import { useSubjectData } from "../composables/useSubjectData";
+import { useShopData } from "../composables/useShopData";
+import { useEventData } from "../composables/useEventData";
+
+const { clearStateDataProfessor } = useShopData();
+const { clearStateEvent } = useEventData();
+const { clearStateSubject } = useSubjectData();
 
 const router = useRouter();
 const route = useRoute();
-const isActive = (path: string) => route.path === path;
+
+
+const activeNavSection = ref(""); 
+
+// 2. Watch for route changes to manually determine the active section
+watch(
+  () => route.path,
+  (newPath) => {
+    // Your custom logic to determine which section is active
+    if (newPath.startsWith("/professor/shop")) {
+      activeNavSection.value = "incentives";
+    } else if (newPath.startsWith("/professor/event")) {
+      activeNavSection.value = "events";
+    } else if (newPath.startsWith("/professor/profile")) {
+      activeNavSection.value = "profile";
+    } else if (newPath.startsWith("/professor")) {
+ 
+      activeNavSection.value = "class";
+    } else {
+      activeNavSection.value = ""; 
+    }
+  },
+  { immediate: true }
+); 
+
+
+const isActive = (sectionName) => activeNavSection.value === sectionName;
 
 const logout = async () => {
   const result = await Swal.fire({
@@ -18,19 +51,23 @@ const logout = async () => {
   });
 
   if (result.isConfirmed) {
+    clearStateDataProfessor();
+    clearStateEvent();
+    clearStateSubject();
+
     localStorage.removeItem("proftoken");
     router.push("/ZXNzb3IiLCJVfrvonD");
+
   }
 };
 
-const navbarCollapse = ref<HTMLElement | null>(null);
-const navbarToggler = ref<HTMLButtonElement | null>(null);
-let bsCollapseInstance: InstanceType<typeof Collapse> | null = null;
+const navbarCollapse = ref(null);
+const navbarToggler = ref(null);
+let bsCollapseInstance = null;
 
 const toggleNavbar = () => {
   if (navbarCollapse.value) {
     if (!bsCollapseInstance) {
-      // Initialize only if it doesn't exist
       bsCollapseInstance = new Collapse(navbarCollapse.value);
     }
     if (navbarCollapse.value.classList.contains("show")) {
@@ -44,21 +81,19 @@ const toggleNavbar = () => {
 
 onMounted(() => {
   document.addEventListener("click", handleDocumentClick);
-  // Initialize collapse on mount, if needed.
   if (navbarCollapse.value && !bsCollapseInstance) {
     bsCollapseInstance = new Collapse(navbarCollapse.value, {
-      toggle: false, // Prevent auto-toggling
+      toggle: false,
     });
   }
 });
 
-const handleDocumentClick = (event: MouseEvent) => {
-  // Type the event
+const handleDocumentClick = (event) => {
   if (
     navbarCollapse.value &&
-    !navbarCollapse.value.contains(event.target as Node) && // Use type assertion
+    !navbarCollapse.value.contains(event.target) &&
     navbarToggler.value &&
-    !navbarToggler.value.contains(event.target as Node) // Use type assertion
+    !navbarToggler.value.contains(event.target)
   ) {
     if (navbarCollapse.value.classList.contains("show") && bsCollapseInstance) {
       bsCollapseInstance.hide();
@@ -67,9 +102,7 @@ const handleDocumentClick = (event: MouseEvent) => {
 };
 
 onMounted(() => {
-  // Optional: You can also handle the escape key
-  document.addEventListener("keydown", (event: KeyboardEvent) => {
-    // Type the event
+  document.addEventListener("keydown", (event) => {
     if (
       event.key === "Escape" &&
       navbarCollapse.value?.classList.contains("show") &&
@@ -104,7 +137,7 @@ onMounted(() => {
             <RouterLink
               class="nav-link pointer curr"
               to="/professor"
-              :class="{ active: isActive('/professor') }"
+              :class="{ active: isActive('class') }"
               style="color: black"
             >
               Class
@@ -114,7 +147,7 @@ onMounted(() => {
             <RouterLink
               class="nav-link pointer curr"
               to="/professor/shop"
-              :class="{ active: isActive('/professor/shop') }"
+              :class="{ active: isActive('incentives') }"
               style="color: black"
             >
               Incentives
@@ -124,7 +157,7 @@ onMounted(() => {
             <RouterLink
               class="nav-link pointer curr"
               to="/professor/event"
-              :class="{ active: isActive('/professor/event') }"
+              :class="{ active: isActive('events') }"
               style="color: black"
             >
               Events
@@ -134,7 +167,7 @@ onMounted(() => {
             <RouterLink
               class="nav-link pointer curr"
               to="/professor/profile"
-              :class="{ active: isActive('/professor/profile') }"
+              :class="{ active: isActive('profile') }"
               style="color: black"
             >
               Profile
@@ -180,6 +213,7 @@ nav {
   z-index: 1000;
   width: 100%;
   top: 0;
+  font-family: Outfit-regular;
 }
 
 .nav-link {

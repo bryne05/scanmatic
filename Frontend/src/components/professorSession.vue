@@ -7,14 +7,16 @@
     <div v-else class="container desc">
       <div class="row">
         <div class="col-lg-6 col-12 text">
-          <h1 class="text-start" style="font-family: Outfit-bold">SESSIONS</h1>
+          <h1 class="text-start" style="font-family: Outfit-bold">
+            SUBJECT SESSIONS
+          </h1>
           <h5>
             Manage your <b> {{ subjectName }} </b> sessions for
             <b>{{ programlevel }}</b> students. Actions include adding, viewing,
             updating, deleting, and checking the recycle bin.
           </h5>
         </div>
-        <div class="col-lg-6 col-12 d-flex justify-content-end add-btn">
+        <div class="col-lg-6 col-12 text-xl-end text-center">
           <button
             class="btnsyle"
             data-bs-toggle="modal"
@@ -50,12 +52,9 @@
             </div>
           </div>
           <div class="table-responsive tab">
-            <table class="table table-striped table-hover">
+            <table class="table table-striped table-hover icons">
               <thead>
-                <tr
-                  class="text-center sticky-header"
-                  style="position: sticky; width: 100%"
-                >
+                <tr class="text-center sticky-header">
                   <th>VIEW DETAILS</th>
                   <th @click="sortTable('createdAt')">
                     DATE <i :class="sortIcon('createdAt')"></i>
@@ -70,7 +69,7 @@
                   v-for="session in filteredAndSortedSessions"
                   :key="session.class_id"
                 >
-                  <td class="icons">
+                  <td>
                     <img
                       @click="enterQR(session)"
                       src="../assets/Prof-Class/enter.png"
@@ -82,7 +81,7 @@
                   <td>{{ session.class_exp }}</td>
                   <td>
                     <div
-                      class="icons d-flex gap-2 justify-content-center align-items-center"
+                      class="d-flex gap-2 justify-content-center align-items-center"
                     >
                       <img
                         data-bs-toggle="modal"
@@ -573,13 +572,9 @@ const goBack = () => {
   background-color: white;
   z-index: 1;
 }
+
 .tab {
   max-height: 500px !important;
-  /* padding: 15px 15px 0px 15px;
-  background-color: white;
-  border-radius: 16px; */
-
-  padding: 6px;
 }
 .text {
   color: #464646;
@@ -589,12 +584,6 @@ const goBack = () => {
 
 
 
-.table-responsive {
-  width: 100%;
-}
-table {
-  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2) !important;
-}
 .text h2 {
   font-weight: bold;
   letter-spacing: 2px;
@@ -660,12 +649,6 @@ table {
   transform: scale(1.2);
 }
 
-.scroll-container {
-  max-height: 570px;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
 .btnsyle {
   background-color: #464646;
   color: white;
@@ -674,6 +657,7 @@ table {
   border-radius: 8px;
   transition: 0.3s ease-in-out;
   border: none;
+  margin-bottom: 10px;
 }
 
 .btnsyle:hover {
@@ -686,15 +670,22 @@ table {
     width: 250px;
   }
 }
-
-@media (max-height: 800px) {
-  .scroll-container {
-    max-height: 400px;
-  }
+.table {
+  margin: 0;
 }
 
-th {
-  cursor: pointer;
+.table-responsive {
+  padding: 0;
+  margin: 0;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2) !important;
+}
+table {
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+th,
+tr {
+  cursor: default;
 }
 
 .table-striped > tbody > tr:nth-child(odd) > td,

@@ -1,8 +1,6 @@
 <template>
   <navbar />
-  <div
-   class="bg"
-  >
+  <div class="bg">
     <div v-if="isLoading" class="loading-overlay">
       <moon-loader :loading="isLoading" color="white" size="150px" />
     </div>
@@ -195,7 +193,6 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useShopData } from "../composables/useShopData";
 import { useSubjectData } from "../composables/useSubjectData";
-
 
 import { MoonLoader } from "vue3-spinner";
 
@@ -487,8 +484,6 @@ const filteredAttendanceDetails = computed(() => {
     return dateMatch && statusMatch;
   });
 });
-
-
 </script>
 
 <style scoped>
@@ -537,8 +532,8 @@ const filteredAttendanceDetails = computed(() => {
 }
 
 .ALINK:hover {
-  transform: scale(1.03);
-  font-weight: 700;
+  transform: scale(1.01);
+  font-weight: 800;
 }
 table.table-bordered th {
   padding: 10px;

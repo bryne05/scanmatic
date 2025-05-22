@@ -593,14 +593,14 @@ h2 {
   color: black;
   width: 335px;
   height: 44px;
+  border: black 2px solid;
   border-radius: 30px;
   transition: background-color 0.3s ease-in, color 0.3s ease-in;
 }
 
 .btnsyle:hover {
-  background-color: gray;
+  background-color: black;
   color: white;
-  border-color: white;
 }
 
 @media (max-width: 767px) {

@@ -9,7 +9,7 @@ const loading = ref(false);
 let initialized = false;
 
 export function useEventData() {
-  const clearStateSubject = async () => {
+  const clearStateEvent = async () => {
     professorEvent.value = []; // Clear data
     initialized = false; // Reset initialization state
   };
@@ -44,6 +44,6 @@ export function useEventData() {
     professorEvent,
     loading,
     fetchEvent,
-    clearStateSubject,
+    clearStateEvent,
   };
 }

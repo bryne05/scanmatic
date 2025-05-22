@@ -131,7 +131,7 @@ const routes = [
     component: ProfessorProfile,
   },
   {
-    path: "/professorTransaction",
+    path: "/professor/shop/Transaction",
     name: "ProfessorTransaction",
     component: ProfessorTransaction,
   },

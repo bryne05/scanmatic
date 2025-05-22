@@ -340,15 +340,23 @@ const sortIcon = (key) => {
 </script>
 
 <style scoped>
-table {
+.table-responsive {
+  padding: 0;
+  margin: 0;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
+.table {
+  margin: 0;
+}
 .tab {
   max-height: 500px !important;
 
-  padding: 6px;
+  padding: 0;
 }
+
+/* For Webkit browsers (Chrome, Safari, Edge, etc.) */
+
 .int {
   display: flex;
 
@@ -462,6 +470,22 @@ body {
   font-weight: bold;
   padding: 12px;
   border-bottom: 2px solid #ccc;
+}
+
+.tab::-webkit-scrollbar-thumb {
+  background-color: rgb(16, 118, 16);
+  border-radius: 5px;
+
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.tab::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(10, 80, 10);
+}
+
+.tab::-webkit-scrollbar-track {
+  background-color: rgba(16, 118, 16, 0.1);
 }
 
 .table tbody tr td,
