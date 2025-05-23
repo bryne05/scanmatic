@@ -88,9 +88,7 @@
                 <td>{{ item.item_quantity }}</td>
                 <td>{{ item.item_price }} Points</td>
 
-                <td
-                  class="d-flex gap-2 justify-content-center align-items-center"
-                >
+                <td>
                   <img
                     data-bs-toggle="modal"
                     data-bs-target="#updateItem"
@@ -322,7 +320,8 @@ import { MoonLoader } from "vue3-spinner";
 
 const isLoading = ref(false);
 
-const { professorShopItems, loading, refreshAllData } = useShopData();
+const { professorShopItems, loading, refreshAllData, fetchProfessorData } =
+  useShopData();
 
 const proftoken = localStorage.getItem("proftoken");
 
@@ -409,8 +408,6 @@ const filteredShopItems = computed(() => {
   return items;
 });
 
-// Removed sortTable function as it's no longer needed for UI-driven sorting.
-
 //CurrentItem (for update modal)
 const currentItemId = ref(null);
 const currentItemName = ref(null);
@@ -434,19 +431,18 @@ const updateitemName = ref("");
 const updatequantity = ref("");
 const updateprice = ref("");
 const updatecourseYear = ref("");
-const updatesubject = ref(""); // for update modal dropdown
+const updatesubject = ref("");
 
 const setUpdateItemData = (item) => {
   currentItemId.value = item.item_id;
-  updateitemName.value = item.item_name; // Prefill update fields with current data
+  updateitemName.value = item.item_name;
   updatequantity.value = item.item_quantity;
   updateprice.value = item.item_price;
   updatecourseYear.value = item.item_classSection;
-  updatesubject.value = item.item_subject; // *** IMPORTANT: Prefill subject in update modal ***
+  updatesubject.value = item.item_subject;
 };
 
 const fetchSubjects = async () => {
-  isLoading.value = true;
   try {
     const response = await axios.get(`${baseURL}/api/professor/getAllSubject`, {
       headers: {
@@ -501,7 +497,6 @@ const fetchSubjects = async () => {
     );
 
     professorSubject.value = uniqueAndSortedSubjects;
-    isLoading.value = false;
   } catch (error) {
     isLoading.value = false;
     console.error("Error getting subjects:", error);
@@ -676,7 +671,6 @@ const deleteItem = async (item) => {
 };
 
 onMounted(() => {
-  refreshAllData(); // Fetch initial shop items
   fetchSubjects(); // Fetch subjects for modal dropdowns
 });
 </script>
@@ -756,6 +750,8 @@ table {
   height: 30px;
   cursor: pointer;
   transition: 0.3s;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 .icons img:hover {
   transform: scale(1.2);

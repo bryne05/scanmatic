@@ -11,10 +11,12 @@ const studentData = ref(null);
 const filteredShopItems = ref([]);
 const professorShopItems = ref([]);
 const loading = ref(false);
+let initialized = false;
 
 export function useShopData() {
   const clearStateDataProfessor = () => {
     professorShopItems.value = [];
+    initialized = false;
   };
   const clearStateData = () => {
     studentData.value = null;
@@ -43,8 +45,7 @@ export function useShopData() {
 
       studentData.value = studentResponse.data;
       filteredShopItems.value = shopItemsResponse.data.filteredShopItems;
-     
-      
+      initialized = true;
     } catch (error) {
       console.error("Error getting student data:", error);
     } finally {
@@ -64,7 +65,7 @@ export function useShopData() {
         },
       });
       professorShopItems.value = response.data.shopItem;
-
+      initialized = true;
       // Emit update event after professor data changes
       const emitter = inject(SHOP_UPDATE_KEY);
       if (emitter) {
@@ -119,6 +120,9 @@ export function useShopData() {
   const provideShopUpdate = (callback) => {
     provide(SHOP_UPDATE_KEY, callback);
   };
+  if (!initialized) {
+    refreshAllData();
+  }
 
   return {
     studentData,

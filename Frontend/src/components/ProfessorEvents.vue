@@ -1,62 +1,108 @@
-<!-- ProfessorEvents.vue -->
 <template>
-  <div>
-    <button
-      class="btnsyle mb-3"
-      data-bs-toggle="modal"
-      data-bs-target="#addsubject"
-    >
-      Add Event
-    </button>
-    <div
-      class="row scroll-container"
-      :style="{ width: professorEvent.length <= 2 ? '80vw' : 'auto' }"
-    >
+  <div v-if="loading || isLoading" class="loading-overlay">
+    <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+  </div>
+  <div v-else class="container d-flex flex-column">
+    <div class="row">
+      <div class="col-xl-6 col-12 text-xl-start text-center">
+        <h1>EVENT DASHBOARD</h1>
+        <h5>
+          This section provides an overview of all your events. Each event
+          represents a unique gathering or session. Here, you can easily create,
+          update, or delete an event, and view participants' attendance.
+        </h5>
+      </div>
+      <div class="col-xl-6 col-12 text-xl-end text-center">
+        <button
+          class="btnsyle mb-3"
+          data-bs-toggle="modal"
+          data-bs-target="#addsubject"
+        >
+          Add Event
+        </button>
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col-md-8 col-12 d-flex flex-wrap gap-3">
+        <div class="int search" style="max-width: 350px">
+          <img src="../assets/Prof-Class/search.png" alt="subject icon" />
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search Events..."
+            v-model="searchQuery"
+            @input="filterEvents"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-container mt-3">
       <div
-        class="col-md-4 col-sm-6 mt-3"
-        v-for="subject in professorEvent"
-        :key="subject.subject_id"
+        class="col-xxl-12 col-md-10 d-flex justify-content-start align-items-center flex-wrap"
       >
-        <div class="card h-100">
-          <div class="card-body">
-            <button
-              class="btn btn-dark mar w-100 mb-3"
-              @click="enterSession(subject)"
-            >
-              Enter
-            </button>
-            <h5 class="card-title mb-3">{{ subject.subject_name }}</h5>
+        <div
+          class="col-xxl-4 col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12 d-flex justify-content-start align-items-center"
+          v-for="subject in filteredProfessorEvents"
+          :key="subject.subject_id"
+        >
+          <div class="card d-flex justify-content-between">
+            <div class="row">
+              <div
+                class="col-xl-2 d-flex justify-content-center align-items-start"
+              >
+                <img src="../assets/Prof-Class/event.png" alt="event icon" />
+              </div>
+              <div
+                class="col-xl-7 d-flex justify-content-xl-start justify-content-center align-items-xl-start align-items-center flex-column"
+              >
+                <h5 class="card-title text-wrap">
+                  {{ subject.subject_name }}
+                </h5>
 
-            <h6>
-              Start Time: {{ formatTime(subject.subject_start_time) }} End Time:
-              {{ formatTime(subject.subject_end_time) }}
-            </h6>
-            <button
-              class="btn btn-primary mar"
-              data-bs-toggle="modal"
-              data-bs-target="#updateSubject"
-              @click="setUpdateSubject(subject)"
-            >
-              Update
-            </button>
-            <button class="btn btn-danger mar" @click="deleteItem(subject)">
-              Delete
-            </button>
-
-            <!-- <button
-              class="btn btn-danger mar w-100 mb-3 d-flex text-center align-item-center justify-content-center"
-              style="background-color: #00c04b; border: none"
-              @click="enterParticipationRecords(subject)"
-            >
-              Student Participation Overview
-            </button> -->
+                <h6>
+                  <img src="../assets/Prof-Class/Delivery Time.png" alt="" />
+                  {{ formatTime(subject.subject_start_time) }} -
+                  {{ formatTime(subject.subject_end_time) }}
+                </h6>
+              </div>
+              <div
+                class="col-xl-3 d-flex justify-content-xl-start justify-content-center align-items-xl-start align-items-center gap-2 flex-lg-nowrap"
+              >
+                <img
+                  data-bs-toggle="modal"
+                  data-bs-target="#updateSubject"
+                  @click="setUpdateSubject(subject)"
+                  src="../assets/Prof-Class/Create.png"
+                  alt="update icon"
+                />
+                <img
+                  @click="deleteItem(subject)"
+                  src="../assets/Prof-Class/Delete.png"
+                  alt="update icon"
+                />
+              </div>
+            </div>
+            <div class="row">
+              <div
+                class="col-12 d-flex align-items-end justify-content-center align-self-end"
+              >
+                <button
+                  class="btn btn-dark mar w-100 button-row"
+                  @click="enterSession(subject)"
+                >
+                  Enter
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <div></div>
 
-  <!-- Add Event Modal -->
   <div
     class="modal fade"
     id="addsubject"
@@ -136,7 +182,6 @@
     </div>
   </div>
 
-  <!-- Update Event Modal -->
   <div
     class="modal fade"
     id="updateSubject"
@@ -227,8 +272,152 @@
   </div>
 </template>
 
+<style scoped>
+.btnsyle {
+  background-color: white;
+  color: black;
+  width: 260px;
+  height: 50px;
+  border: black 2px solid;
+  border-radius: 16px;
+  transition: background-color 0.3s ease-in, color 0.3s ease-in;
+}
+
+.btnsyle:hover {
+  background-color: black;
+  color: white;
+}
+.button-row {
+  border-radius: 8px;
+  transition: 0.3s;
+}
+.int {
+  display: flex;
+
+  align-items: center;
+  background-color: white;
+  width: 320px;
+  border-radius: 8px;
+  gap: 3px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+  height: 45px;
+}
+
+.int input {
+  border: none;
+}
+.int img {
+  margin-left: 10px;
+  width: 25px;
+  height: 25px;
+}
+
+.search {
+  border: none;
+}
+.search input {
+  font-size: 18px;
+}
+
+.search input:focus {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.button-row:hover {
+  color: black;
+  background-color: white;
+}
+
+.card h6 img {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+.scroll-container {
+  min-height: 620px;
+  overflow-y: auto;
+}
+.card h6 {
+  display: flex;
+  align-items: center;
+  color: #464646;
+}
+.card .col-xl-3 img {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.card .col-xl-3 img:hover {
+  transform: scale(1.3);
+}
+
+.card .col-xl-2 img {
+  width: 60px;
+  height: 60px;
+  margin-top: -3px;
+}
+.card {
+  max-width: 420px;
+  min-height: 269px;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+  margin: 10px;
+  overflow: hidden;
+}
+.card h5 {
+  font-family: Outfit-bold;
+  white-space: nowrap; /* Prevents text from wrapping to the next line */
+  overflow: hidden; /* Hides any content that goes beyond the element's box */
+  text-overflow: ellipsis;
+  display: block; /* Essential: text-overflow requires a block-level or inline-block element */
+  max-width: 100%;
+}
+h1 {
+  color: #464646;
+  letter-spacing: 1px;
+  font-family: Outfit-bold;
+}
+
+h5 {
+  color: #464646;
+}
+span {
+  font-size: 20px;
+}
+.container {
+  padding-top: 100px;
+}
+
+.scroll-container {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (max-width: 767px) {
+  .btnsyle {
+    width: 250px;
+  }
+}
+
+@media (max-height: 800px) {
+  .scroll-container {
+    max-height: 400px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .card {
+    padding: 12px;
+  }
+}
+</style>
 <script setup>
-import { ref, provide } from "vue";
+import { ref, provide, computed } from "vue";
 import axios from "axios";
 import { baseURL } from "../config";
 import Swal from "sweetalert2";
@@ -236,7 +425,9 @@ import { useRouter } from "vue-router";
 import { useEventData } from "../composables/useEventData";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+import { MoonLoader } from "vue3-spinner";
 
+const isLoading = ref(false);
 const router = useRouter();
 const proftoken = localStorage.getItem("proftoken");
 const { professorEvent, loading, fetchEvent } = useEventData();
@@ -260,6 +451,24 @@ const updateSubjectName = ref("");
 
 const updateSubjectStartTime = ref("");
 const updateSubjectEndTime = ref("");
+
+// Search functionality
+const searchQuery = ref("");
+
+const filteredProfessorEvents = computed(() => {
+  let events = [...professorEvent.value]; // Create a copy to avoid mutating the original
+
+  // Sort by subject_id in descending order (newest to oldest)
+  events.sort((a, b) => b.subject_id - a.subject_id);
+
+  if (!searchQuery.value) {
+    return events;
+  }
+  const query = searchQuery.value.toLowerCase();
+  return events.filter((subject) =>
+    subject.subject_name.toLowerCase().includes(query)
+  );
+});
 
 function formatTime(timeString) {
   if (!timeString) return ""; // Handle null or undefined
@@ -309,6 +518,7 @@ const updateSubject = async () => {
   });
 
   if (confirmationResult.isConfirmed) {
+    isLoading.value = true;
     try {
       console.log("END", currentSubjectEndTime.value);
       console.log("Start", currentSubjectStartTime.value);
@@ -330,6 +540,7 @@ const updateSubject = async () => {
         }
       );
       if (response.status === 200) {
+        isLoading.value = false;
         Swal.fire({
           title: "Success",
           text: "Subject name updated successfully",
@@ -339,6 +550,7 @@ const updateSubject = async () => {
         await fetchEvent();
         updateSubjectName.value = "";
       } else {
+        isLoading.value = false;
         Swal.fire({
           title: "Error",
           text: "Failed to update subject",
@@ -346,6 +558,7 @@ const updateSubject = async () => {
         });
       }
     } catch (error) {
+      isLoading.value = false;
       console.error("Error updating Subject:", error);
       Swal.fire({
         title: "Error",
@@ -408,6 +621,7 @@ const deleteItem = async (subject) => {
   });
 
   if (confirmationResult.isConfirmed) {
+    isLoading.value = true;
     try {
       const response = await axios.delete(
         `${baseURL}/api/professor/deleteSubject/${subjectID}`,
@@ -419,14 +633,16 @@ const deleteItem = async (subject) => {
         }
       );
       if (response.status === 200) {
+        await fetchEvent();
+        isLoading.value = false;
+
         Swal.fire({
           title: "Success",
           text: "Subject Deleted successfully",
           icon: "success",
         });
-
-        await fetchEvent();
       } else {
+        isLoading.value = false;
         Swal.fire({
           title: "Error",
           text: "Failed to delete Subject item",
@@ -434,6 +650,7 @@ const deleteItem = async (subject) => {
         });
       }
     } catch (error) {
+      isLoading.value = false;
       console.error("Error deleting Subject item:", error);
       Swal.fire({
         title: "Error",
@@ -455,54 +672,4 @@ const enterSession = (subject) => {
     },
   });
 };
-
-// const enterParticipationRecords = (subject) => {
-//   router.push({
-//     name: "ParticipantsOverview",
-//     params: {
-//       subjectID: subject.subject_id,
-//       subjectName: subject.subject_name,
-//     },
-//   });
-// };
 </script>
-
-<style scoped>
-body {
-  margin: 0;
-  padding: 0;
-}
-
-.scroll-container {
-  max-height: 600px;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.btnsyle {
-  background-color: white;
-  color: black;
-  width: 335px;
-  height: 44px;
-  border-radius: 30px;
-  transition: background-color 0.3s ease-in, color 0.3s ease-in;
-}
-
-.btnsyle:hover {
-  background-color: gray;
-  color: white;
-  border-color: white;
-}
-
-@media (max-width: 767px) {
-  .btnsyle {
-    width: 250px;
-  }
-}
-
-@media (max-height: 800px) {
-  .scroll-container {
-    max-height: 400px;
-  }
-}
-</style>

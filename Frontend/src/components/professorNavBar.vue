@@ -15,8 +15,7 @@ const { clearStateSubject } = useSubjectData();
 const router = useRouter();
 const route = useRoute();
 
-
-const activeNavSection = ref(""); 
+const activeNavSection = ref("");
 
 // 2. Watch for route changes to manually determine the active section
 watch(
@@ -30,15 +29,13 @@ watch(
     } else if (newPath.startsWith("/professor/profile")) {
       activeNavSection.value = "profile";
     } else if (newPath.startsWith("/professor")) {
- 
       activeNavSection.value = "class";
     } else {
-      activeNavSection.value = ""; 
+      activeNavSection.value = "";
     }
   },
   { immediate: true }
-); 
-
+);
 
 const isActive = (sectionName) => activeNavSection.value === sectionName;
 
@@ -57,7 +54,6 @@ const logout = async () => {
 
     localStorage.removeItem("proftoken");
     router.push("/ZXNzb3IiLCJVfrvonD");
-
   }
 };
 
@@ -221,6 +217,9 @@ nav {
   color: white;
 }
 
+a {
+  cursor: pointer;
+}
 .nav-link::before {
   content: "";
   position: absolute;

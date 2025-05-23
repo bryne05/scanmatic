@@ -7,7 +7,7 @@
     <div v-else class="container desc">
       <div class="row">
         <div class="col-xl-6">
-          <div class="text-start t">
+          <div class="text-xl-start text-center t">
             <h1 style="font-family: Outfit-bold">MY SUBJECTS</h1>
 
             <h5>
@@ -17,7 +17,7 @@
             </h5>
           </div>
         </div>
-        <div class="col-xl-6 d-flex justify-content-end align-items-center">
+        <div class="col-xl-6 d-flex justify-content-xl-end justify-content-center align-items-center">
           <button
             class="btnsyle mb-3"
             data-bs-toggle="modal"
@@ -59,17 +59,17 @@
 
       <div class="row scroll-container pb-3">
         <div
-          class="col-xxl-4 col-md-6 col-12 mt-3 d-flex justify-content-center align-items-center"
+          class="col-xxl-4 col-xl-6 col-md-12 col-sm-12 col-12 mt-3 d-flex justify-content-center align-items-center"
           v-for="subject in filteredAndSortedSubjects"
           :key="subject.subject_id"
         >
-          <div class="card d-flex justify-content-center align-items-center">
+          <div class="card d-flex justify-content-between">
             <div class="row">
               <div class="col-2 d-flex justify-content-center">
                 <img src="../assets/Prof-Class/book.png" alt="book-icon" />
               </div>
               <div class="col-7 text-start">
-                <h4>{{ subject.subject_name }}</h4>
+                <h5>{{ subject.subject_name }}</h5>
                 <h6 class="d-flex align-items-center">
                   <img
                     src="../assets/Prof-Class/Delivery Time.png"
@@ -103,8 +103,11 @@
                   alt="delete icon"
                 />
               </div>
+            </div>
+
+            <div class="row">
               <div
-                class="col-12 d-flex justify-content-center flex-column align-items-center pt-5"
+                class="col-12 d-flex justify-content-center flex-column align-items-center"
               >
                 <button
                   class="enter-btn text-center"
@@ -132,6 +135,7 @@
     </div>
   </div>
 
+  <!-- Add Modal -->
   <div
     class="modal fade"
     id="addsubject"
@@ -217,7 +221,7 @@
       </div>
     </div>
   </div>
-
+  <!-- Update Modal -->
   <div
     class="modal fade"
     id="updateSubject"
@@ -636,7 +640,7 @@ const filteredAndSortedSubjects = computed(() => {
 .t {
   color: #464646;
   margin-bottom: 35px;
-  margin-top: 20px;
+
 }
 .card {
   max-width: 420px;
@@ -679,8 +683,11 @@ const filteredAndSortedSubjects = computed(() => {
   height: 60px;
 }
 
-.card h4 {
+.card h5 {
   font-family: Outfit-bold;
+  /* white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden; */
 }
 .card h6 img {
   width: 20px;
@@ -735,7 +742,7 @@ const filteredAndSortedSubjects = computed(() => {
   height: 45px;
 }
 
-/* Removed int-2 as it's not used with the combined search */
+
 /*
 .int-2 {
   display: flex;
