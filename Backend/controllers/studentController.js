@@ -476,6 +476,7 @@ const getStudentLeaderboard = async (req, res) => {
         courseYearSection: studentProgramLevel,
       },
       attributes: [
+        "stud_id",
         "first_name",
         "middle_name",
         "last_name",
@@ -488,7 +489,7 @@ const getStudentLeaderboard = async (req, res) => {
     if (!getStudentLeaderboard) {
       res.status(400).json({ error: "Failed to get Leaderboards" });
     }
-    res.status(200).json({ studentLeaderboard });
+    res.status(200).json({ studentLeaderboard, activeStudent: studID });
   } catch (error) {
     console.error("Error fetching Student Class:", error);
     res.status(500).json({ error: "Failed to fetch Student class" });

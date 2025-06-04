@@ -18,7 +18,7 @@ const router = useRouter();
       <ShopItems />
 
       <div class="claim-btn d-flex justify-content-center align-items-center">
-        <RouterLink to="/student/transaction">
+        <RouterLink to="/student/shop/transaction">
           <button class="btnsyle mt-4">Claimed Incentives</button>
         </RouterLink>
       </div>

@@ -30,6 +30,7 @@ const corsOptions = {
     "https://192.168.68.102:5173",
     "https://192.168.31.25:5173",
     "https://192.168.232.48:5173",
+    "https://localhost:5173",
   ],
   methods: "GET, PUT, POST, DELETE, OPTIONS",
   allowedHeaders: [

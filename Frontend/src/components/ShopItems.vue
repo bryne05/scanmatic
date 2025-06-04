@@ -1,9 +1,11 @@
 <script setup>
 import { ring } from "ldrs";
 import Swal from "sweetalert2";
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useShopData } from "../composables/useShopData";
+import { MoonLoader } from "vue3-spinner";
 
+const isLoading = ref(false);
 ring.register();
 
 const {
@@ -31,7 +33,9 @@ const handleBuyItem = async (item) => {
     });
 
     if (result.isConfirmed) {
+      isLoading.value = true;
       const success = await buyItem(item);
+      isLoading.value = false;
       if (success) {
         Swal.fire({
           icon: "success",
@@ -42,6 +46,7 @@ const handleBuyItem = async (item) => {
       }
     }
   } catch (error) {
+    isLoading.value = false;
     Swal.fire({
       icon: "error",
       title: "Insufficient Points",
@@ -58,7 +63,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container-fluid">
+  <div v-if="loading || isLoading" class="loading-overlay">
+    <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+  </div>
+  <div v-else class="container-fluid">
     <div class="row">
       <div
         class="col-xl-6 d-flex justify-content-start align-items-center flex-column"
@@ -70,7 +78,7 @@ onMounted(() => {
           </h2>
         </div>
         <div class="claim-btn">
-          <RouterLink to="/student/transaction">
+          <RouterLink to="/student/shop/transaction">
             <button class="btnsyle mt-4">Claimed Incentives</button>
           </RouterLink>
         </div>
@@ -126,12 +134,18 @@ onMounted(() => {
 .card {
   width: 650px;
 
-  max-height: 136px !important;
+  height: 136px !important;
   border-radius: 16px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Added shadow */
   overflow: hidden !important;
   margin: 10px;
   color: #464646;
+  transition: 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: scale(1.03);
 }
 .card .btn {
   background-color: #214280;
@@ -209,6 +223,7 @@ onMounted(() => {
 @media (max-width: 680px) {
   .card {
     max-width: 400px;
+    height: 180px !important;
   }
 }
 </style>

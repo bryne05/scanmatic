@@ -17,7 +17,9 @@
             </h5>
           </div>
         </div>
-        <div class="col-xl-6 d-flex justify-content-xl-end justify-content-center align-items-center">
+        <div
+          class="col-xl-6 d-flex justify-content-xl-end justify-content-center align-items-center"
+        >
           <button
             class="btnsyle mb-3"
             data-bs-toggle="modal"
@@ -640,7 +642,6 @@ const filteredAndSortedSubjects = computed(() => {
 .t {
   color: #464646;
   margin-bottom: 35px;
-
 }
 .card {
   max-width: 420px;
@@ -648,8 +649,12 @@ const filteredAndSortedSubjects = computed(() => {
   padding: 40px;
   border-radius: 16px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+  transition: 0.3s;
 }
 
+.card:hover {
+  transform: scale(1.03);
+}
 .card a {
   text-decoration: underline !important;
   padding-top: 10px;
@@ -741,7 +746,6 @@ const filteredAndSortedSubjects = computed(() => {
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
   height: 45px;
 }
-
 
 /*
 .int-2 {

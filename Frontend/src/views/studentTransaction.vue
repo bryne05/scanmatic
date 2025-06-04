@@ -6,6 +6,9 @@ import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 import { useShopData } from "../composables/useShopData";
 import navbar from "../components/studentNavBar.vue";
+import { MoonLoader } from "vue3-spinner";
+
+const isLoading = ref(false);
 const { clearStateData } = useShopData();
 const router = useRouter();
 const token = localStorage.getItem("studtoken");
@@ -49,6 +52,7 @@ const downloadCSV = () => {
   link.click();
   document.body.removeChild(link);
 };
+
 const formatDatecsv = (dateString) => {
   if (!dateString) return "-";
   const options = { year: "numeric", month: "2-digit", day: "2-digit" }; // Explicitly include year
@@ -58,25 +62,10 @@ const goBack = () => {
   router.go(-1);
 };
 
-const logout = async () => {
-  const result = await Swal.fire({
-    title: "Do you want to log out?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "No",
-  });
-
-  if (result.isConfirmed) {
-    localStorage.removeItem("studtoken");
-    clearStateData();
-    router.push("/");
-  }
-};
-
 const studentTransactions = ref([]);
 
 onMounted(async () => {
+  isLoading.value = true;
   try {
     const response = await axios.get(
       `${baseURL}/api/student/getStudentTransactions`,
@@ -89,7 +78,9 @@ onMounted(async () => {
     );
 
     studentTransactions.value = response.data.studentTransaction;
+    isLoading.value = false;
   } catch (error) {
+    isLoading.value = false;
     console.error("Error fetching student transactions:", error);
   }
 });
@@ -103,10 +94,16 @@ const formatDate = (dateString) => {
 <template>
   <div>
     <navbar />
-    <div
-     class="bg-2"
-    >
-      <div class="container cont">
+    <div class="bg-2">
+      <div v-if="loading || isLoading" class="loading-overlay">
+        <moon-loader
+          :loading="loading || isLoading"
+          color="white"
+          size="150px"
+        />
+      </div>
+
+      <div v-else class="container cont">
         <div class="row">
           <div class="col-12 text-center"><h1>Claimed Incentives</h1></div>
           <div class="col-12 text-center">

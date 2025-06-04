@@ -225,18 +225,16 @@ const onDetect = async (result) => {
 
         attendance.value = getAttend.data.attend;
 
-        setTimeout(() => {
-          qrloading.value = false; // Hide loading after 3 seconds
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "Student marked as present.",
-            showConfirmButton: false,
-            timer: 1500,
-            width: "550px",
-            height: "auto",
-          });
-        }, 3000);
+        qrloading.value = false; // Hide loading after 3 seconds
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "Student marked as present.",
+          showConfirmButton: false,
+          timer: 1500,
+          width: "550px",
+          height: "auto",
+        });
 
         console.log(attendance.value);
       } else if (response.status === 400) {
@@ -393,10 +391,6 @@ onMounted(async () => {
     startTime.value = singleClass.value[0]?.start_time;
     endTime.value = singleClass.value[0]?.end_time;
     dateCreated.value = singleClass.value[0]?.createdAt;
-    // console.log("start", startTime.value);
-    // console.log("end", endTime.value);
-    // console.log("date", dateCreated.value);
-    // console.log("date now", now);
     const now = new Date();
 
     checkTimeRange();

@@ -6,7 +6,9 @@ import axios from "axios";
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import Swal from "sweetalert2";
 import { useShopData } from "../composables/useShopData";
+import { MoonLoader } from "vue3-spinner";
 
+const isLoading = ref(false);
 import navbar from "../components/studentNavBar.vue";
 const { clearStateData } = useShopData();
 const token = ref(localStorage.getItem("studtoken"));
@@ -95,7 +97,7 @@ const checkLevelUp = async () => {
 };
 
 const fetchStudent = async () => {
-  // Make the API request when the component is mounted
+  isLoading.value = true;
   try {
     await fetchImage();
     const getStudent = await axios.get(`${baseURL}/api/student/getStudent/`, {
@@ -107,7 +109,9 @@ const fetchStudent = async () => {
 
     await fetchLevelThreshold();
     studentData.value = getStudent.data;
+    isLoading.value = false;
   } catch (error) {
+    isLoading.value = false;
     console.error("Error getting data:", error);
   }
 };
@@ -495,12 +499,12 @@ const showQRCodeAndStartTimer = async () => {
 <template>
   <div class="bg-2">
     <navbar />
-    <div>
-      <div class="container-fluid" style="padding-top: 80px">
-        <div class="row"><div class="col-4"></div></div>
-      </div>
+
+    <div v-if="loading || isLoading" class="loading-overlay">
+      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
     </div>
-    <div class="container-fluid mt-3">
+
+    <div v-else class="container-fluid" style="padding-top: 85px">
       <div class="row">
         <div class="col-xxl-2 order-1"></div>
 

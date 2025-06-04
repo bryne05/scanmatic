@@ -6,7 +6,10 @@ import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 import { useShopData } from "../composables/useShopData";
 import { useSubjectData } from "../composables/useSubjectData";
+import navbar from "../components/professorNavBar.vue";
+import { MoonLoader } from "vue3-spinner";
 
+const isLoading = ref(false);
 const { clearStateDataProfessor } = useShopData();
 const { clearStateSubject } = useSubjectData();
 const router = useRouter();
@@ -40,6 +43,7 @@ const updatePassword = async () => {
 
   if (confirmationResult.isConfirmed) {
     if (newPass.value === confirmPass.value) {
+      isLoading.value = true;
       try {
         const response = await axios.put(
           `${baseURL}/api/professor/updateProfessorPassword/`,
@@ -53,6 +57,7 @@ const updatePassword = async () => {
         );
 
         if (response.status === 200) {
+          isLoading.value = false;
           Swal.fire({
             title: "Success",
             text: "Password updated successfully",
@@ -63,6 +68,7 @@ const updatePassword = async () => {
           confirmPass.value = "";
         }
       } catch (error) {
+        isLoading.value = false;
         console.error("Error updating password:", error);
         Swal.fire({
           title: "Error",
@@ -71,6 +77,7 @@ const updatePassword = async () => {
         });
       }
     } else {
+      isLoading.value = false;
       Swal.fire({
         title: "Error",
         text: "The passwords do not match. Please try again.",
@@ -91,6 +98,7 @@ const updateProfessor = async () => {
   });
 
   if (confirmationResult.isConfirmed) {
+    isLoading.value = true;
     try {
       const updatedData = {
         first_name: firstName.value || profData.value.first_name,
@@ -110,23 +118,13 @@ const updateProfessor = async () => {
       );
 
       if (response.status === 200) {
+        await getProfessor();
+        isLoading.value = false;
         Swal.fire({
           title: "Success",
           text: "Profile updated successfully",
           icon: "success",
         });
-
-        const updatedProfessor = await axios.get(
-          `${baseURL}/api/professor/getProfessor/`,
-          {
-            headers: {
-              proftoken: `${proftoken}`,
-              "ngrok-skip-browser-warning": "69420",
-            },
-          }
-        );
-
-        profData.value = updatedProfessor.data;
 
         firstName.value = "";
         middleName.value = "";
@@ -150,8 +148,9 @@ const updateProfessor = async () => {
   }
 };
 
-onMounted(async () => {
+const getProfessor = async () => {
   try {
+    isLoading.value = true;
     const getProfessor = await axios.get(
       `${baseURL}/api/professor/getProfessor/`,
       {
@@ -161,10 +160,15 @@ onMounted(async () => {
         },
       }
     );
+    isLoading.value = false;
     profData.value = getProfessor.data;
   } catch (error) {
+    isLoading.value = false;
     console.error("Error getting data:", error);
   }
+};
+onMounted(async () => {
+  await getProfessor();
 });
 
 const logout = async () => {
@@ -186,76 +190,67 @@ const logout = async () => {
 </script>
 
 <template>
-  <div>
-    <div class="pos">
-      <nav class="navbar navbar-expand bg-light inv">
-        <a class="navbar-brand left">ScanMatic</a>
-        <div>
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor">
-                Class
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/shop">
-                Incentives
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink
-                class="nav-link pointer curr active"
-                to="/professor/profile"
-              >
-                Profile
-              </RouterLink>
-            </li>
-   <li class="nav-item">
-              <RouterLink class="nav-link pointer curr" to="/professor/event">
-                Events
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <a
-                class="nav-link pointer curr"
-                to="/ZXNzb3IiLCJVfrvonD"
-                style="color: red"
-                @click="logout"
-              >
-                Logout
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </div>
-  </div>
+  <navbar />
 
-  <div v-if="profData" class="container-fluid text-start">
-    <div class="white-bg">
-      <h1 class="mt-2 mb-2 text-center">Professor Profile</h1>
-      <ul class="f-size">
-        <li>First Name: {{ profData.first_name }}</li>
-        <li>Middle Name: {{ profData.middle_name }}</li>
-        <li>Last Name: {{ profData.last_name }}</li>
-      </ul>
-      <div
-        class="mt-5 d-flex justify-content-center align-items-center flex-column"
-      >
-        <button
-          class="btnsyle"
-          data-bs-toggle="modal"
-          data-bs-target="#updateProfessor"
-        >
-          Update Profile
-        </button>
-        <button
-          class="btnsyle2 bg-primary"
-          data-bs-toggle="modal"
-          data-bs-target="#changePassword"
-        >
-          Change Password
-        </button>
+  <div class="bg">
+    <div v-if="loading || isLoading" class="loading-overlay">
+      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+    </div>
+
+    <div v-else class="container">
+      <div class="row">
+        <div class="col-12 d-flex justify-content-center align-items-center">
+          <div v-if="profData" class="text-start">
+            <div class="white-bg p-5 shadow">
+              <div class="row">
+                <div
+                  class="col-xl-6 col-12 d-flex justify-content-xl-start justify-content-center align-items-center"
+                >
+                  <h1>PROFESSOR PROFILE</h1>
+                </div>
+                <div
+                  class="col-xl-6 col-12 d-flex justify-content-center align-items-start"
+                >
+                  <img
+                    class="prof"
+                    src="../assets/Prof-Class/professor.png"
+                    alt="professor icon"
+                  />
+                </div>
+              </div>
+
+              <div class="col-12 mt-2">
+                <h4 class="text-start">Full Name</h4>
+                <div class="text-box border d-flex p-2">
+                  <p>
+                    <img src="../assets/Home/User.png" alt="user icon" />
+                    {{ profData.first_name }}
+                    {{ profData.middle_name }}
+                    {{ profData.last_name }}
+                  </p>
+                </div>
+              </div>
+              <div
+                class="mt-5 d-flex justify-content-center align-items-center flex-column"
+              >
+                <button
+                  class="btnsyle"
+                  data-bs-toggle="modal"
+                  data-bs-target="#updateProfessor"
+                >
+                  Update Profile
+                </button>
+                <button
+                  class="btnsyle2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#changePassword"
+                >
+                  Change Password
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -334,6 +329,7 @@ const logout = async () => {
       </div>
     </div>
   </div>
+
   <!-- Change Password -->
   <div
     class="modal fade"
@@ -397,6 +393,24 @@ const logout = async () => {
 </template>
 
 <style scoped>
+.text-box img {
+  width: 30px;
+  height: 30px;
+}
+
+p {
+  margin: 0;
+}
+.prof {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: black 5px solid;
+  padding: 10px;
+}
+.container {
+  padding-top: 80px;
+}
 .text {
   margin-top: 100px;
   color: white;
@@ -408,13 +422,29 @@ const logout = async () => {
   width: 335px;
   height: 44px;
   border-radius: 5px;
+  border: black 2px solid;
   transition: background-color 0.3s ease-in, color 0.3s ease-in;
 }
 
 .btnsyle:hover {
   background-color: white;
   color: black;
-  border-color: black;
+}
+
+.btnsyle2 {
+  background-color: white;
+  color: black;
+  width: 335px;
+  height: 44px;
+  border-radius: 5px;
+  border: black 2px solid;
+  transition: 0.3s ease-in-out;
+}
+
+.btnsyle2:hover {
+  background-color: rgb(69, 69, 69) !important;
+  color: white;
+  border: rgb(69, 69, 69) 2px solid;
 }
 
 .white-bg {
@@ -442,6 +472,11 @@ const logout = async () => {
   }
 }
 
+@media (max-width: 1199px) {
+  .white-bg {
+    height: 80svh;
+  }
+}
 @media (max-width: 436px) {
   .btnsyle {
     width: 110px;

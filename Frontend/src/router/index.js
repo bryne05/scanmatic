@@ -12,6 +12,8 @@ import StudentShop from "../views/studentShop.vue";
 import StudentProfile from "../views/studentProfile.vue";
 import StudentTransaction from "../views/studentTransaction.vue";
 import AttendanceDetails from "../views/studentAttendanceDetails.vue";
+import StudentLeaderboard from "../views/studentLeaderboard.vue";
+
 //Professor
 import ProfessorLogin from "../views/LoginViewProf.vue";
 import Professor from "../views/professor.vue";
@@ -21,11 +23,12 @@ import ProfessorTransaction from "../views/professorTransaction.vue";
 import ProfessorSession from "../components/professorSession.vue";
 import ProfessorEventSession from "../components/professorEventSession.vue";
 import ProfessorRecycleSession from "../components/classRecycleBin.vue";
+import ProfessorEventRecycleSession from "../components/classRecycleBin.vue";
 import ProfessorStudentParticipation from "../views/professorStudentParticipation.vue";
 import ProfessorEvents from "../views/professorEvent.vue";
 import EventQr from "../components/eventQR.vue";
 
-//admin
+//Admin
 import LoginAdmin from "../views/LoginAdmin.vue";
 import AdminDashboard from "../views/adminDashboard.vue";
 import AdminStudentDashboard from "../views/adminStudentDashboard.vue";
@@ -111,9 +114,14 @@ const routes = [
     component: StudentProfile,
   },
   {
-    path: "/student/transaction",
+    path: "/student/shop/transaction",
     name: "StudentTransaction",
     component: StudentTransaction,
+  },
+  {
+    path: "/student/leaderboard",
+    name: "StudentLeaderboard",
+    component: StudentLeaderboard,
   },
   {
     path: "/professor",
@@ -142,7 +150,7 @@ const routes = [
     props: true,
   },
   {
-    path: "/professor/session/:subjectID/:subjectName/:startTime/:endTime",
+    path: "/professor/event/session/:subjectID/:subjectName/:startTime/:endTime",
     name: "ProfessorEventSession",
     component: ProfessorEventSession,
     props: true,
@@ -150,6 +158,12 @@ const routes = [
   {
     path: "/professor/RecycleSession/:subjectID/:subjectName/:programlevel",
     name: "ProfessorRecycleSession",
+    component: ProfessorRecycleSession,
+    props: true,
+  },
+  {
+    path: "/professor/event/RecycleSession/:subjectID/:subjectName/:programlevel",
+    name: "ProfessorEventRecycleSession",
     component: ProfessorRecycleSession,
     props: true,
   },

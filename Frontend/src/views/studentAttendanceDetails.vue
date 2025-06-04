@@ -1,9 +1,11 @@
 <template>
   <navbar />
-  <div
-   class="bg-2"
-  >
+  <div class="bg-2">
+    <div v-if="loading || isLoading" class="loading-overlay">
+      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+    </div>
     <div
+      v-else
       class="container col-12 d-flex flex-column justify-content-center align-items-center"
       style="padding-top: 100px"
     >
@@ -58,7 +60,9 @@ import { baseURL } from "../config";
 import { ref, onMounted } from "vue";
 import Swal from "sweetalert2";
 import navbar from "../components/studentNavBar.vue";
+import { MoonLoader } from "vue3-spinner";
 
+const isLoading = ref(false);
 const token = localStorage.getItem("studtoken");
 
 const router = useRouter();
@@ -68,6 +72,7 @@ const studentSubjectName = ref([]);
 const subjectStreaks = ref({});
 
 onMounted(async () => {
+  isLoading.value = true;
   try {
     const getStudentClassAndSubject = await axios.get(
       `${baseURL}/api/student/getStudentClassAndSubject`,
@@ -85,7 +90,9 @@ onMounted(async () => {
       getStudentClassAndSubject.data.studentSubjectName;
 
     calculateAllSubjectStreaks();
+      isLoading.value = false;
   } catch (error) {
+      isLoading.value = false;
     console.error("Error fetching student data:", error);
   }
 });
