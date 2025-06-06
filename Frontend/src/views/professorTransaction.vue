@@ -6,7 +6,7 @@
       <moon-loader :loading="loading || isLoading" color="white" size="150px" />
     </div>
 
-    <div v-else class="container">
+    <div class="container">
       <div class="row">
         <div class="col-12 text-center mb-3">
           <h1>REDEEMED INCENTIVES</h1>
@@ -364,9 +364,9 @@ const approveTransaction = async (transactionID) => {
     });
 
     if (result.isConfirmed) {
-        isLoading.value = true;
+      isLoading.value = true;
 
-      const approve = await axios.put(
+      const approve = await axios.post(
         `${baseURL}/api/professor/verifyTransaction`,
         { transaction_id: transactionID },
         {
@@ -385,17 +385,17 @@ const approveTransaction = async (transactionID) => {
                 : transaction
             )
         );
-          isLoading.value = false;
+        isLoading.value = false;
 
         Swal.fire("Approved!", "The incentive has been verified.", "success");
       } else {
-          isLoading.value = false;
+        isLoading.value = false;
 
         Swal.fire("Error!", "Failed to approve incentive.", "error");
       }
     }
   } catch (error) {
-      isLoading.value = false;
+    isLoading.value = false;
 
     console.error("Error verifying transaction:", error);
     Swal.fire(
@@ -405,8 +405,6 @@ const approveTransaction = async (transactionID) => {
     );
   }
 };
-
-
 </script>
 
 <style scoped>

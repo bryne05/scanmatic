@@ -25,7 +25,20 @@ tr {
   font-family: Outfit-bold;
 }
 
+.btn-return {
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.5s;
+  border: black 2px solid;
+}
 
+.btn-return img {
+  width: 40px;
+  height: 50px !important ;
+}
+.btn-return:hover {
+  scale: 1.1;
+}
 
 .input-slot-image {
   width: 20px;

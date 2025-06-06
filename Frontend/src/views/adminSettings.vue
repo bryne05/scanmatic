@@ -1,35 +1,43 @@
 <template>
-  <div class="container-1 col-12 d-flex justify-content-end">
-    <button type="button" class="logout btn btn-danger" @click="logout">
-      Logout
-    </button>
-  </div>
-
-  <h1>Settings</h1>
-  <div class="return">
-    <button class="btn-return" @click="back">
-      <img src="../assets/return.png" alt="" width="28" height="40" />
-    </button>
-  </div>
-  <br />
-  <div class="container">
-    <div class="row d-flex align-items-center">
-      <div class="col-6">
-        <h3 style="color: white">Level Threshold: {{ levelThreshold }}</h3>
+  <div class="bg">
+    <div v-if="loading || isLoading" class="loading-overlay">
+      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-6">
+          <button class="btn-return" @click="back">
+            <img src="../assets/return.png" alt="" width="28" height="40" />
+          </button>
+        </div>
+        <div class="col-6 text-end">
+          <button type="button" class="logout btn btn-danger" @click="logout">
+            Logout
+          </button>
+        </div>
+        <h1 class="text-center mb-4">Settings</h1>
       </div>
-      <div class="col-6 d-flex justify-content-start gap-2">
-        <label for="level-threshold">Level Threshold</label>
-        <input
-          type="number"
-          class="form-control"
-          id="level-threshold"
-          v-model="newlevelThreshold"
-          style="mar"
-        />
 
-        <button class="btn btn-primary" @click="updateLevelThreshold">
-          Update
-        </button>
+      <div class="row">
+        <div class="col-xl-6 col-12">
+          <h3>Current Level Threshold: {{ levelThreshold }}</h3>
+        </div>
+        <div
+          class="col-xl-6 col-12 d-flex justify-content-start gap-2 align-items-center"
+        >
+          <label for="level-threshold"><b>Level Threshold</b></label>
+          <input
+            type="number"
+            class="form-control"
+            id="level-threshold"
+            v-model="newlevelThreshold"
+            placeholder="set new level threshold"
+          />
+
+          <button class="btn btn-primary" @click="updateLevelThreshold">
+            Update
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -42,7 +50,9 @@ import Swal from "sweetalert2";
 import { baseURL } from "../config";
 import axios from "axios";
 const router = useRouter();
+import { MoonLoader } from "vue3-spinner";
 
+const isLoading = ref(false);
 const token = localStorage.getItem("admintoken");
 const newlevelThreshold = ref("");
 const levelThreshold = ref("");
@@ -74,6 +84,7 @@ const updateLevelThreshold = async () => {
     });
 
     if (confirmationResult.isConfirmed) {
+      isLoading.value = true;
       const response = await axios.put(
         `${baseURL}/api/admin/updateLevelThreshold`,
         { level_threshold: newlevelThreshold.value },
@@ -86,6 +97,7 @@ const updateLevelThreshold = async () => {
       );
 
       if (response.status === 200) {
+        isLoading.value = false;
         Swal.fire({
           title: "Success",
           text: "Level Threshold updated successfully",
@@ -97,6 +109,7 @@ const updateLevelThreshold = async () => {
       }
     }
   } catch (error) {
+    isLoading.value = false;
     console.error("Error updating level threshold:", error);
     Swal.fire({
       title: "Error",
@@ -107,6 +120,7 @@ const updateLevelThreshold = async () => {
 };
 
 const fetchLevelThreshold = async () => {
+  isLoading.value = true;
   try {
     const response = await axios.get(`${baseURL}/api/admin/getLevelThreshold`, {
       headers: {
@@ -116,7 +130,10 @@ const fetchLevelThreshold = async () => {
     });
 
     levelThreshold.value = response.data.level_threshold;
+    console.log(levelThreshold.value);
+    isLoading.value = false;
   } catch (error) {
+    isLoading.value = false;
     console.error("Error fetching professor", error);
   }
 };
@@ -135,78 +152,8 @@ const back = async () => {
 </script>
 <style scoped>
 .form-control {
-  width: 100px !important;
+  width: 300px !important;
 }
-/* Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.container {
-  margin-top: 90px;
-}
-
-.col-12 {
-  width: auto;
-}
-.card-col {
-  width: 1000px;
-  max-height: 600px;
-  padding: 20px;
-}
-
-.my-card {
-  height: 200px;
-  width: 300px;
-  background-color: white;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: 0.3s;
-  position: inherit;
-}
-
-.my-card:hover {
-  scale: 1.03;
-}
-h1 {
-  margin-top: 50px;
-  color: white;
-}
-.return {
-  position: relative;
-  z-index: 999;
-  display: flex;
-  margin-top: 30px;
-  margin-bottom: -80px;
-}
-.btn-return {
-  background-color: white;
-  border-radius: 50%;
-  transition: 0.5s;
-  border: none;
-}
-
-.btn-return:hover {
-  scale: 1.1;
-}
-.text {
-  margin-top: 100px !important;
-  max-width: fit-content;
-  max-height: 650px;
-  overflow-y: auto;
-  margin-top: 50px;
-  color: white;
-}
-.tr {
-  position: relative;
-}
-
-.card:hover {
-  scale: 1.03;
-}
-
 .btn {
   padding-top: 10px;
   padding-bottom: 10px;
@@ -214,69 +161,16 @@ h1 {
   padding-left: 30px;
   border-radius: 15px;
 }
-.container-1 {
-  z-index: 999 !important;
-  margin-left: 500px;
-  position: relative !important;
+label {
+  font-size: 20px !important;
 }
-
-@media (max-width: 900px) {
-  .container-1 {
-    margin-left: 0;
-  }
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
-@media (max-width: 1856px) {
-  .container-1 {
-    margin-left: 400px;
-  }
-}
-@media (max-width: 1650px) {
-  .container-1 {
-    margin-left: 300px;
-  }
-}
-@media (max-width: 1470px) {
-  .container-1 {
-    margin-left: 250px;
-  }
-}
-@media (max-width: 1350px) {
-  .container-1 {
-    margin-left: 200px;
-  }
-}
-@media (max-width: 1250px) {
-  .container-1 {
-    margin-left: 150px;
-  }
-}
-@media (max-width: 1150px) {
-  .container-1 {
-    margin-left: 100px;
-  }
-}
-@media (max-width: 1050px) {
-  .container-1 {
-    margin-left: 50px;
-  }
-  .card-col {
-    width: 650px;
-  }
-}
-@media (max-width: 950px) {
-  .container-1 {
-    margin-left: 20px;
-  }
-}
-
-@media (max-width: 768px) {
-  .card-col {
-    width: 330px;
-  }
-}
-@media (max-width: 612px) {
-  .text {
-    max-width: 400px !important;
-  }
+.container {
+  padding-top: 30px;
 }
 </style>

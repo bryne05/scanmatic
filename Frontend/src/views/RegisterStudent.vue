@@ -1,5 +1,10 @@
 <template>
+  <div v-if="loading || isLoading" class="loading-overlay">
+    <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+  </div>
+
   <div
+    v-else
     class="container-fluid d-flex justify-content-center align-items-center text-center"
   >
     <div class="">
@@ -92,7 +97,6 @@
           </div>
         </form>
       </div>
-     
     </div>
 
     <Teleport to="body">
@@ -145,6 +149,10 @@ import axios from "axios";
 import { RouterLink, useRouter } from "vue-router";
 import Swal from "sweetalert2";
 
+import { MoonLoader } from "vue3-spinner";
+
+const isLoading = ref(false);
+
 import Box from "../components/box.vue";
 
 const router = useRouter();
@@ -167,6 +175,7 @@ const showOtpModal = ref(false);
 const resendAvailable = ref(false);
 const resendCountdown = ref("Resend in 5:00");
 let countdownInterval;
+
 const handleInput = (index, event) => {
   const input = event.target;
   let value = input.value;
@@ -225,11 +234,14 @@ const handlePaste = (event) => {
 };
 
 const resendOTP = async () => {
+  isLoading.value = true;
   try {
     const response = await axios.post(`${baseURL}/api/student/sendOTP`, {
       email: registrationData.email,
     });
     if (response.status === 200) {
+      isLoading.value = false;
+
       Swal.fire(
         "Success",
         response.data.message || "Failed to send OTP.",
@@ -244,9 +256,11 @@ const resendOTP = async () => {
       resendCountdown.value = "Resend in 5:00";
       startResendCountdown();
     } else {
+      isLoading.value = false;
       otpError.value = response.data.message || "Failed to resend OTP.";
     }
   } catch (error) {
+    isLoading.value = false;
     Swal.fire("Error", response.data.message || "Failed to send OTP.", "error");
   }
 };
@@ -254,7 +268,7 @@ const submitForm = async () => {
   if (submitForm.isSubmitting) {
     return; // Do nothing if already submitting
   }
-
+  isLoading.value = true;
   submitForm.isSubmitting = true;
   // Basic form validation
   const { otp, ...registrationDataWithoutOTP } = registrationData;
@@ -278,6 +292,7 @@ const submitForm = async () => {
     });
 
     if (response.status === 200) {
+      isLoading.value = false;
       showOtpModal.value = true;
       startResendCountdown(); // Show the custom modal
     } else {
@@ -288,12 +303,14 @@ const submitForm = async () => {
       );
     }
   } catch (error) {
+    isLoading.value = false;
     Swal.fire("Error", "Failed to send OTP. Please try again.", "error");
     console.error("OTP sending error:", error);
   }
 };
 
 const closeOtpModal = () => {
+  isLoading.value = false;
   showOtpModal.value = false;
   otpInputs.value.forEach((input) => (input.value = "")); // Clear OTP inputs
   otpError.value = null;
@@ -302,7 +319,7 @@ const closeOtpModal = () => {
 const registerStudent = async () => {
   const enteredOTP = otpInputs.value.map((input) => input.value).join("");
   registrationData.otp = enteredOTP;
-
+  isLoading.value = true;
   try {
     const registerStudent = await axios.post(
       `${baseURL}/api/student/registerStudent`,
@@ -320,16 +337,19 @@ const registerStudent = async () => {
     );
 
     if (registerStudent.status === 200) {
+      isLoading.value = false;
       Swal.fire("Success!", "Registration successful.", "success");
       setTimeout(() => {
         router.push("/");
       }, 1600);
     } else {
+      isLoading.value = false;
       const errorMessage =
         registerStudent.response?.data?.message || "Registration failed.";
       Swal.fire("Error!", errorMessage, "error");
     }
   } catch (error) {
+    isLoading.value = false;
     const errorMessage =
       error.response?.data?.message || "Registration failed.";
     Swal.fire("Error!", errorMessage, "error");

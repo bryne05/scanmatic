@@ -132,6 +132,7 @@ const uploadImage = async () => {
   formData.append("image", imageFile.value);
 
   try {
+    isLoading.value = true;
     // Send the image to the server (replace with your API URL)
     const response = await axios.post(
       `${baseURL}/api/student/studentImgUpload`,
@@ -146,9 +147,11 @@ const uploadImage = async () => {
 
     if (response.status === 200) {
       console.log("Image uploaded successfully!");
-      fetchImage();
+      await fetchImage();
+      isLoading.value = false;
     }
   } catch (error) {
+    isLoading.value = false;
     console.error("Error uploading image:", error);
   }
 };

@@ -63,12 +63,12 @@ const submitForm = async (event) => {
 </script>
 
 <template>
-  <div class="container-fluid d-flex flex-column">
+  <div class="container-fluid d-flex flex-column justify-content-center align-items-center pt-5">
     <Box />
 
     <div class="row white-bg">
-      <div class="col-2"></div>
-      <div class="col-md-8">
+      <div class="col-xl-2"></div>
+      <div class="col-xl-8">
         <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
         <h4 class="text-center inv">Hello Admin!</h4>
         <form @submit.prevent="submitForm" class="text-start mx-5">
@@ -91,7 +91,7 @@ const submitForm = async (event) => {
           </div>
         </form>
       </div>
-      <div class="col-2"></div>
+      <div class="col-xl-2"></div>
     </div>
   </div>
 </template>

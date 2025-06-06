@@ -1,18 +1,25 @@
 <script setup>
 import { useRouter } from "vue-router";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import Swal from "sweetalert2";
 import { baseURL } from "../config";
-import axios from "axios";
+import axios, { all } from "axios";
+
 const router = useRouter();
+import { MoonLoader } from "vue3-spinner";
+
+const isLoading = ref(false);
 
 const token = localStorage.getItem("admintoken");
 
 const allStudent = ref([]);
+const searchQuery = ref("");
+const sortByProgram = ref(""); // To store the selected program for sorting
+const sortByValidated = ref(""); // To store the validated status for sorting
 
 const validateStudent = async (data) => {
   const result = await Swal.fire({
-    title: "Do you want to approve this Professor?",
+    title: "Do you want to approve this Student?", // Changed from Professor to Student
     icon: "question",
     showCancelButton: true,
     confirmButtonText: "Yes",
@@ -27,7 +34,6 @@ const validateStudent = async (data) => {
         `${baseURL}/api/admin/validateStudent/${stud_id}`,
         null,
         {
-          // Use PATCH for updates
           headers: {
             admintoken: `${token}`,
             "ngrok-skip-browser-warning": "69420",
@@ -51,10 +57,10 @@ const validateStudent = async (data) => {
       } else {
         Swal.fire({
           title: "Error",
-          text: response.data.message || "Failed to approve student", // Show error message from API if available
+          text: response.data.message || "Failed to approve student",
           icon: "error",
         });
-        console.error("API Error:", response.data); // Log the error for debugging
+        console.error("API Error:", response.data);
       }
     } catch (error) {
       Swal.fire({
@@ -66,6 +72,7 @@ const validateStudent = async (data) => {
     }
   }
 };
+
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",
@@ -82,6 +89,7 @@ const logout = async () => {
 };
 
 onMounted(async () => {
+  isLoading.value = true;
   try {
     const response = await axios.get(`${baseURL}/api/admin/getAllStudent`, {
       headers: {
@@ -91,7 +99,10 @@ onMounted(async () => {
     });
 
     allStudent.value = response.data.students;
+    console.log(allStudent.value);
+    isLoading.value = false;
   } catch (error) {
+    isLoading.value = false;
     console.error("Error fetching student transactions:", error);
   }
 });
@@ -117,6 +128,7 @@ const resetPassword = async (
     });
 
     if (resetPass.isConfirmed) {
+      isLoading.value = true;
       const reset = await axios.post(
         `${baseURL}/api/admin/resetStudentPassword/${stud_id}`,
         {},
@@ -129,6 +141,7 @@ const resetPassword = async (
       );
 
       if (reset.status === 200) {
+        isLoading.value = false;
         Swal.fire({
           title: "Success",
           text: "The password has been reset successfully.",
@@ -137,6 +150,7 @@ const resetPassword = async (
       }
     }
   } catch (error) {
+    isLoading.value = false;
     console.error("Error resetting password", error);
     Swal.fire({
       title: "Error",
@@ -167,9 +181,9 @@ const deleteStudent = async (
     });
 
     if (deleteStudent.isConfirmed) {
+      isLoading.value = true;
       const deleteStud = await axios.delete(
         `${baseURL}/api/admin/deleteStudent/${stud_id}`,
-
         {
           headers: {
             adminToken: `${token}`,
@@ -187,7 +201,7 @@ const deleteStudent = async (
         });
 
         allStudent.value = response.data.students;
-
+        isLoading.value = false;
         Swal.fire({
           title: "Success",
           text: "Student has been deleted",
@@ -196,6 +210,7 @@ const deleteStudent = async (
       }
     }
   } catch (error) {
+    isLoading.value = false;
     console.error("Error deleting student", error);
     Swal.fire({
       title: "Error",
@@ -208,140 +223,206 @@ const deleteStudent = async (
 const back = async () => {
   router.back();
 };
+
+const filteredStudents = computed(() => {
+  let students = allStudent.value;
+
+  // Filter by search query
+  if (searchQuery.value) {
+    const searchLower = searchQuery.value.toLowerCase().trim(); // Trim whitespace from search query
+
+    students = students.filter((student) => {
+      // Create a full name string, converting all parts to lowercase and handling potential null/undefined names
+      const fullName = `${student.first_name || ''} ${student.middle_name || ''} ${student.last_name || ''}`.toLowerCase();
+
+      // Check if the normalized full name includes the normalized search query
+      return fullName.includes(searchLower);
+    });
+  }
+
+  // Filter by program level
+  if (sortByProgram.value) {
+    students = students.filter(
+      (student) => student.courseYearSection === sortByProgram.value
+    );
+  }
+
+  // Filter by validated status
+  if (sortByValidated.value !== "") {
+    const targetStatus = sortByValidated.value === "true";
+    students = students.filter(
+      (student) => student.isValidated === targetStatus
+    );
+  }
+
+  return students;
+});
 </script>
 
 <template>
-  <div class="container-1 col-12 d-flex justify-content-end">
-    <button type="button" class="logout btn btn-danger" @click="logout">
-      Logout
-    </button>
-  </div>
+  <div class="bg">
+    <div v-if="loading || isLoading" class="loading-overlay">
+      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+    </div>
+    <div v-else class="container">
+      <div class="row">
+        <div class="col-6">
+          <button class="btn-return" @click="back">
+            <img src="../assets/return.png" alt="" width="28" height="40" />
+          </button>
+        </div>
+        <div class="col-6 text-end">
+          <button type="button" class="btn btn-danger" @click="logout">
+            Logout
+          </button>
+        </div>
 
-  <h1>Student List</h1>
-  <div class="return">
-    <button class="btn-return" @click="back">
-      <img src="../assets/return.png" alt="" width="28" height="40" />
-    </button>
-  </div>
+        <div class="col-12 pt-3 text-center pd-3"><h1>STUDENT LIST</h1></div>
 
-  <div class="text text-center">
-    <div class="table-responsive">
-      <table class="table">
-        <thead>
-          <tr class="tr">
-            <th scope="col">First Name</th>
-            <th scope="col">Middle Name</th>
-            <th scope="col">Last Name</th>
-            <th scope="col">Program Level</th>
-            <th scope="col">Validate</th>
-            <th scope="col">Reset Password</th>
-            <th scope="col">Delete Student</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="students in allStudent" :key="students.stud_id">
-            <td>{{ students.first_name }}</td>
-            <td>{{ students.middle_name }}</td>
-            <td>{{ students.last_name }}</td>
-            <td>{{ students.courseYearSection }}</td>
-            <td>
-              <button
-                class="btn btn-success"
-                v-if="!students.isValidated"
-                @click="validateStudent(students.stud_id)"
-              >
-                Approve
-              </button>
-              <span v-else>Approved</span>
-            </td>
-            <td>
-              <button
-                class="btn btn-primary"
-                @click="
-                  resetPassword(
-                    students.stud_id,
-                    students.first_name,
-                    students.middle_name,
-                    students.last_name,
-                    students.courseYearSection
-                  )
-                "
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  class="bi bi-bootstrap-reboot"
-                  viewBox="0 0 16 16"
+        <div class="col-12 mb-3">
+          <div class="row">
+            <div class="col-md-4">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search by name..."
+                v-model="searchQuery"
+              />
+            </div>
+            <div class="col-md-4">
+              <select class="form-select" v-model="sortByProgram">
+                <option value="">Sort by Program Level</option>
+                <option
+                  v-for="program in [
+                    ...new Set(allStudent.map((s) => s.courseYearSection)),
+                  ].sort()"
+                  :key="program"
+                  :value="program"
                 >
-                  <path
-                    d="M1.161 8a6.84 6.84 0 1 0 6.842-6.84.58.58 0 1 1 0-1.16 8 8 0 1 1-6.556 3.412l-.663-.577a.58.58 0 0 1 .227-.997l2.52-.69a.58.58 0 0 1 .728.633l-.332 2.592a.58.58 0 0 1-.956.364l-.643-.56A6.8 6.8 0 0 0 1.16 8z"
-                  />
-                  <path
-                    d="M6.641 11.671V8.843h1.57l1.498 2.828h1.314L9.377 8.665c.897-.3 1.427-1.106 1.427-2.1 0-1.37-.943-2.246-2.456-2.246H5.5v7.352zm0-3.75V5.277h1.57c.881 0 1.416.499 1.416 1.32 0 .84-.504 1.324-1.386 1.324z"
-                  />
-                </svg>
-              </button>
-            </td>
-            <td>
-              <button
-                class="btn btn-danger"
-                @click="
-                  deleteStudent(
-                    students.stud_id,
-                    students.first_name,
-                    students.middle_name,
-                    students.last_name,
-                    students.courseYearSection
-                  )
-                "
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  class="bi bi-person-dash"
-                  viewBox="0 0 16 16"
+                  {{ program }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <select class="form-select" v-model="sortByValidated">
+                <option value="">Sort by Validation Status</option>
+                <option value="true">Approved</option>
+                <option value="false">Not Approved</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr class="tr text-center">
+                  <th scope="col">STUDENT NAME</th>
+                  <th scope="col">PROGRAM LEVEL</th>
+                  <th scope="col">VALIDATE</th>
+                  <th scope="col">RESET PASSWORD</th>
+                  <th scope="col">REMOVE STUDENT</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="students in filteredStudents"
+                  :key="students.stud_id"
+                  class="text-center"
                 >
-                  <path
-                    d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M11 12h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1m0-7a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4"
-                  />
-                  <path
-                    d="M8.256 14a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"
-                  />
-                </svg>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                  <td class="text-start">
+                    {{ students.first_name }} {{ students.middle_name }}
+                    {{ students.last_name }}
+                  </td>
+
+                  <td>{{ students.courseYearSection }}</td>
+                  <td>
+                    <button
+                      class="btn btn-success"
+                      v-if="!students.isValidated"
+                      @click="validateStudent(students.stud_id)"
+                    >
+                      Approve
+                    </button>
+                    <span v-else>Approved</span>
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-primary"
+                      @click="
+                        resetPassword(
+                          students.stud_id,
+                          students.first_name,
+                          students.middle_name,
+                          students.last_name,
+                          students.courseYearSection
+                        )
+                      "
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        class="bi bi-bootstrap-reboot"
+                        viewBox="0 0 16 16"
+                      >
+                        <path
+                          d="M1.161 8a6.84 6.84 0 1 0 6.842-6.84.58.58 0 1 1 0-1.16 8 8 0 1 1-6.556 3.412l-.663-.577a.58.58 0 0 1 .227-.997l2.52-.69a.58.58 0 0 1 .728.633l-.332 2.592a.58.58 0 0 1-.956.364l-.643-.56A6.8 6.8 0 0 0 1.16 8z"
+                        />
+                        <path
+                          d="M6.641 11.671V8.843h1.57l1.498 2.828h1.314L9.377 8.665c.897-.3 1.427-1.106 1.427-2.1 0-1.37-.943-2.246-2.456-2.246H5.5v7.352zm0-3.75V5.277h1.57c.881 0 1.416.499 1.416 1.32 0 .84-.504 1.324-1.386 1.324z"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-danger"
+                      @click="
+                        deleteStudent(
+                          students.stud_id,
+                          students.first_name,
+                          students.middle_name,
+                          students.last_name,
+                          students.courseYearSection
+                        )
+                      "
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        class="bi bi-person-dash"
+                        viewBox="0 0 16 16"
+                      >
+                        <path
+                          d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M11 12h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1m0-7a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4"
+                        />
+                        <path
+                          d="M8.256 14a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-h1 {
-  margin-top: 50px;
-  color: white;
+.table-responsive {
+  max-height: 700px !important;
 }
-.return {
-  position: relative;
-  z-index: 999;
-  display: flex;
-  margin-top: 30px;
-  margin-bottom: -80px;
-}
-.btn-return {
-  background-color: white;
-  border-radius: 50%;
-  transition: 0.5s;
-  border: none;
-}
-
-.btn-return:hover {
-  scale: 1.1;
+.container {
+  padding-top: 30px;
 }
 .text {
   margin-top: 100px !important;
@@ -370,57 +451,5 @@ h1 {
   z-index: 999 !important;
   margin-left: 500px;
   position: relative !important;
-}
-
-@media (max-width: 900px) {
-  .container-1 {
-    margin-left: 0;
-  }
-}
-@media (max-width: 1856px) {
-  .container-1 {
-    margin-left: 400px;
-  }
-}
-@media (max-width: 1650px) {
-  .container-1 {
-    margin-left: 300px;
-  }
-}
-@media (max-width: 1470px) {
-  .container-1 {
-    margin-left: 250px;
-  }
-}
-@media (max-width: 1350px) {
-  .container-1 {
-    margin-left: 200px;
-  }
-}
-@media (max-width: 1250px) {
-  .container-1 {
-    margin-left: 150px;
-  }
-}
-@media (max-width: 1150px) {
-  .container-1 {
-    margin-left: 100px;
-  }
-}
-@media (max-width: 1050px) {
-  .container-1 {
-    margin-left: 50px;
-  }
-}
-@media (max-width: 950px) {
-  .container-1 {
-    margin-left: 20px;
-  }
-}
-
-@media (max-width: 612px) {
-  .text {
-    max-width: 400px !important;
-  }
 }
 </style>
