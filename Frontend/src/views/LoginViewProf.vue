@@ -72,50 +72,52 @@ const submitForm = async () => {
 </script>
 
 <template>
-  <div v-if="loading || isLoading" class="loading-overlay">
-    <moon-loader :loading="loading || isLoading" color="white" size="150px" />
-  </div>
+  <div class="bg-login">
+    <div v-if="loading || isLoading" class="loading-overlay">
+      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+    </div>
 
-  <div
-    v-else
-    class="container-fluid d-flex justify-content-center align-items-center flex-column pt-5"
-  >
-    <Box />
+    <div
+  
+      class="container-fluid d-flex justify-content-center align-items-center flex-column pt-5"
+    >
+      <Box />
 
-    <div class="row white-bg">
-      <div class="col-2"></div>
-      <div class="col-md-8">
-        <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
-        <h4 class="text-center inv">Greetings Professors!!</h4>
-        <form action="" class="text-start mx-5">
-          <label class="fw-bold inv">Username</label>
-          <input
-            v-model="username"
-            type="text"
-            class="form-control cus-border mb-2"
-          />
+      <div class="row white-bg">
+        <div class="col-2"></div>
+        <div class="col-md-8">
+          <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
+          <h4 class="text-center inv">Greetings Professors!!</h4>
+          <form action="" class="text-start mx-5">
+            <label class="fw-bold inv">Username</label>
+            <input
+              v-model="username"
+              type="text"
+              class="form-control cus-border mb-2"
+            />
 
-          <label class="fw-bold inv">Password</label>
-          <input
-            v-model="password"
-            type="password"
-            class="form-control cus-border mb-2"
-          />
-        </form>
-        <div class="text-center py-4">
-          <button @click="submitForm" class="btnsyle mb-2">Sign In</button>
-          <p class="inv">
-            Don't have an account?
-            <RouterLink
-              to="/RegisterProfessor"
-              style="color: black; text-decoration: none; font-weight: bold"
-            >
-              Register Here</RouterLink
-            >
-          </p>
+            <label class="fw-bold inv">Password</label>
+            <input
+              v-model="password"
+              type="password"
+              class="form-control cus-border mb-2"
+            />
+          </form>
+          <div class="text-center py-4">
+            <button @click="submitForm" class="btnsyle mb-2">Sign In</button>
+            <p class="inv">
+              Don't have an account?
+              <RouterLink
+                to="/RegisterProfessor"
+                style="color: black; text-decoration: none; font-weight: bold"
+              >
+                Register Here</RouterLink
+              >
+            </p>
+          </div>
         </div>
+        <div class="col-2"></div>
       </div>
-      <div class="col-2"></div>
     </div>
   </div>
 </template>

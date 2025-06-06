@@ -17,9 +17,7 @@ tr {
   vertical-align: middle;
 }
 
-
-
- h1 {
+h1 {
   font-weight: bold;
   letter-spacing: 2px;
   font-family: Outfit-bold;
@@ -62,7 +60,7 @@ tr {
   flex-direction: column;
   justify-content: center; /* Centers content vertically */
   align-items: center; /* Centers content horizontally */
-  z-index: 4000 !important; /* Ensures it's on top of other elements */
+  z-index: 1050 !important; /* Ensures it's on top of other elements */
 }
 
 .bg {
@@ -80,18 +78,20 @@ tr {
   background-size: cover;
   overflow: "visible";
 }
-body {
+
+.bg-login {
   background-image: url("../src/assets/bg.jpg");
-  background-size: cover; /* This is the key property */
+  background-size: cover !important; /* This is the key property */
   background-repeat: no-repeat;
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  min-height: 100vh !important;
+}
+body {
   margin: 0 !important;
   padding: 0 !important;
 }
 
 html {
-  height: 100%;
   margin: 0;
   padding: 0;
 }

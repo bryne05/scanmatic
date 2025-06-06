@@ -1,5 +1,5 @@
 <template>
-  <div v-if="loading || isLoading" class="loading-overlay">
+ <div class="bg-login"> <div v-if="loading || isLoading" class="loading-overlay">
     <moon-loader :loading="loading || isLoading" color="white" size="150px" />
   </div>
 
@@ -139,7 +139,7 @@
         </div>
       </div>
     </Teleport>
-  </div>
+  </div></div>
 </template>
 
 <script setup>

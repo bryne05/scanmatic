@@ -58,90 +58,95 @@ const submitForm = async () => {
 };
 </script>
 <template>
-  <div class="container-fluid d-flex flex-column justify-content-center align-items-center pt-5">
-    <Box />
-    <div class="row white-bg d-flex justify-content-center align-items-center">
-      <div class="col-2"></div>
-      <div class="col-md-8">
-        <h1 class="text-center fw-bold inv">Hello, Professor!!</h1>
-        <h4 class="text-center inv">Register</h4>
-        <div class="row">
-          <div class="col-6">
-            <form action="" class="text-start">
-              <label class="fw-bold inv">First name</label>
-              <input
-                v-model="firstName"
-                type="text"
-                class="form-control cus-border mb-2"
-                placeholder="Enter your First Name"
-              />
+  <div class="bg-login">
+    <div
+      class="container-fluid d-flex flex-column justify-content-center align-items-center pt-5"
+    >
+      <Box />
+      <div
+        class="row white-bg d-flex justify-content-center align-items-center"
+      >
+        <div class="col-2"></div>
+        <div class="col-md-8">
+          <h1 class="text-center fw-bold inv">Hello, Professor!!</h1>
+          <h4 class="text-center inv">Register</h4>
+          <div class="row">
+            <div class="col-6">
+              <form action="" class="text-start">
+                <label class="fw-bold inv">First name</label>
+                <input
+                  v-model="firstName"
+                  type="text"
+                  class="form-control cus-border mb-2"
+                  placeholder="Enter your First Name"
+                />
 
-              <label class="fw-bold inv">Middle name</label>
-              <input
-                v-model="middleName"
-                type="text"
-                class="form-control cus-border mb-2"
-                placeholder="Leave blank if not Available"
-              />
+                <label class="fw-bold inv">Middle name</label>
+                <input
+                  v-model="middleName"
+                  type="text"
+                  class="form-control cus-border mb-2"
+                  placeholder="Leave blank if not Available"
+                />
 
-              <label class="fw-bold inv">Last name</label>
-              <input
-                v-model="lastName"
-                type="text"
-                class="form-control cus-border mb-2"
-                placeholder="Enter your Last Name"
-              />
-            </form>
+                <label class="fw-bold inv">Last name</label>
+                <input
+                  v-model="lastName"
+                  type="text"
+                  class="form-control cus-border mb-2"
+                  placeholder="Enter your Last Name"
+                />
+              </form>
+            </div>
+            <div class="col-6">
+              <form action="" class="text-start">
+                <label class="fw-bold inv">Username</label>
+                <input
+                  v-model="username"
+                  type="text"
+                  class="form-control cus-border mb-2"
+                  placeholder="Enter your username"
+                />
+
+                <label class="fw-bold inv">Password</label>
+                <input
+                  v-model="password"
+                  type="password"
+                  class="form-control cus-border mb-2"
+                  placeholder="Enter your Password"
+                />
+
+                <label class="fw-bold inv">Confirm Password</label>
+                <input
+                  v-model="confirmpassword"
+                  type="password"
+                  class="form-control cus-border mb-2"
+                  placeholder="Enter your Password"
+                />
+              </form>
+            </div>
           </div>
-          <div class="col-6">
-            <form action="" class="text-start">
-              <label class="fw-bold inv">Username</label>
-              <input
-                v-model="username"
-                type="text"
-                class="form-control cus-border mb-2"
-                placeholder="Enter your username"
-              />
 
-              <label class="fw-bold inv">Password</label>
-              <input
-                v-model="password"
-                type="password"
-                class="form-control cus-border mb-2"
-                placeholder="Enter your Password"
-              />
-
-              <label class="fw-bold inv">Confirm Password</label>
-              <input
-                v-model="confirmpassword"
-                type="password"
-                class="form-control cus-border mb-2"
-                placeholder="Enter your Password"
-              />
-            </form>
+          <div class="text-center py-4 inv">
+            <button @click="submitForm" class="btnsyle">Sign Up</button>
+            <p>
+              Already have an account?
+              <RouterLink
+                to="/ZXNzb3IiLCJVfrvonD"
+                style="color: black; text-decoration: none; font-weight: bold"
+              >
+                Login Here</RouterLink
+              >
+            </p>
           </div>
         </div>
-
-        <div class="text-center py-4 inv">
-          <button @click="submitForm" class="btnsyle">Sign Up</button>
-          <p>
-            Already have an account?
-            <RouterLink
-              to="/ZXNzb3IiLCJVfrvonD"
-              style="color: black; text-decoration: none; font-weight: bold"
-            >
-              Login Here</RouterLink
-            >
-          </p>
-        </div>
+        <div class="col-2"></div>
       </div>
-      <div class="col-2"></div>
     </div>
   </div>
 </template>
 
 <style scoped>
-
 .cus-border {
   border-width: 1px;
   border-color: black;

@@ -36,9 +36,9 @@ const submitForm = async (event) => {
     console.log(password.value);
 
     console.log(loginAdmin.data.message);
-    
-    console.log(loginAdmin.status)
-    console.log(loginAdmin.data.token)
+
+    console.log(loginAdmin.status);
+    console.log(loginAdmin.data.token);
     if (loginAdmin.status === 200) {
       const token = loginAdmin.data.token;
       localStorage.setItem("admintoken", token);
@@ -49,13 +49,13 @@ const submitForm = async (event) => {
       });
 
       // Redirect to Admin Dashboard
-      router.push( "/AdminDashboard" );
+      router.push("/AdminDashboard");
     }
   } catch (err) {
     // Handle errors for admin login
     Swal.fire({
       title: "Error!",
-      text:  "Invalid Username or Password",
+      text: "Invalid Username or Password",
       icon: "error",
     });
   }
@@ -63,35 +63,39 @@ const submitForm = async (event) => {
 </script>
 
 <template>
-  <div class="container-fluid d-flex flex-column justify-content-center align-items-center pt-5">
-    <Box />
+  <div class="bg-login">
+    <div
+      class="container-fluid d-flex flex-column justify-content-center align-items-center pt-5"
+    >
+      <Box />
 
-    <div class="row white-bg">
-      <div class="col-xl-2"></div>
-      <div class="col-xl-8">
-        <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
-        <h4 class="text-center inv">Hello Admin!</h4>
-        <form @submit.prevent="submitForm" class="text-start mx-5">
-          <label class="fw-bold inv">Username</label>
-          <input
-            v-model="username"
-            type="text"
-            class="form-control cus-border mb-2"
-          />
+      <div class="row white-bg">
+        <div class="col-xl-2"></div>
+        <div class="col-xl-8">
+          <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
+          <h4 class="text-center inv">Hello Admin!</h4>
+          <form @submit.prevent="submitForm" class="text-start mx-5">
+            <label class="fw-bold inv">Username</label>
+            <input
+              v-model="username"
+              type="text"
+              class="form-control cus-border mb-2"
+            />
 
-          <label class="fw-bold inv">Password</label>
-          <input
-            v-model="password"
-            type="password"
-            class="form-control cus-border mb-2"
-          />
+            <label class="fw-bold inv">Password</label>
+            <input
+              v-model="password"
+              type="password"
+              class="form-control cus-border mb-2"
+            />
 
-          <div class="text-center py-4">
-            <button type="submit" class="btnsyle mb-2">Sign In</button>
-          </div>
-        </form>
+            <div class="text-center py-4">
+              <button type="submit" class="btnsyle mb-2">Sign In</button>
+            </div>
+          </form>
+        </div>
+        <div class="col-xl-2"></div>
       </div>
-      <div class="col-xl-2"></div>
     </div>
   </div>
 </template>
