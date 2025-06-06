@@ -44,11 +44,6 @@ const submitForm = async () => {
       isLoading.value = false;
 
       router.push({ name: "Student" });
-      Swal.fire({
-        title: "Success!",
-        text: loginResponse.data.message, // Access data correctly
-        icon: "success",
-      });
     }
   } catch (errorStudent) {
     console.error("Login Error:", errorStudent); // Log the full error object
