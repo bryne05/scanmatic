@@ -33,11 +33,28 @@ router.post(
   upload.single("image"),
   studentController.studentuploadImg
 );
+
 router.get(
   "/getStudentClassAndSubject",
   authenticateStudToken,
   studentController.getStudentClassAndSubject
 );
+
+router.get(
+  "/getStudentLeaderboard",
+  authenticateStudToken,
+  studentController.getStudentLeaderboard
+);
+
+router.post(
+  "/getStudentSingleClassAndSubject",
+  authenticateStudToken,
+  studentController.getStudentSingleClassSubject
+);
+
+//OTP
+router.post("/sendOTP", studentController.sendOTP);
+router.post("/generateNewToken", studentController.generateNewJwtToken);
 
 //Student Shop
 router.get(

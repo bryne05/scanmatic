@@ -58,9 +58,9 @@ const submitForm = async () => {
 };
 </script>
 <template>
-  <div class="container-fluid app">
+  <div class="container-fluid d-flex flex-column justify-content-center align-items-center pt-5">
     <Box />
-    <div class="row white-bg">
+    <div class="row white-bg d-flex justify-content-center align-items-center">
       <div class="col-2"></div>
       <div class="col-md-8">
         <h1 class="text-center fw-bold inv">Hello, Professor!!</h1>
@@ -141,12 +141,7 @@ const submitForm = async () => {
 </template>
 
 <style scoped>
-.app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+
 .cus-border {
   border-width: 1px;
   border-color: black;

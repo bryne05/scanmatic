@@ -40,6 +40,7 @@ db.transactions = require("./transactionsModel.js")(sequelize, DataTypes);
 db.subjects = require("./subjectsModel.js")(sequelize, DataTypes);
 db.classes = require("./classesModel.js")(sequelize, DataTypes);
 
+db.settings = require("./settingsModel.js")(sequelize, DataTypes);
 db.attendances = require("./attendancesModel.js")(sequelize, DataTypes);
 
 db.sequelize
@@ -74,7 +75,6 @@ db.professors.hasMany(db.shopItems, {
 db.shopItems.belongsTo(db.professors, {
   foreignKey: "prof_id",
 });
-
 
 //Students and Transaction
 db.students.hasMany(db.transactions, {

@@ -82,6 +82,12 @@ const loginProfessor = async (req, res) => {
       res.status(401).json({ message: "Invalid Username or password" });
       return;
     }
+
+    if (!professor.isValidated) {
+      res.status(403).json({message:"Professor not Validated"})
+      return;
+    }
+
     //Create a token if the login verified
     const token = jwt.sign({ prof_id: professor.prof_id }, process.env.TOKEN, {
       expiresIn: "24h",
