@@ -93,7 +93,7 @@
                     data-bs-toggle="modal"
                     data-bs-target="#updateItem"
                     @click="setUpdateItemData(item)"
-                    src="../assets/Prof-Class/Create.png"
+                    src="../assets/Prof-Class/create.png"
                     alt="update icon"
                   />
                   <img
