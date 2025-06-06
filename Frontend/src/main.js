@@ -8,13 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import backgroundImage from "./assets/bg.jpg";
 
-// Setup background
-document.body.style.backgroundImage = `url(${backgroundImage})`;
-document.documentElement.style.height = "100vh";
-document.body.style.height = "100vh";
-document.body.style.backgroundSize = "cover";
-document.body.style.backgroundRepeat = "repeat";
-document.body.style.overflow = "hidden";
+
 
 // Initialize Pinia store
 const pinia = createPinia();

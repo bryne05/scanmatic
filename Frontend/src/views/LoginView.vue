@@ -5,7 +5,9 @@ import { baseURL } from "../config";
 import axios from "axios";
 import Box from "../components/box.vue";
 import Swal from "sweetalert2";
+import { MoonLoader } from "vue3-spinner";
 
+const isLoading = ref(false);
 const router = useRouter();
 
 const username = ref("");
@@ -23,7 +25,9 @@ const submitForm = async () => {
   }
   //student login
   try {
-    const loginStudent = await axios.post(
+    isLoading.value = true;
+    const loginResponse = await axios.post(
+      // Store the result in loginResponse
       `${baseURL}/api/student/loginStudent`,
       {
         username: username.value,
@@ -31,35 +35,56 @@ const submitForm = async () => {
       }
     );
 
-    if (loginStudent.status === 200) {
-      const token = loginStudent.data.token;
+    console.log("status", loginResponse.status); // Log the status correctly
+
+    if (loginResponse.status === 200) {
+      // Check status after the request completes
+      const token = loginResponse.data.token; // Access data correctly
       localStorage.setItem("studtoken", token);
-      Swal.fire({
-        title: "Success!",
-        text: "Student logged in successfully.",
-        icon: "success",
-      });
+      isLoading.value = false;
 
       router.push({ name: "Student" });
+      Swal.fire({
+        title: "Success!",
+        text: loginResponse.data.message, // Access data correctly
+        icon: "success",
+      });
     }
   } catch (errorStudent) {
-    // Handle errors for both professor and student logins
-    Swal.fire({
-      title: "Error!",
-      text: "Invalid Username or Password",
-      icon: "error",
-    });
+    console.error("Login Error:", errorStudent); // Log the full error object
+
+    if (errorStudent.response) {
+      // Check for a server response
+      Swal.fire({
+        title: "Error!",
+        text: errorStudent.response.data.message || "Server Error",
+        icon: "error",
+      });
+    } else {
+      // Network error or other client-side error
+      Swal.fire({
+        title: "Error!",
+        text: "A network error occurred.",
+        icon: "error",
+      });
+    }
   }
 };
 </script>
 
 <template>
-  <div class="container-fluid d-flex flex-column">
-    <Box />
-
-    <div class="row white-bg">
-      <div class="col-2"></div>
-      <div class="col-md-8">
+  <div v-if="loading || isLoading" class="loading-overlay">
+    <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+  </div>
+  <div
+    class="container-fluid d-flex justify-content-center align-items-center flex-column"
+  >
+    <div
+      class="row d-flex justify-content-center align-items-center text-center"
+    >
+      <div class="col-md-12 mt-5"><Box /></div>
+      <div class="col-md-4"></div>
+      <div class="col-md-4 white-bg">
         <h1 class="text-center fw-bold mt-5 inv">Welcome to ScanMatic</h1>
         <h4 class="text-center inv">Greetings Students!</h4>
         <form action="" class="text-start mx-5">
@@ -90,12 +115,18 @@ const submitForm = async () => {
           </p>
         </div>
       </div>
-      <div class="col-2"></div>
+      <div class="col-md-4"></div>
     </div>
   </div>
 </template>
 
 <style scoped>
+body {
+  background-color: black !important ;
+  background-image: url(../assets/bg.jpg) !important;
+  background-size: cover !important;
+}
+
 .cus-border {
   border-width: 1px;
   border-color: black;
