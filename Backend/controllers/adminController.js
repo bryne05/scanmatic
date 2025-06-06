@@ -10,6 +10,7 @@ const Student = db.students;
 const Attendance = db.attendances;
 const Professor = db.professors;
 const Admin = db.admin;
+const Settings = db.settings;
 let studentMasterLists = {};
 const loginAdmin = async (req, res) => {
   try {
@@ -53,7 +54,13 @@ const loginAdmin = async (req, res) => {
 const getAllProfessors = async (req, res) => {
   try {
     const professors = await Professor.findAll({
-      attributes: ["prof_id", "first_name", "middle_name", "last_name"],
+      attributes: [
+        "prof_id",
+        "first_name",
+        "middle_name",
+        "last_name",
+        "isValidated",
+      ],
     });
 
     res.status(200).json({ professors });
@@ -72,6 +79,7 @@ const getAllStudent = async (req, res) => {
         "first_name",
         "middle_name",
         "last_name",
+        "isValidated",
       ],
       raw: true,
     });
@@ -137,7 +145,13 @@ const getClassStudentByProgram = async (req, res) => {
       where: {
         courseYearSection: courseYearSection,
       },
-      attributes:["stud_id","first_name","middle_name","last_name", "courseYearSection"]
+      attributes: [
+        "stud_id",
+        "first_name",
+        "middle_name",
+        "last_name",
+        "courseYearSection",
+      ],
     });
 
     if (!students) {
@@ -220,6 +234,51 @@ const resetProfessorPassword = async (req, res) => {
   }
 };
 
+const ValidateStudent = async (req, res) => {
+  try {
+    const studID = req.params.stud_id;
+    const validateStudent = await Student.update(
+      { isValidated: 1 },
+      { where: { stud_id: studID } }
+    );
+
+    if (!validateStudent) {
+      res.status(401).json({ message: " Validation Failed" });
+      return;
+    }
+
+    res.status(200).json({ message: "Student Validated Succesfully" });
+  } catch (error) {
+    console.error("Error validating student", error.message);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+const ValidateProfessor = async (req, res) => {
+  try {
+    const profID = req.params.prof_id;
+
+    const validateStudent = await Professor.update(
+      { isValidated: 1 },
+      { where: { prof_id: profID } }
+    );
+
+    if (!validateStudent) {
+      res.status(401).json({ message: " Validation Failed" });
+      return;
+    }
+
+    res.status(200).json({ message: "Professor Validated Succesfully" });
+  } catch (error) {
+    console.error("Error validating professor", error.message);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 const deleteStudent = async (req, res) => {
   try {
     const stud_id = req.params.stud_id;
@@ -263,6 +322,65 @@ const deleteProfessor = async (req, res) => {
   }
 };
 
+const getLevelThreshold = async (req, res) => {
+  try {
+    const response = await Settings.findByPk(1);
+
+    if (!response) {
+      res.status(404).json({ message: "data not found" });
+    }
+
+    res.status(200).json(response);
+    console.log(response);
+  } catch (error) {
+    console.error("Error reading level threshold ", error.message);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+const updateLevelThreshold = async (req, res) => {
+  try {
+    const newThreshold = req.body.level_threshold;
+
+   
+    if (newThreshold === undefined) {
+      return res.status(400).json({ message: "level_threshold is required" });
+    }
+
+   
+    if (typeof newThreshold !== "number" || isNaN(newThreshold)) {
+      return res
+        .status(400)
+        .json({ message: "level_threshold must be a number" });
+    }
+
+    const response = await Settings.update(
+      { level_threshold: newThreshold }, // Correct way to update
+      { where: { settings_id: 1 } }
+    );
+
+    if (response[0] === 0) {
+      return res.status(404).json({ message: "Level threshold not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Level threshold updated successfully" });
+  } catch (error) {
+    console.error("Error updating level threshold:", error); // Log the error
+
+    // Handle specific Sequelize errors if needed
+    // if (error instanceof Sequelize.ValidationError) {
+    //   return res.status(400).json({ message: "Validation error", errors: error.errors });
+    // }
+
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};
 module.exports = {
   loginAdmin,
   getAllProfessors,
@@ -274,4 +392,9 @@ module.exports = {
   deleteStudent,
   getStudentProgramLevel,
   getClassStudentByProgram,
+
+  ValidateStudent,
+  ValidateProfessor,
+  getLevelThreshold,
+  updateLevelThreshold,
 };

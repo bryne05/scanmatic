@@ -250,11 +250,11 @@ const getProfessorShopTransaction = async (req, res) => {
           include: [
             {
               model: ShopItem,
-              attributes: ["item_name", "item_price"],
+              attributes: ["item_name", "item_price","item_subject"],
             },
             {
               model: Student,
-              attributes: ["first_name", "middle_name", "last_name"],
+              attributes: ["first_name", "middle_name", "last_name","courseYearSection"],
             },
           ],
           attributes: ["transaction_id", "createdAt", "isVerified"],

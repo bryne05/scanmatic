@@ -68,7 +68,7 @@
           <div class="card d-flex justify-content-between">
             <div class="row">
               <div class="col-2 d-flex justify-content-center">
-                <img src="../assets/Prof-Class/book.png" alt="book-icon" />
+                <img src="../assets/Prof-Class/Book.png" alt="book-icon" />
               </div>
               <div class="col-7 text-start">
                 <h5>{{ subject.subject_name }}</h5>
