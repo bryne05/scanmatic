@@ -51,9 +51,11 @@ const submitForm = async () => {
       router.push({ name: "Student" });
     }
   } catch (errorStudent) {
+    isLoading.value = false;
     console.error("Login Error:", errorStudent); // Log the full error object
 
     if (errorStudent.response) {
+      isLoading.value = false;
       // Check for a server response
       Swal.fire({
         title: "Error!",

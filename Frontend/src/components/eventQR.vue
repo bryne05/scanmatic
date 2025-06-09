@@ -98,9 +98,6 @@
             <button class="btnsyle mb-3" @click="generateCSV">
               Download CSV
             </button>
-            <button class="btnsyle mb-3" @click="seeMasterList">
-              View Master list
-            </button>
           </div>
         </div>
       </div>
@@ -118,11 +115,12 @@ import Papa from "papaparse";
 import { useRouter } from "vue-router";
 import navbar from "../components/professorNavBar.vue";
 import { MoonLoader } from "vue3-spinner";
+
 const router = useRouter();
 const props = defineProps(["subjectID", "sessionID", "programlevel"]);
 const subjectID = ref(props.subjectID);
 const sessionID = ref(props.sessionID);
-const programlevel = ref(props.programlevel);
+const programlevel = ref(props.programlevel); // This prop might be less relevant for fetching all master lists now
 const rawValue = ref("");
 const proftoken = localStorage.getItem("proftoken");
 
@@ -133,7 +131,7 @@ const error = ref("");
 const cameraConstraints = ref({ facingMode: "environment" }); // Set initial constraints
 
 const qrloading = ref(null);
-const studentsByProgram = ref([]);
+const studentsByProgram = ref([]); // This will now accumulate students from all relevant programs
 import defaultimage from "../assets/profile-user.png";
 const imageSrc = ref(null);
 
@@ -149,8 +147,6 @@ const setdefaultimage = () => {
 const lastStudent = computed(() => {
   if (attendance.value.length > 0) {
     return attendance.value.at(-1);
-    // Or using .at(-1) for modern JS:
-    // return attendance.value.at(-1);
   }
   return null; // Return null if the list is empty
 });
@@ -225,6 +221,9 @@ const onDetect = async (result) => {
 
         attendance.value = getAttend.data.attend;
 
+        // After updating attendance, re-fetch master lists
+        await fetchAllMasterListsBasedOnAttendance();
+
         setTimeout(() => {
           qrloading.value = false; // Hide loading after 3 seconds
           Swal.fire({
@@ -240,32 +239,30 @@ const onDetect = async (result) => {
 
         console.log(attendance.value);
       } else if (response.status === 400) {
-        isloading.value = false;
-        console.log("create attendance respopnse", response);
+        isLoading.value = false; // Note: Corrected to isLoading.value
+        console.log("create attendance response", response);
         console.log("mais");
       }
     } else {
-      isloading.value = false;
+      isLoading.value = false; // Note: Corrected to isLoading.value
       Swal.fire("Error", "An error occurred", "error");
-      console.log("create attendance respopnse", response);
+      // console.log("create attendance response", response); // 'response' is not defined in this block
       return;
     }
   } catch (error) {
     qrloading.value = false;
     if (error.response) {
-      const errorMessage = error.response.data.message; // Access the "message" from the backend JSON
+      const errorMessage = error.response.data.message;
 
-      console.error("Backend Error:", errorMessage); // Log the specific error
+      console.error("Backend Error:", errorMessage);
 
-      // Display specific SweetAlert based on the message
       if (errorMessage === "Student Already In class") {
         Swal.fire({
-          icon: "info", // Use 'info' for informative messages
+          icon: "info",
           title: "Already Present",
           text: "This student is already recorded for this session.",
         });
       } else {
-        // Fallback for other backend errors
         Swal.fire(
           "Error",
           errorMessage || "An unexpected server error occurred.",
@@ -273,7 +270,6 @@ const onDetect = async (result) => {
         );
       }
     } else if (error.request) {
-      // The request was made but no response was received (e.g., network error, server down)
       console.error("Network Error:", error.message);
       Swal.fire(
         "Error",
@@ -281,62 +277,63 @@ const onDetect = async (result) => {
         "error"
       );
     } else {
-      // Something happened in setting up the request that triggered an Error
       console.error("Axios Setup Error:", error.message);
       Swal.fire("Error", "An error occurred during request setup.", "error");
     }
   }
 };
 
-const seeMasterList = async () => {
-  try {
-    if (studentsByProgram.value.length === 0) {
-      Swal.fire("No Students", "No students found for this program.", "info");
-      return;
-    }
-
-    let htmlContent = `<ul style="list-style-type:none;">`;
-
-    studentsByProgram.value.forEach((student, num) => {
-      htmlContent += `
-        <li class="text-start">
-
-          <strong>${num + 1}. ${student.first_name} ${student.middle_name} ${
-        student.last_name
-      }</strong><br>
-
-
-        </li>
-
-      `;
-    });
-
-    htmlContent += `</ul>`;
-
-    Swal.fire({
-      position: "center",
-      title: `Master List for ${programlevel.value}`,
-      html: htmlContent,
-      width: 600,
-    });
-  } catch (error) {
-    console.error("Error fetching students:", error); // Important: Log the error!
-    Swal.fire("Error", "An error occurred while fetching students.", "error"); // Show error Swal
-  }
-};
-
-const fetchMasterList = async () => {
+// Modified fetchMasterList to accept a programLevel
+const fetchMasterList = async (programLevelToFetch) => {
   try {
     const response = await axios.post(
       `${baseURL}/api/admin/getClassStudentByProgram`,
-      { courseYearSection: programlevel.value }
+      { courseYearSection: programLevelToFetch }
     );
-
-    studentsByProgram.value = response.data.students;
+    // console.log(`Fetched master list for ${programLevelToFetch}:`, response.data.students);
+    return response.data.students; // Return the fetched students
   } catch (error) {
-    console.error("Error fetching MasterList:", error); // Important: Log the error!
-    Swal.fire("Error", "An error occurred while fetching students.", "error"); // Show error Swal
+    console.error(
+      `Error fetching MasterList for ${programLevelToFetch}:`,
+      error
+    );
+    // Do not show Swal here directly, let the calling function handle aggregated errors
+    return []; // Return an empty array on error
   }
+};
+
+// New function to fetch all master lists based on current attendance
+const fetchAllMasterListsBasedOnAttendance = async () => {
+  const uniqueProgramLevels = new Set();
+  attendance.value.forEach((attendant) => {
+    if (attendant.student?.courseYearSection) {
+      uniqueProgramLevels.add(attendant.student.courseYearSection);
+    }
+  });
+
+  // Also include the programLevel prop in case no students are yet present
+  if (programlevel.value) {
+    uniqueProgramLevels.add(programlevel.value);
+  }
+
+  console.log(
+    "Unique Program Levels found in attendance:",
+    Array.from(uniqueProgramLevels)
+  );
+
+  const allStudents = [];
+  for (const pLevel of uniqueProgramLevels) {
+    const students = await fetchMasterList(pLevel);
+    if (Array.isArray(students)) {
+      allStudents.push(...students);
+    }
+  }
+  // Clear and then assign the combined list
+  studentsByProgram.value = allStudents;
+  console.log(
+    "Combined studentsByProgram.value after fetching all master lists:",
+    studentsByProgram.value
+  );
 };
 
 const fetchImage = async (qr) => {
@@ -393,19 +390,21 @@ onMounted(async () => {
     startTime.value = singleClass.value[0]?.start_time;
     endTime.value = singleClass.value[0]?.end_time;
     dateCreated.value = singleClass.value[0]?.createdAt;
-    // console.log("start", startTime.value);
-    // console.log("end", endTime.value);
-    // console.log("date", dateCreated.value);
-    // console.log("date now", now);
-    const now = new Date();
 
+    const now = new Date();
     checkTimeRange();
-    await fetchMasterList();
+
+    // Call the new function to fetch master lists for all relevant programs
+    await fetchAllMasterListsBasedOnAttendance();
+
     isLoading.value = false;
     console.log("attendance:", attendance.value);
-    console.log("Masterlist22:", studentsByProgram.value);
+    console.log("Masterlist (studentsByProgram):", studentsByProgram.value); // This will now be combined
+    console.log("program level prop value:", programlevel.value);
   } catch (error) {
     console.error("Error getting professor session data", error);
+    Swal.fire("Error", "Failed to load session data or attendance.", "error");
+    isLoading.value = false;
   }
 });
 
@@ -482,9 +481,10 @@ const onError = (error) => {
     error.value = "browser seems to be lacking features";
   }
 
-  if (error.name === "OverconstrainedError") {
-    $refs.qrcodeStream.updateConstraints(cameraConstraints.value);
-  }
+  // Assuming $refs.qrcodeStream exists, which it might not in Options API for setup script
+  // if (error.name === "OverconstrainedError") {
+  //   $refs.qrcodeStream.updateConstraints(cameraConstraints.value);
+  // }
 };
 
 const goBack = () => {
@@ -492,20 +492,29 @@ const goBack = () => {
 };
 
 const generateCSV = () => {
+  // If there are students in attendance, but studentsByProgram hasn't fully loaded,
+  // we might still show an error. Ensure studentsByProgram is always populated.
   if (studentsByProgram.value.length === 0) {
-    Swal.fire("Error", "No student data available.", "error");
+    Swal.fire(
+      "Error",
+      "No student master list data available to generate CSV.",
+      "error"
+    );
     return;
   }
 
-  const datePart = new Date().toLocaleDateString("en-CA");
-  const programLevel =
+  const datePart = new Date().toLocaleDateString("en-CA"); // Gets date in YYYY-MM-DD format
+  // Use the program level from the *first* student in the combined master list,
+  // or a generic "allprograms" if there's no specific program level in the master list.
+  const filenameProgramLevel =
     studentsByProgram.value[0]?.courseYearSection?.replace(/\s/g, "") ||
-    "noprogram";
-  const filename = `Attendance_${datePart}_${programLevel}.csv`;
+    "allprograms";
+  const filename = `Attendance_${datePart}_event.csv`;
 
   const csvData = studentsByProgram.value.map((masterStudent) => {
-    // Find the matching attendance record
+    // Find the attendance record for this master student
     const attendanceRecord = attendance.value.find((attendant) => {
+      // Ensure both stud_id are treated as strings for comparison
       return String(attendant.stud_id) === String(masterStudent.stud_id);
     });
 
@@ -522,11 +531,13 @@ const generateCSV = () => {
     };
   });
 
-  const csv = Papa.unparse(csvData);
+  const csv = Papa.unparse(csvData); // Converts array of objects to CSV string
 
+  // --- Crucial part for download ---
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   if (link.download !== undefined) {
+    // Check if browser supports download attribute
     Swal.fire({
       position: "bottom-end",
       icon: "success",
@@ -537,12 +548,13 @@ const generateCSV = () => {
       width: "350px",
       height: "auto",
     });
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const url = URL.createObjectURL(blob); // Create a URL for the Blob
+    link.setAttribute("href", url); // Set the URL as the link's target
+    link.setAttribute("download", filename); // Set the filename for download
+    document.body.appendChild(link); // Append link to the body (necessary for Firefox)
+    link.click(); // Programmatically click the link to trigger download
+    document.body.removeChild(link); // Clean up: remove the link element
+    URL.revokeObjectURL(url); // Release the object URL
   } else {
     Swal.fire(
       "Error",
