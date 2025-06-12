@@ -7,8 +7,10 @@ import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import backgroundImage from "./assets/bg.jpg";
+import Clarity from "@microsoft/clarity";
+const projectId = "rycw9zqdtz";
 
-
+Clarity.init(projectId);
 
 // Initialize Pinia store
 const pinia = createPinia();
