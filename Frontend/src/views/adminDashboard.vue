@@ -7,7 +7,13 @@
             Logout
           </button>
         </div>
+        <div class="col-xl-6 col-12"><h1> ADMIN DASHBOARD</h1>
+          <h5>
+            Welcome to the Admin Dashboard. From here, you can manage various aspects of the system.
+            Select a card below to navigate to the respective management section.
+          </h5></div>
         <div class="col-12">
+          
           <div class="div">
             <div class="container-2 justify-content-center align-items-center">
               <div
@@ -100,7 +106,7 @@ img {
   scale: 1.03;
 }
 .container-2 {
-  margin-top: 220px;
+  margin-top: 80px;
   display: flex;
   flex-direction: row;
   max-height: 800px;

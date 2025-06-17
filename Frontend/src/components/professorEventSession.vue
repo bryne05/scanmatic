@@ -1,7 +1,12 @@
 <template>
   <navbar />
+
   <div class="bg">
-    <div class="container">
+    <div v-if="loading || isLoading" class="loading-overlay">
+      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+    </div>
+
+    <div v-else class="container">
       <div class="row">
         <div class="col-xl-6 text-xl-start text-center">
           <h1>Event Sessions</h1>
@@ -104,7 +109,7 @@
   </div>
 
   <div
-    class="modal fade"
+    class="modal"
     id="addsession"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -162,7 +167,7 @@
   </div>
 
   <div
-    class="modal fade"
+    class="modal"
     id="updateSession"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -395,9 +400,10 @@ import axios from "axios";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import navbar from "../components/professorNavBar.vue";
-
+import { Modal } from "bootstrap";
 const router = useRouter();
-
+import { MoonLoader } from "vue3-spinner";
+const isLoading = ref(false);
 const subjectDetails = router.state;
 
 const props = defineProps([
@@ -453,9 +459,15 @@ const filteredSessions = computed(() => {
 
   return sessions;
 });
+function closeModalById(id) {
+  const el = document.getElementById(id);
+  const modal = Modal.getInstance(el) || new Modal(el);
+  modal.hide();
+}
 
 const fetchSessions = async () => {
   try {
+    isLoading.value = true;
     const response = await axios.get(
       `${baseURL}/api/professor/getClass/${props.subjectID}`,
       {
@@ -465,9 +477,11 @@ const fetchSessions = async () => {
         },
       }
     );
+    isLoading.value = false;
     professorSession.value = response.data.classes;
     console.log(professorSession.value);
   } catch (error) {
+    isLoading.value = false;
     console.error("Error getting sessions:", error);
     Swal.fire("Error", "Failed to fetch sessions", "error");
   }
@@ -488,8 +502,10 @@ const updateSubject = async () => {
     confirmButtonText: "Yes",
     cancelButtonText: "No",
   });
+  closeModalById("updateSession");
 
   if (confirmationResult.isConfirmed) {
+    isLoading.value = true;
     try {
       const updatedData = {
         class_courseYearSection: " ",
@@ -511,17 +527,20 @@ const updateSubject = async () => {
       );
 
       if (response.status === 200) {
+        await fetchSessions();
+        isLoading.value = false;
+
         Swal.fire({
           title: "Success",
           text: "Sessions updated successfully",
           icon: "success",
         });
 
-        await fetchSessions();
-
         updateSessionToken.value = "";
         updateSessionExp.value = "";
       } else {
+        isLoading.value = false;
+
         console.error("Failed to update Sessions:", response.statusText);
         Swal.fire({
           title: "Error",
@@ -530,6 +549,8 @@ const updateSubject = async () => {
         });
       }
     } catch (error) {
+      isLoading.value = false;
+
       console.error("Error updating Sessions:", error);
       Swal.fire({
         title: "Error",
@@ -547,6 +568,8 @@ const addSession = async () => {
   }
 
   try {
+    closeModalById("addsession");
+    isLoading.value = true;
     const response = await axios.post(
       `${baseURL}/api/professor/createClass/${subjectID.value}`,
       {
@@ -568,14 +591,18 @@ const addSession = async () => {
 
     // Handle success or show a notification
     if (response.status === 200) {
-      Swal.fire("Success", "Session has been added successfully!", "success");
       await fetchSessions();
+      isLoading.value = false;
+
+      Swal.fire("Success", "Session has been added successfully!", "success");
 
       sessionToken.value = "";
       sessionExp.value = "";
       sessionType.value = false;
     }
   } catch (error) {
+    isLoading.value = false;
+
     console.error("Error adding item:", error);
     Swal.fire(
       "Error",
@@ -595,7 +622,7 @@ const deleteSession = async (session) => {
     confirmButtonText: "Yes",
     cancelButtonText: "No",
   });
-
+  isLoading.value = true;
   if (confirmationResult.isConfirmed) {
     try {
       const archiveDelete = {
@@ -612,14 +639,15 @@ const deleteSession = async (session) => {
         }
       );
       if (response.status === 200) {
+        await fetchSessions();
+        isLoading.value = false;
         Swal.fire({
           title: "Success",
           text: "Session deleted successfully",
           icon: "success",
         });
-
-        await fetchSessions();
       } else {
+        isLoading.value = false;
         console.error("Failed to delete  shopitem:", response.statusText);
         Swal.fire({
           title: "Error",
@@ -628,6 +656,7 @@ const deleteSession = async (session) => {
         });
       }
     } catch (error) {
+      isLoading.value = false;
       console.error("Error deleting shop item:", error);
       Swal.fire({
         title: "Error",
@@ -640,6 +669,7 @@ const deleteSession = async (session) => {
 
 onMounted(() => {
   console.log("subjectDetails: ", subjectDetails);
+
   fetchSessions();
 });
 
@@ -667,5 +697,4 @@ const enterRecycleBin = () => {
 const goBack = () => {
   router.go(-1);
 };
-
 </script>

@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from "vue-router";
-import { ref, onMounted, computed } from "vue"; // Import 'computed'
+import { ref, onMounted, computed } from "vue";
 import Swal from "sweetalert2";
 import { baseURL } from "../config";
 import axios from "axios";
@@ -12,14 +12,12 @@ const router = useRouter();
 const token = localStorage.getItem("admintoken");
 
 const allProfessor = ref([]);
-const searchQuery = ref(""); // New: for search input
-const sortByValidation = ref(null); // New: for sorting (null, 0, or 1)
+const searchQuery = ref("");
+const sortByValidation = ref(null);
 
-// New: Computed property for filtering and sorting
 const filteredAndSortedProfessors = computed(() => {
   let filtered = allProfessor.value;
 
-  // Apply search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     filtered = filtered.filter(
@@ -30,14 +28,12 @@ const filteredAndSortedProfessors = computed(() => {
     );
   }
 
-  // Apply sort by validation status
   if (sortByValidation.value !== null) {
     filtered = filtered.filter(
       (professor) => professor.isValidated === (sortByValidation.value === 1)
     );
   }
 
-  // Optional: You can add another level of sorting here, e.g., by name
   filtered.sort((a, b) => {
     const nameA = `${a.last_name}, ${a.first_name}`.toLowerCase();
     const nameB = `${b.last_name}, ${b.first_name}`.toLowerCase();
@@ -49,7 +45,7 @@ const filteredAndSortedProfessors = computed(() => {
   return filtered;
 });
 
-const validateProfessor = async (data) => {
+const validateProfessor = async (prof_id) => {
   const result = await Swal.fire({
     title: "Do you want to approve this Professor?",
     icon: "question",
@@ -59,8 +55,6 @@ const validateProfessor = async (data) => {
   });
 
   if (result.isConfirmed) {
-    const prof_id = data;
-
     isLoading.value = true;
     try {
       const response = await axios.post(
@@ -83,7 +77,6 @@ const validateProfessor = async (data) => {
           showConfirmButton: false,
         });
 
-        // Update allProfessor ref
         const index = allProfessor.value.findIndex(
           (p) => p.prof_id === prof_id
         );
@@ -94,10 +87,10 @@ const validateProfessor = async (data) => {
         isLoading.value = false;
         Swal.fire({
           title: "Error",
-          text: response.data.message || "Failed to approve professor.", // Show error message from API if available
+          text: response.data.message || "Failed to approve professor.",
           icon: "error",
         });
-        console.error("API Error:", response.data); // Log the error for debugging
+        console.error("API Error:", response.data);
       }
     } catch (error) {
       isLoading.value = false;
@@ -110,6 +103,7 @@ const validateProfessor = async (data) => {
     }
   }
 };
+
 const logout = async () => {
   const result = await Swal.fire({
     title: "Do you want to log out?",
@@ -139,7 +133,6 @@ onMounted(async () => {
     isLoading.value = false;
   } catch (error) {
     isLoading.value = false;
-
     console.error("Error fetching professor", error);
   }
 });
@@ -150,7 +143,7 @@ const resetPassword = async (prof_id, first_name, middle_name, last_name) => {
       title:
         "Are you sure you want to reset the password for \n " +
         "<p style='color:red'>" +
-        `   \n   ${first_name} ${middle_name} ${last_name}` +
+        `    \n    ${first_name} ${middle_name} ${last_name}` +
         "</p>",
       icon: "question",
       showCancelButton: true,
@@ -185,7 +178,6 @@ const resetPassword = async (prof_id, first_name, middle_name, last_name) => {
     isLoading.value = false;
   } catch (error) {
     isLoading.value = false;
-
     console.error("Error resetting password", error);
     Swal.fire({
       title: "Error",
@@ -195,9 +187,10 @@ const resetPassword = async (prof_id, first_name, middle_name, last_name) => {
   }
 };
 
+// Original deleteProfessor function, now dedicated to just deletion with its own Swal.
 const deleteProfessor = async (prof_id, first_name, middle_name, last_name) => {
   try {
-    const deleteProfessor = await Swal.fire({
+    const deleteProfessorConfirm = await Swal.fire({
       title:
         "Are you sure you want to DELETE the account of \n " +
         "<p style='color:red'>" +
@@ -209,7 +202,7 @@ const deleteProfessor = async (prof_id, first_name, middle_name, last_name) => {
       cancelButtonText: "No",
     });
 
-    if (deleteProfessor.isConfirmed) {
+    if (deleteProfessorConfirm.isConfirmed) {
       isLoading.value = true;
 
       const deleteProf = await axios.delete(
@@ -223,6 +216,7 @@ const deleteProfessor = async (prof_id, first_name, middle_name, last_name) => {
       );
 
       if (deleteProf.status === 200) {
+        // Re-fetch all professors to update the list after deletion
         const response = await axios.get(
           `${baseURL}/api/admin/getAllProfessor`,
           {
@@ -238,13 +232,22 @@ const deleteProfessor = async (prof_id, first_name, middle_name, last_name) => {
 
         Swal.fire({
           title: "Success",
-          text: "The account has been deleted",
+          text: "The account has been deleted successfully.",
           icon: "success",
         });
+      } else {
+        isLoading.value = false;
+        Swal.fire({
+          title: "Error",
+          text: deleteProf.data.message || "Failed to delete professor.",
+          icon: "error",
+        });
+        console.error("API Error during delete:", deleteProf.data);
       }
     }
   } catch (error) {
-    console.error("Error deleting student", error);
+    isLoading.value = false;
+    console.error("Error deleting professor", error);
     Swal.fire({
       title: "Error",
       text: "An error occurred while deleting the Professor.",
@@ -253,8 +256,119 @@ const deleteProfessor = async (prof_id, first_name, middle_name, last_name) => {
   }
 };
 
+// NEW FUNCTION: Handles declining a professor with its own Swal confirmation
+const declineProfessorAndRemove = async (
+  prof_id,
+  first_name,
+  middle_name,
+  last_name
+) => {
+  try {
+    const declineConfirm = await Swal.fire({
+      title:
+        "Are you sure you want to DECLINE the account of \n " +
+        "<p style='color:red'>" +
+        `    ${first_name} ${middle_name} ${last_name}` +
+        "</p>",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Decline and Remove",
+      cancelButtonText: "No",
+    });
+
+    if (declineConfirm.isConfirmed) {
+      // If confirmed, call the existing deleteProfessor function
+      const deleteProf = await axios.delete(
+        `${baseURL}/api/admin/deleteProfessor/${prof_id}`,
+        {
+          headers: {
+            adminToken: `${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }
+      );
+
+      if (deleteProf.status === 200) {
+        // Re-fetch all professors to update the list after deletion
+        const response = await axios.get(
+          `${baseURL}/api/admin/getAllProfessor`,
+          {
+            headers: {
+              admintoken: `${token}`,
+              "ngrok-skip-browser-warning": "69420",
+            },
+          }
+        );
+
+        allProfessor.value = response.data.professors;
+        isLoading.value = false;
+
+        Swal.fire({
+          title: "Success",
+          text: "The Professor's account has been successfully removed.",
+          icon: "success",
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error during decline confirmation:", error);
+    Swal.fire({
+      title: "Error",
+      text: "An error occurred during the decline process.",
+      icon: "error",
+    });
+  }
+};
+
 const back = async () => {
   router.back();
+};
+
+const downloadCSV = () => {
+  const professors = filteredAndSortedProfessors.value;
+  if (professors.length === 0) {
+    Swal.fire({
+      title: "No Data",
+      text: "No professors to download.",
+      icon: "info",
+    });
+    return;
+  }
+
+  const headers = [
+    "Professor ID",
+    "First Name",
+    "Middle Name",
+    "Last Name",
+    "Is Validated",
+    "Date Registered",
+  ];
+
+  const csvRows = professors.map((prof) => {
+    return [
+      `"${prof.prof_id}"`,
+      `"${prof.first_name}"`,
+      `"${prof.middle_name}"`,
+      `"${prof.last_name}"`,
+      `"${prof.isValidated ? "Yes" : "No"}"`,
+      `"${new Date(prof.createdAt).toLocaleDateString()}"`,
+    ].join(",");
+  });
+
+  const csvContent = [headers.join(","), ...csvRows].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "professors_list.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 };
 </script>
 
@@ -271,7 +385,10 @@ const back = async () => {
             <img src="../assets/return.png" alt="" width="28" height="40" />
           </button>
         </div>
-        <div class="col-6 text-end">
+        <div class="col-6 text-end d-flex gap-3 justify-content-end">
+          <button class="btn btn-info me-2" @click="downloadCSV">
+            Download CSV
+          </button>
           <button type="button" class="btn btn-danger" @click="logout">
             Logout
           </button>
@@ -279,8 +396,11 @@ const back = async () => {
 
         <div class="col-12 text-center">
           <h1>PROFESSOR LIST</h1>
-
-          <div class="row mb-3 justify-content-start">
+          <p class="text-center mb-3">
+            Total Professors:
+            <strong>{{ filteredAndSortedProfessors.length }}</strong>
+          </p>
+          <div class="row mb-3 justify-content-start align-items-center">
             <div class="col-md-4">
               <input
                 type="text"
@@ -297,6 +417,7 @@ const back = async () => {
               </select>
             </div>
           </div>
+
           <div class="table-responsive">
             <table class="table table-hover">
               <thead>
@@ -318,14 +439,28 @@ const back = async () => {
                   </td>
 
                   <td>
-                    <button
-                      class="btn btn-success"
-                      v-if="!professor.isValidated"
-                      @click="validateProfessor(professor.prof_id)"
-                    >
-                      Approve
-                    </button>
-                    <span v-else>Approved</span>
+                    <template v-if="!professor.isValidated">
+                      <button
+                        class="btn btn-success btn-sm me-2"
+                        @click="validateProfessor(professor.prof_id)"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        class="btn btn-warning btn-sm"
+                        @click="
+                          declineProfessorAndRemove(
+                            professor.prof_id,
+                            professor.first_name,
+                            professor.middle_name,
+                            professor.last_name
+                          )
+                        "
+                      >
+                        Decline
+                      </button>
+                    </template>
+                    <span v-else class="text-success fw-bold">Approved</span>
                   </td>
                   <td>
                     <button
@@ -364,8 +499,7 @@ const back = async () => {
                           professor.prof_id,
                           professor.first_name,
                           professor.middle_name,
-                          professor.last_name,
-                          professor.courseYearSection
+                          professor.last_name
                         )
                       "
                     >
@@ -405,6 +539,7 @@ const back = async () => {
 }
 .table-responsive {
   max-height: 700px !important;
+  overflow-y: auto; /* Ensure scrollability if content overflows */
 }
 .text {
   margin-top: 100px !important;
@@ -429,6 +564,7 @@ const back = async () => {
   padding-left: 30px;
   border-radius: 15px;
 }
+
 .container-1 {
   z-index: 999 !important;
   margin-left: 500px;

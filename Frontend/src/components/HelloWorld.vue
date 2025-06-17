@@ -183,6 +183,7 @@ ws.onclose = () => {
   console.log("WebSocket connection closed.");
 };
 
+
 const onDetect = async (result) => {
   try {
     qrloading.value = true;
@@ -225,7 +226,7 @@ const onDetect = async (result) => {
 
         attendance.value = getAttend.data.attend;
 
-        qrloading.value = false; // Hide loading after 3 seconds
+        qrloading.value = false; 
         Swal.fire({
           position: "center",
           icon: "success",
@@ -251,19 +252,19 @@ const onDetect = async (result) => {
   } catch (error) {
     qrloading.value = false;
     if (error.response) {
-      const errorMessage = error.response.data.message; // Access the "message" from the backend JSON
+      const errorMessage = error.response.data.message; 
 
-      console.error("Backend Error:", errorMessage); // Log the specific error
+      console.error("Backend Error:", errorMessage); 
 
-      // Display specific SweetAlert based on the message
+  
       if (errorMessage === "Student Already In class") {
         Swal.fire({
-          icon: "info", // Use 'info' for informative messages
+          icon: "info", 
           title: "Already Present",
           text: "This student is already recorded for this session.",
         });
       } else {
-        // Fallback for other backend errors
+       
         Swal.fire(
           "Error",
           errorMessage || "An unexpected server error occurred.",
@@ -271,7 +272,7 @@ const onDetect = async (result) => {
         );
       }
     } else if (error.request) {
-      // The request was made but no response was received (e.g., network error, server down)
+
       console.error("Network Error:", error.message);
       Swal.fire(
         "Error",
@@ -279,7 +280,7 @@ const onDetect = async (result) => {
         "error"
       );
     } else {
-      // Something happened in setting up the request that triggered an Error
+    
       console.error("Axios Setup Error:", error.message);
       Swal.fire("Error", "An error occurred during request setup.", "error");
     }
@@ -345,15 +346,15 @@ const fetchImage = async (qr) => {
         headers: {
           studtoken: qr,
         },
-        responseType: "blob", //response type to 'blob' for binary data
+        responseType: "blob", 
       }
     );
 
-    // Check if the response is successful
+
     if (response.status === 200) {
-      // Create an object URL from the Blob data and assign it to imageSrc
+     
       const imageURL = URL.createObjectURL(response.data);
-      imageSrc.value = imageURL; // Use object URL for the image source
+      imageSrc.value = imageURL;
     } else {
       setdefaultimage();
     }
@@ -498,7 +499,7 @@ const generateCSV = () => {
   const filename = `Attendance_${datePart}_${programLevel}.csv`;
 
   const csvData = studentsByProgram.value.map((masterStudent) => {
-    // Find the matching attendance record
+ 
     const attendanceRecord = attendance.value.find((attendant) => {
       return String(attendant.stud_id) === String(masterStudent.stud_id);
     });

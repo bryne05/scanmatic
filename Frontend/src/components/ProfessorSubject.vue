@@ -139,7 +139,7 @@
 
   <!-- Add Modal -->
   <div
-    class="modal fade"
+    class="modal"
     id="addsubject"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -208,13 +208,7 @@
             </div>
           </div>
           <div class="modal-footer justify-content-center">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-secondary">Cancel</button>
             <button type="button" class="btn btn-primary" @click="addSubject">
               Add
             </button>
@@ -225,7 +219,7 @@
   </div>
   <!-- Update Modal -->
   <div
-    class="modal fade"
+    class="modal"
     id="updateSubject"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -331,6 +325,7 @@ import { useSubjectData } from "../composables/useSubjectData";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { MoonLoader } from "vue3-spinner";
+import { Modal } from "bootstrap";
 
 const isLoading = ref(false);
 const router = useRouter();
@@ -401,6 +396,11 @@ const setUpdateSubject = (subject) => {
     updateSubjectEndTime.value = null; // Or a default object if needed
   }
 };
+function closeModalById(id) {
+  const el = document.getElementById(id);
+  const modal = Modal.getInstance(el) || new Modal(el);
+  modal.hide();
+}
 
 const updateSubject = async () => {
   const confirmationResult = await Swal.fire({
@@ -411,7 +411,7 @@ const updateSubject = async () => {
     confirmButtonText: "Yes",
     cancelButtonText: "No",
   });
-
+  closeModalById("updateSubject");
   if (confirmationResult.isConfirmed) {
     isLoading.value = true;
     try {
@@ -483,8 +483,9 @@ const addSubject = async () => {
     Swal.fire("Error", "All fields are required", "error");
     return;
   }
-
+  closeModalById("addsubject");
   try {
+    isLoading.value = true;
     const response = await axios.post(
       `${baseURL}/api/professor/createSubject`,
       {
@@ -502,16 +503,20 @@ const addSubject = async () => {
     );
 
     if (response.status === 200) {
+      isLoading.value = false;
       Swal.fire("Success", "Subject added successfully!", "success");
+
       await fetchSubjects();
       subjectName.value = "";
       subjectCourseYearSection.value = "";
       subjectStartTime.value = "";
       subjectEndTime.value = "";
     } else {
+      isLoading.value = false;
       Swal.fire("Error", "Failed to add subject", "error");
     }
   } catch (error) {
+    isLoading.value = false;
     console.error("Error adding subject:", error);
     Swal.fire(
       "Error",

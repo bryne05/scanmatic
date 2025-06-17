@@ -3,12 +3,14 @@ import { useRouter } from "vue-router";
 import { ref, onMounted, computed } from "vue";
 import Swal from "sweetalert2";
 import { baseURL } from "../config";
-import axios, { all } from "axios";
+import axios from "axios"; // Removed ', all' as it's not used directly from axios import
 
 const router = useRouter();
 import { MoonLoader } from "vue3-spinner";
 
 const isLoading = ref(false);
+// Assuming 'loading' from a parent component, otherwise remove if not used
+// const loading = ref(false); // If loading isn't from parent, initialize here
 
 const token = localStorage.getItem("admintoken");
 
@@ -17,9 +19,12 @@ const searchQuery = ref("");
 const sortByProgram = ref(""); // To store the selected program for sorting
 const sortByValidated = ref(""); // To store the validated status for sorting
 
+// Computed property for total students count
+const totalStudentsCount = computed(() => allStudent.value.length);
+
 const validateStudent = async (data) => {
   const result = await Swal.fire({
-    title: "Do you want to approve this Student?", // Changed from Professor to Student
+    title: "Do you want to approve this Student?",
     icon: "question",
     showCancelButton: true,
     confirmButtonText: "Yes",
@@ -49,10 +54,10 @@ const validateStudent = async (data) => {
           showConfirmButton: false,
         });
 
-        // Update allStudent ref
+        // Update allStudent ref directly in the frontend
         const index = allStudent.value.findIndex((p) => p.stud_id === stud_id);
         if (index !== -1) {
-          allStudent.value[index].isValidated = true;
+          allStudent.value[index].isValidated = true; // Mark as validated
         }
       } else {
         Swal.fire({
@@ -69,6 +74,75 @@ const validateStudent = async (data) => {
         icon: "error",
       });
       console.error("Validation Error:", error);
+    }
+  }
+};
+
+// NEW FUNCTION: Decline Student
+const declineStudent = async (
+  stud_id,
+  first_name,
+  middle_name,
+  last_name,
+  courseYearSection
+) => {
+  const result = await Swal.fire({
+    title:
+      "Are you sure you want to DECLINE the account of\n " +
+      "<p style='color:red'>" +
+      ` ${courseYearSection} \n ${first_name} ${middle_name} ${last_name}` +
+      "</p>",
+    icon: "warning", // Use warning icon for decline/removal
+    showCancelButton: true,
+    confirmButtonText: "Yes, Decline and Remove",
+    cancelButtonText: "No, Keep",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      isLoading.value = true;
+      // Assuming your deleteStudent API endpoint handles both validated and non-validated students
+      const deleteStud = await axios.delete(
+        `${baseURL}/api/admin/deleteStudent/${stud_id}`, // Reusing deleteStudent API
+        {
+          headers: {
+            adminToken: `${token}`,
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }
+      );
+
+      if (deleteStud.status === 200) {
+        Swal.fire({
+          title: "Student Declined and Removed!",
+          text: "The student's account has been successfully removed.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        // Remove the student from the allStudent ref immediately
+        allStudent.value = allStudent.value.filter(
+          (s) => s.stud_id !== stud_id
+        );
+      } else {
+        Swal.fire({
+          title: "Error",
+          text:
+            deleteStud.data.message || "Failed to decline and remove student.",
+          icon: "error",
+        });
+        console.error("API Error:", deleteStud.data);
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: "An error occurred while declining and removing the student.",
+        icon: "error",
+      });
+      console.error("Decline Error:", error);
+    } finally {
+      isLoading.value = false;
     }
   }
 };
@@ -119,7 +193,7 @@ const resetPassword = async (
       title:
         "Are you sure you want to reset the password for \n " +
         "<p style='color:red'>" +
-        ` ${courseYearSection}  \n  ${first_name} ${middle_name} ${last_name}` +
+        ` ${courseYearSection} \n ${first_name} ${middle_name} ${last_name}` +
         "</p>",
       icon: "question",
       showCancelButton: true,
@@ -168,11 +242,12 @@ const deleteStudent = async (
   courseYearSection
 ) => {
   try {
-    const deleteStudent = await Swal.fire({
+    const deleteStudentConfirm = await Swal.fire({
+      // Renamed variable to avoid conflict
       title:
         "Are you sure you want to DELETE the account of\n " +
         "<p style='color:red'>" +
-        ` ${courseYearSection}  \n  ${first_name} ${middle_name} ${last_name}` +
+        ` ${courseYearSection} \n ${first_name} ${middle_name} ${last_name}` +
         "</p>",
       icon: "question",
       showCancelButton: true,
@@ -180,7 +255,8 @@ const deleteStudent = async (
       cancelButtonText: "No",
     });
 
-    if (deleteStudent.isConfirmed) {
+    if (deleteStudentConfirm.isConfirmed) {
+      // Used renamed variable
       isLoading.value = true;
       const deleteStud = await axios.delete(
         `${baseURL}/api/admin/deleteStudent/${stud_id}`,
@@ -193,14 +269,10 @@ const deleteStudent = async (
       );
 
       if (deleteStud.status === 200) {
-        const response = await axios.get(`${baseURL}/api/admin/getAllStudent`, {
-          headers: {
-            admintoken: `${token}`,
-            "ngrok-skip-browser-warning": "69420",
-          },
-        });
-
-        allStudent.value = response.data.students;
+        // Instead of re-fetching all students, filter out the deleted one
+        allStudent.value = allStudent.value.filter(
+          (s) => s.stud_id !== stud_id
+        );
         isLoading.value = false;
         Swal.fire({
           title: "Success",
@@ -220,6 +292,75 @@ const deleteStudent = async (
   }
 };
 
+// NEW FUNCTION: Download CSV
+const downloadCsv = () => {
+  if (allStudent.value.length === 0) {
+    Swal.fire({
+      title: "No Data to Download",
+      text: "There are no students in the list to download.",
+      icon: "info",
+    });
+    return;
+  }
+
+  // Define CSV headers (columns)
+  const headers = [
+    "Student ID",
+    "First Name",
+    "Middle Name",
+    "Last Name",
+    "Program Level",
+    "Validated",
+    "Date Registered",
+  ];
+
+  // Map student data to CSV rows
+  const rows = allStudent.value.map((student) => {
+    return [
+      student.stud_id,
+      student.first_name,
+      student.middle_name,
+      student.last_name,
+      student.courseYearSection,
+
+      student.isValidated ? "Yes" : "No", // Corrected field name here
+      new Date(student.createdAt).toLocaleDateString(),
+    ]
+      .map(
+        (field) =>
+          `"${
+            field !== null && field !== undefined
+              ? String(field).replace(/"/g, '""')
+              : ""
+          }"`
+      )
+      .join(",");
+  });
+
+  const csvContent = [headers.map((h) => `"${h}"`).join(","), ...rows].join(
+    "\n"
+  );
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", "student_data.csv");
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  Swal.fire({
+    title: "Download Complete!",
+    text: "Student data has been downloaded as CSV.",
+    icon: "success",
+    timer: 2000,
+    showConfirmButton: false,
+  });
+};
+
 const back = async () => {
   router.back();
 };
@@ -233,7 +374,9 @@ const filteredStudents = computed(() => {
 
     students = students.filter((student) => {
       // Create a full name string, converting all parts to lowercase and handling potential null/undefined names
-      const fullName = `${student.first_name || ''} ${student.middle_name || ''} ${student.last_name || ''}`.toLowerCase();
+      const fullName = `${student.first_name || ""} ${
+        student.middle_name || ""
+      } ${student.last_name || ""}`.toLowerCase();
 
       // Check if the normalized full name includes the normalized search query
       return fullName.includes(searchLower);
@@ -261,8 +404,8 @@ const filteredStudents = computed(() => {
 
 <template>
   <div class="bg">
-    <div v-if="loading || isLoading" class="loading-overlay">
-      <moon-loader :loading="loading || isLoading" color="white" size="150px" />
+    <div v-if="isLoading" class="loading-overlay">
+      <moon-loader :loading="isLoading" color="white" size="150px" />
     </div>
     <div v-else class="container">
       <div class="row">
@@ -271,13 +414,24 @@ const filteredStudents = computed(() => {
             <img src="../assets/return.png" alt="" width="28" height="40" />
           </button>
         </div>
-        <div class="col-6 text-end">
+        <div
+          class="col-6 text-end d-flex justify-content-end align-items-center"
+        >
+          <button type="button" class="btn btn-info me-2" @click="downloadCsv">
+         
+            Download CSV
+          </button>
           <button type="button" class="btn btn-danger" @click="logout">
             Logout
           </button>
         </div>
 
-        <div class="col-12 pt-3 text-center pd-3"><h1>STUDENT LIST</h1></div>
+        <div class="col-12 pt-3 text-center pd-3">
+          <h1>STUDENT LIST</h1>
+          <p class="total-students-count">
+            Total Students: <strong>{{ totalStudentsCount }}</strong>
+          </p>
+        </div>
 
         <div class="col-12 mb-3">
           <div class="row">
@@ -338,14 +492,29 @@ const filteredStudents = computed(() => {
 
                   <td>{{ students.courseYearSection }}</td>
                   <td>
-                    <button
-                      class="btn btn-success"
-                      v-if="!students.isValidated"
-                      @click="validateStudent(students.stud_id)"
-                    >
-                      Approve
-                    </button>
-                    <span v-else>Approved</span>
+                    <template v-if="!students.isValidated">
+                      <button
+                        class="btn btn-success me-2"
+                        @click="validateStudent(students.stud_id)"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        class="btn btn-warning"
+                        @click="
+                          declineStudent(
+                            students.stud_id,
+                            students.first_name,
+                            students.middle_name,
+                            students.last_name,
+                            students.courseYearSection
+                          )
+                        "
+                      >
+                        Decline
+                      </button>
+                    </template>
+                    <span v-else class="text-success fw-bold">Approved</span>
                   </td>
                   <td>
                     <button

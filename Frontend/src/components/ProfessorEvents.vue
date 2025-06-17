@@ -104,7 +104,7 @@
   <div></div>
 
   <div
-    class="modal fade"
+    class="modal"
     id="addsubject"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -183,7 +183,7 @@
   </div>
 
   <div
-    class="modal fade"
+    class="modal"
     id="updateSubject"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -426,6 +426,7 @@ import { useEventData } from "../composables/useEventData";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { MoonLoader } from "vue3-spinner";
+import { Modal } from "bootstrap";
 
 const isLoading = ref(false);
 const router = useRouter();
@@ -454,6 +455,11 @@ const updateSubjectEndTime = ref("");
 
 // Search functionality
 const searchQuery = ref("");
+function closeModalById(id) {
+  const el = document.getElementById(id);
+  const modal = Modal.getInstance(el) || new Modal(el);
+  modal.hide();
+}
 
 const filteredProfessorEvents = computed(() => {
   let events = [...professorEvent.value]; // Create a copy to avoid mutating the original
@@ -516,6 +522,7 @@ const updateSubject = async () => {
     confirmButtonText: "Yes",
     cancelButtonText: "No",
   });
+  closeModalById("updateSubject");
 
   if (confirmationResult.isConfirmed) {
     isLoading.value = true;
@@ -577,6 +584,9 @@ const addSubject = async () => {
   console.log(subjectName.value);
   console.log(subjectStartTime.value);
   console.log(subjectEndTime.value);
+  closeModalById("addsubject");
+
+  isLoading.value = true;
   try {
     const response = await axios.post(
       `${baseURL}/api/professor/createEvent`,
@@ -594,6 +604,8 @@ const addSubject = async () => {
     );
 
     if (response.status === 200) {
+      isLoading.value = false;
+
       Swal.fire("Success", "Event added successfully!", "success");
       await fetchEvent();
       subjectName.value = "";
@@ -601,9 +613,13 @@ const addSubject = async () => {
       subjectStartTime.value = "";
       subjectEndTime.value = "";
     } else {
+      isLoading.value = false;
+
       Swal.fire("Error", "Failed to add subject", "error");
     }
   } catch (error) {
+    isLoading.value = false;
+
     console.error("Error adding subject:", error);
     Swal.fire("Error", "Subject with that name is already Existing", "error");
   }

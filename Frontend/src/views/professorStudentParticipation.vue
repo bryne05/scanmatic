@@ -22,7 +22,21 @@
             Hover over student's name, then click to view their detailed
             individual participation.
           </p>
-          <h1></h1>
+          <p class="text-center" style="font-size: 18px">
+            Number of Class Sessions: <b>{{ uniqueSessions.length }}</b>
+          </p>
+          <span
+            class="text-center d-flex justify-content-end align-items-center align-middle"
+            ><b>LEGENDS </b>
+            <div class="legend-item me-3">
+              <div class="attendance-box bg-success"></div>
+              <span>= Present</span>
+            </div>
+            <div class="legend-item">
+              <div class="attendance-box bg-danger"></div>
+              <span>= Absent</span>
+            </div>
+          </span>
         </div>
 
         <div class="col-12 pt-4">
@@ -158,27 +172,39 @@
               </label>
             </div>
 
-            <table class="table my-table" style="height: 100px !important">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Time In</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(detail, index) in filteredAttendanceDetails"
-                  :key="index"
-                >
-                  <td>{{ detail.date }}</td>
-                  <td>{{ detail.time }}</td>
-                  <td>{{ detail.status }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="d-flex justify-content-center gap-4 mb-3">
+              <span>Present: {{ totalPresentCount }}</span>
+              <span>Absent: {{ totalAbsentCount }}</span>
+            </div>
 
-            <button class="btnsyle" @click="closeModal">Close</button>
+            <div class="my-table-container">
+              <table class="table my-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Time In</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(detail, index) in filteredAttendanceDetails"
+                    :key="index"
+                  >
+                    <td>{{ detail.date }}</td>
+                    <td>{{ detail.time }}</td>
+                    <td>{{ detail.status }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3 mt-3">
+              <button class="btnsyle" @click="closeModal">Close</button>
+              <button class="btnsyle" @click="downloadStudentCSV">
+                Download CSV
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -238,20 +264,41 @@ const downloadCSV = () => {
     return;
   }
 
-  let csvContent = "Student Name,";
+  let csvContent = "";
+
+  // Calculate total number of classes (sessions)
+  const totalClasses = uniqueSessions.value.length;
+  csvContent += `Total Classes Session: ${totalClasses}\n`;
+
+  // Calculate overall present and absent counts for all students combined
+
+  // CSV Header: Now includes individual Present and Absent counts
   const dates = uniqueSessions.value.map((session) =>
     formatDate(session.createdAt)
   );
-  csvContent += dates.join(",") + "\n";
+  csvContent +=
+    "Student Name,Total Present,Total Absent," + dates.join(",") + "\n";
 
+  // Student Attendance Data with Individual Counts
   masterlistStudents.value.forEach((student) => {
-    let row = `${student.first_name} ${student.middle_name} ${student.last_name},`;
+    let studentPresentCount = 0;
+    let studentAbsentCount = 0;
+    let attendanceMarks = [];
+
     uniqueSessions.value.forEach((session) => {
-      row += isStudentPresent(student.stud_id, session.class_id)
-        ? "Present,"
-        : "Absent,";
+      if (isStudentPresent(student.stud_id, session.class_id)) {
+        studentPresentCount++;
+        attendanceMarks.push("Present");
+      } else {
+        studentAbsentCount++;
+        attendanceMarks.push("Absent");
+      }
     });
-    csvContent += row + "\n";
+
+    let row = `${student.first_name} ${student.middle_name} ${student.last_name},`;
+    row += `${studentPresentCount},${studentAbsentCount},`; // Add individual counts here
+    row += attendanceMarks.join(",") + "\n";
+    csvContent += row;
   });
 
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -261,6 +308,53 @@ const downloadCSV = () => {
   link.setAttribute(
     "download",
     `attendance_${subjectName.value.replace(/\s+/g, "_")}.csv`
+  );
+  Swal.fire({
+    position: "bottom-end",
+    icon: "success",
+    title: "Downloaded Successfully",
+    showConfirmButton: false,
+    timer: 1500,
+    toast: true,
+    width: "350px",
+    height: "auto",
+  });
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+// New function to download individual student's attendance CSV
+const downloadStudentCSV = () => {
+  if (
+    !attendanceDetails.value || // Check the unfiltered array
+    attendanceDetails.value.length === 0 // Check the unfiltered array
+  ) {
+    Swal.fire(
+      "No data to download",
+      "Please ensure there is data for this student to download.",
+      "info"
+    );
+    return;
+  }
+
+  let csvContent = `Student Name: ${fullName.value}\n`;
+  csvContent += `Present: ${totalPresentCount.value}\n`; // Use total present count
+  csvContent += `Absent: ${totalAbsentCount.value}\n`; // Use total absent count
+  csvContent += "Date,Time In,Status\n";
+
+  // Iterate over the unfiltered attendanceDetails for the CSV rows
+  attendanceDetails.value.forEach((detail) => {
+    csvContent += `${detail.date},${detail.time},${detail.status}\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute(
+    "download",
+    `${fullName.value.replace(/\s+/g, "_")}_attendance.csv`
   );
   Swal.fire({
     position: "bottom-end",
@@ -421,7 +515,7 @@ const showModal = (
   );
 
   // Remove duplicate sessions based on class_id
-  const uniqueSessions = Array.from(
+  const uniqueSessionsForModal = Array.from(
     new Map(
       filteredSessions.map((session) => [session.class_id, session])
     ).values()
@@ -449,12 +543,19 @@ const showModal = (
   };
 
   // Populate attendance details for the student in the filtered sessions
-  attendanceDetails.value = uniqueSessions
+  attendanceDetails.value = uniqueSessionsForModal
     .map((session) => {
       const attendance = getAttendanceForSession(session.class_id);
 
       // Only include the session in attendance details if the session courseYearSection matches the student's courseYearSection
-      if (session.class_courseYearSection === courseYearSection) {
+      // or if it's an open session and the student is in that courseYearSection
+      if (
+        session.class_courseYearSection === courseYearSection ||
+        (session.class_courseYearSection.trim() === "" &&
+          getEnrolledStudentsInSession(session.class_id).some(
+            (s) => s.student.stud_id === studentId
+          ))
+      ) {
         return {
           class_id: session.class_id, // Class ID
           date: new Date(session.createdAt).toLocaleDateString(), // Session date
@@ -483,6 +584,30 @@ const filteredAttendanceDetails = computed(() => {
       statusFilter.value === "" || detail.status === statusFilter.value;
     return dateMatch && statusMatch;
   });
+});
+
+// Computed property for present count
+const presentCount = computed(() => {
+  return filteredAttendanceDetails.value.filter(
+    (detail) => detail.status === "Present"
+  ).length;
+});
+
+const absentCount = computed(() => {
+  return filteredAttendanceDetails.value.filter(
+    (detail) => detail.status === "Absent"
+  ).length;
+});
+
+// NEW: Computed properties for TOTAL present and absent counts
+const totalPresentCount = computed(() => {
+  return attendanceDetails.value.filter((detail) => detail.status === "Present")
+    .length;
+});
+
+const totalAbsentCount = computed(() => {
+  return attendanceDetails.value.filter((detail) => detail.status === "Absent")
+    .length;
 });
 </script>
 
@@ -608,6 +733,15 @@ table.table-bordered td:first-child {
   border-radius: 5px;
   max-width: 800px;
   width: 100%;
+  max-height: 90vh; /* Set a maximum height for the modal content, using viewport height */
+  overflow-y: auto; /* Enable vertical scrolling if content exceeds max-height */
+}
+
+.my-table-container {
+  /* New class for the table wrapper */
+  max-height: 400px; /* Adjust this value as needed for the table's scrollable area */
+  overflow-y: auto;
+  width: 100%; /* Ensure it takes full width within the modal content */
 }
 
 .close-btn {
@@ -656,6 +790,16 @@ table.table-bordered td:first-child {
 }
 .tr {
   position: relative;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: black; /* Changed to black for better contrast on white background */
+}
+.legend-item .attendance-box {
+  margin-right: 8px; /* Space between box and text */
 }
 @media (max-width: 1050px) {
   .container-1 {

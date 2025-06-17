@@ -114,7 +114,7 @@
   </div>
 
   <div
-    class="modal fade"
+    class="modal"
     id="addsession"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -172,7 +172,7 @@
   </div>
 
   <div
-    class="modal fade"
+    class="modal"
     id="updateSession"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -250,7 +250,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { MoonLoader } from "vue3-spinner";
-
+import { Modal } from "bootstrap";
 import navbar from "../components/professorNavBar.vue";
 const isLoading = ref(true);
 const router = useRouter();
@@ -363,6 +363,11 @@ const setUpdateSession = (session) => {
   currentSessionToken.value = session.class_token;
   currentSessionExp.value = session.class_exp;
 };
+function closeModalById(id) {
+  const el = document.getElementById(id);
+  const modal = Modal.getInstance(el) || new Modal(el);
+  modal.hide();
+}
 
 const updateSubject = async () => {
   const confirmationResult = await Swal.fire({
@@ -375,6 +380,8 @@ const updateSubject = async () => {
   });
 
   if (confirmationResult.isConfirmed) {
+    closeModalById("updateSession");
+
     isLoading.value = true;
     try {
       const updatedData = {
@@ -431,6 +438,7 @@ const addSession = async () => {
     Swal.fire("Error", "All fields are required", "error");
     return;
   }
+  closeModalById("addsession");
 
   try {
     isLoading.value = true;
@@ -581,8 +589,6 @@ const goBack = () => {
 
   margin-bottom: 40px;
 }
-
-
 
 .text h2 {
   font-weight: bold;

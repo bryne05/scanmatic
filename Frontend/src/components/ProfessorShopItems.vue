@@ -127,7 +127,7 @@
   </div>
 
   <div
-    class="modal fade"
+    class="modal"
     id="addItem"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -215,7 +215,7 @@
     </div>
   </div>
   <div
-    class="modal fade"
+    class="modal"
     id="updateItem"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -315,6 +315,7 @@ import { baseURL } from "../config";
 import Swal from "sweetalert2";
 import { useShopData } from "../composables/useShopData";
 import { useRouter } from "vue-router";
+import { Modal } from "bootstrap";
 
 import { MoonLoader } from "vue3-spinner";
 
@@ -357,6 +358,11 @@ const uniqueFilterPrograms = computed(() => {
   });
   return Array.from(programs).sort();
 });
+function closeModalById(id) {
+  const el = document.getElementById(id);
+  const modal = Modal.getInstance(el) || new Modal(el);
+  modal.hide();
+}
 
 // Combined filtered and sorted items
 const filteredShopItems = computed(() => {
@@ -513,7 +519,7 @@ const updateItem = async () => {
     confirmButtonText: "Yes",
     cancelButtonText: "No",
   });
-
+  closeModalById("updateItem");
   if (confirmationResult.isConfirmed) {
     isLoading.value = true;
     try {
@@ -577,6 +583,7 @@ const addItem = async () => {
     Swal.fire("Error", "All fields are required", "error");
     return;
   }
+  closeModalById("addItem");
   isLoading.value = true;
   try {
     const response = await axios.post(

@@ -8,6 +8,7 @@ import { useShopData } from "../composables/useShopData";
 import { useSubjectData } from "../composables/useSubjectData";
 import navbar from "../components/professorNavBar.vue";
 import { MoonLoader } from "vue3-spinner";
+import { Modal } from "bootstrap";
 
 const isLoading = ref(false);
 const { clearStateDataProfessor } = useShopData();
@@ -21,6 +22,12 @@ const middleName = ref("");
 const lastName = ref("");
 const newPass = ref("");
 const confirmPass = ref("");
+
+function closeModalById(id) {
+  const el = document.getElementById(id);
+  const modal = Modal.getInstance(el) || new Modal(el);
+  modal.hide();
+}
 
 const updatePassword = async () => {
   if (!newPass.value || !confirmPass.value) {
@@ -40,7 +47,7 @@ const updatePassword = async () => {
     confirmButtonText: "Yes",
     cancelButtonText: "No",
   });
-
+  closeModalById("changePassword");
   if (confirmationResult.isConfirmed) {
     if (newPass.value === confirmPass.value) {
       isLoading.value = true;
@@ -98,6 +105,7 @@ const updateProfessor = async () => {
   });
 
   if (confirmationResult.isConfirmed) {
+    closeModalById("updateProfessor");
     isLoading.value = true;
     try {
       const updatedData = {
@@ -257,7 +265,7 @@ const logout = async () => {
 
   <!-- Update Modal -->
   <div
-    class="modal fade"
+    class="modal"
     id="updateProfessor"
     tabindex="-1"
     aria-labelledby="addCategory"
@@ -332,7 +340,7 @@ const logout = async () => {
 
   <!-- Change Password -->
   <div
-    class="modal fade"
+    class="modal"
     id="changePassword"
     tabindex="-1"
     aria-labelledby="changePassword"
