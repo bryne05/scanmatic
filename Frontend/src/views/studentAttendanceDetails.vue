@@ -89,8 +89,8 @@
             showSubjectAttendance(subject.subject_id, subject.subject_name)
           "
         >
-          <div class="col-2">
-            <div class="streak d-flex">
+          <div class="col-3">
+            <div class="streak d-flex justify-content-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="32"
@@ -120,7 +120,7 @@
               </h6>
             </div>
           </div>
-          <div class="col-5">
+          <div class="col-5 text-start">
             <h4>{{ subject.subject_name }}</h4>
           </div>
           <div class="col-4">
@@ -332,7 +332,6 @@ const showSubjectAttendance = (subjectID, subjectName) => {
   // Calculate Total Classes for display in the Swal (optional, but good for completeness)
   const totalClasses = presentCount + absentCount;
 
-
   let tableHTML = `
     <input style="color:black; background-color:white; border: 1px solid gray; width:400px;height:50px; margin-top:5px;" type="text" id="date-search" placeholder="Search by date Ex: m/d/yyyy"/>
     <table class="table my-table">
@@ -406,7 +405,7 @@ const showSubjectAttendance = (subjectID, subjectName) => {
         csvContent += `Summary:\n`;
         csvContent += `Longest Streak:,${longestStreak} Consecutive Days\n`;
         csvContent += `Times Attended:,${presentCount}\n`; // Include present count
-        csvContent += `Times Absent:,${absentCount}\n`;   // Include absent count
+        csvContent += `Times Absent:,${absentCount}\n`; // Include absent count
         csvContent += `Total Classes:,${totalClasses}\n`; // Include total classes
 
         const blob = new Blob([csvContent], {
@@ -438,8 +437,6 @@ const showSubjectAttendance = (subjectID, subjectName) => {
     attendanceDetails
   );
 };
-
-
 
 const goBack = () => {
   router.back();
@@ -508,8 +505,8 @@ const goBack = () => {
 }
 
 .attendance-icon {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
 }
 @media (max-width: 366px) {
   .bg-white {
@@ -530,8 +527,7 @@ const goBack = () => {
 }
 
 @media (max-width: 768px) {
- 
-  .my-card{
+  .my-card {
     width: 380px !important;
   }
 }

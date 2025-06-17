@@ -26,8 +26,8 @@
             Number of Class Sessions: <b>{{ uniqueSessions.length }}</b>
           </p>
           <span
-            class="text-center d-flex justify-content-end align-items-center align-middle"
-            ><b>LEGENDS </b>
+            class="text-center d-flex justify-content-center align-items-center align-middle"
+            ><b>LEGENDS: </b>
             <div class="legend-item me-3">
               <div class="attendance-box bg-success"></div>
               <span>= Present</span>

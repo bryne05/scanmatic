@@ -292,7 +292,7 @@ const deleteStudent = async (
   }
 };
 
-// NEW FUNCTION: Download CSV
+//Download CSV
 const downloadCsv = () => {
   if (allStudent.value.length === 0) {
     Swal.fire({
@@ -305,7 +305,6 @@ const downloadCsv = () => {
 
   // Define CSV headers (columns)
   const headers = [
-    "Student ID",
     "First Name",
     "Middle Name",
     "Last Name",
@@ -317,7 +316,6 @@ const downloadCsv = () => {
   // Map student data to CSV rows
   const rows = allStudent.value.map((student) => {
     return [
-      student.stud_id,
       student.first_name,
       student.middle_name,
       student.last_name,
@@ -337,9 +335,13 @@ const downloadCsv = () => {
       .join(",");
   });
 
-  const csvContent = [headers.map((h) => `"${h}"`).join(","), ...rows].join(
-    "\n"
-  );
+  // Add the total number of students to the CSV content
+  const totalStudentsLine = `Total Students: ${totalStudentsCount.value}`;
+  const csvContent = [
+    totalStudentsLine,
+    headers.map((h) => `"${h}"`).join(","),
+    ...rows,
+  ].join("\n");
 
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
@@ -418,7 +420,6 @@ const filteredStudents = computed(() => {
           class="col-6 text-end d-flex justify-content-end align-items-center"
         >
           <button type="button" class="btn btn-info me-2" @click="downloadCsv">
-         
             Download CSV
           </button>
           <button type="button" class="btn btn-danger" @click="logout">

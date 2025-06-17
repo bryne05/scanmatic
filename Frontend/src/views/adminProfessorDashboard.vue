@@ -336,7 +336,6 @@ const downloadCSV = () => {
   }
 
   const headers = [
-    "Professor ID",
     "First Name",
     "Middle Name",
     "Last Name",
@@ -346,7 +345,6 @@ const downloadCSV = () => {
 
   const csvRows = professors.map((prof) => {
     return [
-      `"${prof.prof_id}"`,
       `"${prof.first_name}"`,
       `"${prof.middle_name}"`,
       `"${prof.last_name}"`,
@@ -355,7 +353,11 @@ const downloadCSV = () => {
     ].join(",");
   });
 
-  const csvContent = [headers.join(","), ...csvRows].join("\n");
+  // Add the total number of professors as the first line
+  const totalProfessorsLine = `Total Professors: ${professors.length}`;
+  const csvContent = [totalProfessorsLine, headers.join(","), ...csvRows].join(
+    "\n"
+  );
 
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
